@@ -1,32 +1,25 @@
 # API Reference — SautiLink Cloud Engine
 
-Base URL: `https://cloudengine.sautilink.com`
-
 ## `GET /api/email?domain=example.com&selector=`
 
-MX + SPF + DMARC + DKIM via Cloudflare DoH.
+Returns `mx`, `spf`, `dmarc`, `dkim`, and **`score`** (model **v1.0**).
 
-**Query:**
+### Score object
 
-| Param | Required | Description |
-|-------|----------|-------------|
-| `domain` | yes | Public domain name |
-| `selector` | no | DKIM selector (DNS label). If omitted, heuristic discovery runs |
+| Field | Description |
+|-------|-------------|
+| `total` / `max` / `percentage` | Integers, 0–100 |
+| `grade` | A–F |
+| `label` | Excellent / Good / Fair / Weak / Poor |
+| `version` | `"1.0"` |
+| `categories` | Per-area `{ score, max, reasons[] }` |
+| `findings` | `{ code, severity, category, title, message }` |
+| `recommendations` | `{ code, priority, category, title, message }` |
 
-**DKIM (`data.dkim`):**
+**Weights:** MX 15 · SPF 25 · DMARC 35 · DKIM 25 = 100.
 
-- **Explicit:** only `selector._domainkey.domain` is queried; `confidence: "explicit"`
-- **Heuristic:** up to **25** common selectors; stops at first found record; `confidence: "heuristic"`
-- `found: false` → `valid: null` (not determined), never claimed as “no DKIM on domain” for heuristic mode
-- Empty `p=` → `revoked: true`, selector exists but key deactivated
-- Missing `p` tag → `valid: false`, `MISSING_PUBLIC_KEY`
-- Multiple candidate TXT → `MULTIPLE_DKIM_RECORDS`
-- **Does not** verify message signatures — DNS public-key record inspection only
+**Grades:** 90–100 A · 80–89 B · 70–79 C · 60–69 D · 0–59 F.
 
-**Selector validation:** DNS label, max 63 chars; no paths, protocols, dots, or whitespace.
+Score is a **configuration assessment**, not a guarantee of email security. Pure computation on analyzer output (no extra DNS).
 
-MX / SPF / DMARC semantics unchanged (backwards compatible).
-
-**Caching:** success `public, max-age=30`.
-
-Other endpoints: `/api/health`, `/api/dns`, `/api/http-status` — see prior phases.
+DKIM heuristic non-detection scores as not detected (0 DKIM points) without claiming DKIM is impossible on the domain.

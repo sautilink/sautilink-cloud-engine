@@ -1,5 +1,5 @@
 /**
- * Email Infrastructure Checker UI — MX + SPF + DMARC + DKIM
+ * Email Infrastructure Checker UI — MX + SPF + DMARC + DKIM + score
  */
 
 function escapeHtml(str) {
@@ -40,6 +40,60 @@ function setBadge(el, text, state) {
   if (!el) return;
   el.textContent = text;
   el.className = "state-badge" + (state ? ` ${state}` : "");
+}
+
+function renderScore(score) {
+  if (!score) return;
+  const totalEl = document.getElementById("score-total");
+  const gradeEl = document.getElementById("score-grade");
+  const labelEl = document.getElementById("score-label");
+  const bar = document.getElementById("score-bar");
+  const fill = document.getElementById("score-bar-fill");
+  const ver = document.getElementById("score-version");
+  const cats = document.getElementById("score-cats");
+  const findings = document.getElementById("findings-list");
+  const recs = document.getElementById("recs-list");
+
+  if (totalEl) totalEl.textContent = `${score.total} / ${score.max}`;
+  if (gradeEl) gradeEl.textContent = score.grade || "";
+  if (labelEl) labelEl.textContent = score.label || "";
+  if (ver) ver.textContent = `Score model v${score.version || "1.0"} · configuration assessment, not a security guarantee`;
+  if (bar && fill) {
+    const pct = Math.max(0, Math.min(100, score.percentage ?? score.total ?? 0));
+    bar.setAttribute("aria-valuenow", String(pct));
+    fill.style.width = `${pct}%`;
+  }
+  if (cats && score.categories) {
+    cats.innerHTML = ["mx", "spf", "dmarc", "dkim"]
+      .map((k) => {
+        const c = score.categories[k];
+        if (!c) return "";
+        return `<li><span class="cat-name">${escapeHtml(k.toUpperCase())}</span> <span class="cat-score">${c.score} / ${c.max}</span></li>`;
+      })
+      .join("");
+  }
+  if (findings) {
+    const list = Array.isArray(score.findings) ? score.findings : [];
+    findings.innerHTML = list.length
+      ? list
+          .map((f) => {
+            const sev = f.severity || "info";
+            return `<li class="finding ${escapeHtml(sev)}"><strong>${escapeHtml(f.title || f.code)}</strong> — ${escapeHtml(f.message || "")}</li>`;
+          })
+          .join("")
+      : `<li class="finding info">No findings.</li>`;
+  }
+  if (recs) {
+    const list = Array.isArray(score.recommendations) ? score.recommendations : [];
+    recs.innerHTML = list.length
+      ? list
+          .map(
+            (r) =>
+              `<li><strong>${escapeHtml(r.title || r.code)}</strong> <span class="rec-pri">(${escapeHtml(r.priority || "")})</span> — ${escapeHtml(r.message || "")}</li>`
+          )
+          .join("")
+      : `<li>No recommendations.</li>`;
+  }
 }
 
 function renderMx(mx) {
@@ -127,9 +181,6 @@ function renderDkim(dkim) {
     if (dkim?.warnings?.length) {
       body.innerHTML += `<ul class="warn-list">${dkim.warnings.map((w) => `<li>${escapeHtml(w)}</li>`).join("")}</ul>`;
     }
-    if (dkim?.checkedSelectors?.length) {
-      body.innerHTML += `<p class="spf-record-label">Checked selectors</p><p class="empty-note"><code>${escapeHtml(dkim.checkedSelectors.join(", "))}</code></p>`;
-    }
     return;
   }
 
@@ -144,52 +195,21 @@ function renderDkim(dkim) {
     <div><dt>Selector</dt><dd><code>${escapeHtml(dkim.selector || "—")}</code></dd></div>
     <div><dt>Confidence</dt><dd><code>${escapeHtml(dkim.confidence || "—")}</code></dd></div>
     <div><dt>Key type</dt><dd><code>${escapeHtml(dkim.keyType || "—")}</code></dd></div>
-    <div><dt>Version</dt><dd><code>${escapeHtml(dkim.version || "—")}</code></dd></div>
     <div><dt>Valid key record</dt><dd><code>${dkim.valid ? "yes" : "no"}</code></dd></div>
-    <div><dt>Revoked</dt><dd><code>${dkim.revoked ? "yes" : "no"}</code></dd></div>
   </dl>`;
-
-  if (dkim.record) {
-    html += `<p class="spf-record-label">Record</p><pre class="spf-record"><code>${escapeHtml(dkim.record)}</code></pre>`;
-  }
-
+  if (dkim.record) html += `<p class="spf-record-label">Record</p><pre class="spf-record"><code>${escapeHtml(dkim.record)}</code></pre>`;
   if (key) {
-    html += `<p class="spf-record-label">Public key (DNS p=)</p>
-      <pre class="spf-record dkim-key" data-full="${escapeHtml(key)}"><code class="dkim-key-short">${escapeHtml(truncated)}</code></pre>`;
-    if (key.length > 80) {
-      html += `<button type="button" class="btn btn-secondary btn-small" id="dkim-show-key">Show full key</button>`;
-    }
+    html += `<p class="spf-record-label">Public key</p><pre class="spf-record"><code>${escapeHtml(truncated)}</code></pre>`;
   }
-
-  if (dkim.checkedSelectors?.length) {
-    html += `<p class="spf-record-label">Checked selectors</p><p class="empty-note"><code>${escapeHtml(dkim.checkedSelectors.join(", "))}</code></p>`;
-  }
-
-  if (dkim.warnings?.length) {
-    html += `<p class="spf-record-label">Notes</p><ul class="warn-list">${dkim.warnings.map((w) => `<li>${escapeHtml(w)}</li>`).join("")}</ul>`;
-  }
-
-  html += `<p class="empty-note dkim-disclaimer">DNS public-key inspection only — message signatures are not verified.</p>`;
-
+  html += `<p class="empty-note dkim-disclaimer">DNS public-key inspection only — signatures are not verified.</p>`;
   body.innerHTML = html;
-
-  const btn = document.getElementById("dkim-show-key");
-  if (btn) {
-    btn.addEventListener("click", () => {
-      const pre = body.querySelector(".dkim-key");
-      const code = body.querySelector(".dkim-key-short");
-      if (pre && code) {
-        code.textContent = pre.getAttribute("data-full") || "";
-        btn.hidden = true;
-      }
-    });
-  }
 }
 
 function renderResults(data) {
   const section = document.getElementById("email-results");
   const domainEl = document.getElementById("result-domain");
   if (domainEl) domainEl.textContent = data.domain;
+  renderScore(data.score);
   renderMx(data.mx);
   renderSpf(data.spf);
   renderDmarc(data.dmarc);
@@ -202,10 +222,7 @@ async function runCheck(domain, selector) {
   const results = document.getElementById("email-results");
 
   setError("");
-  setStatus(
-    selector ? `Checking email + DKIM selector “${selector}”…` : "Checking MX, SPF, DMARC, and DKIM…",
-    "loading"
-  );
+  setStatus("Analyzing email infrastructure and score…", "loading");
   if (results) results.hidden = true;
   if (submit) {
     submit.disabled = true;

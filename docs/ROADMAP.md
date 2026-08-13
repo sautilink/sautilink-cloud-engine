@@ -1,13 +1,10 @@
-# Roadmap — SautiLink Cloud Engine
+# Roadmap
 
 ## Completed
-- Phase 1–4: Foundation, DNS, API hardening, HTTP status
-- Phase 5A: MX + SPF
-- Phase 5B: DMARC
-- Phase 5C: DKIM (explicit + heuristic discovery)
+- Phases 1–4 foundation / DNS / hardening / HTTP status
+- Phase 5A–5C: MX, SPF, DMARC, DKIM
+- Phase 5D: Email Security Score v1.0
 
 ## Not started
-- Email Security Score
-- Recursive SPF / lookup budget
-- Phase 6+ website/security/infrastructure tools
+- Phase 6+ additional tools
 - Telegram Bot

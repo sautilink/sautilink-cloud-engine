@@ -1,4 +1,4 @@
-/* Email Infrastructure Checker */
+/* Email Infrastructure Checker + score */
 .tool-page { padding: 2.5rem 0 3.5rem; min-height: calc(100vh - var(--header-h) - 120px); }
 .tool-layout { max-width: 800px; }
 .tool-header { margin-bottom: 1.75rem; }
@@ -39,9 +39,37 @@
 }
 .email-card-header h2 { margin: 0; font-size: 1.05rem; font-weight: 600; }
 
+.score-card { border-color: rgba(59, 130, 246, 0.25); }
+.score-hero { text-align: center; margin-bottom: 1rem; }
+.score-kicker { margin: 0 0 0.35rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); }
+.score-total { margin: 0; font-size: 2.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.score-grade { margin: 0.25rem 0 0; font-size: 1.5rem; font-weight: 700; color: var(--accent-hover); }
+.score-label { margin: 0.15rem 0 0.75rem; color: var(--text-muted); }
+.score-bar {
+  height: 0.55rem; border-radius: 999px; background: rgba(148, 163, 184, 0.2);
+  overflow: hidden; max-width: 280px; margin: 0 auto;
+}
+.score-bar-fill { height: 100%; width: 0; background: var(--accent); border-radius: 999px; transition: width 0.3s ease; }
+.score-version { margin: 0.75rem 0 0; font-size: 0.75rem; color: var(--text-dim); }
+.score-cats {
+  list-style: none; margin: 0; padding: 0.75rem 0 0; border-top: 1px solid var(--border-subtle);
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem 1rem;
+}
+.score-cats li { display: flex; justify-content: space-between; font-size: 0.9rem; }
+.cat-name { color: var(--text-muted); font-weight: 600; }
+.cat-score { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+.findings-list, .recs-list { margin: 0; padding-left: 1.15rem; font-size: 0.9rem; color: var(--text-muted); }
+.findings-list li, .recs-list li { margin-bottom: 0.45rem; }
+.finding.success strong { color: #4ade80; }
+.finding.warning strong { color: #fbbf24; }
+.finding.error strong { color: #f87171; }
+.finding.info strong { color: #94a3b8; }
+.rec-pri { font-size: 0.8rem; color: var(--text-dim); }
+
 .state-badge {
   display: inline-block; padding: 0.2rem 0.55rem; border-radius: 999px;
-  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em;
+  font-size: 0.75rem; font-weight: 600;
   background: rgba(148, 163, 184, 0.2); color: #cbd5e1;
 }
 .state-badge.ok { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
@@ -54,7 +82,7 @@
   text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;
   color: var(--text-dim); padding: 0.35rem 0.5rem 0.5rem 0; border-bottom: 1px solid var(--border-subtle);
 }
-.mx-table td { padding: 0.45rem 0.5rem 0.45rem 0; border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+.mx-table td { padding: 0.45rem 0.5rem 0.45rem 0; border-bottom: 1px solid var(--border-subtle); }
 .mx-table .prio { width: 5rem; font-variant-numeric: tabular-nums; color: var(--text-muted); }
 .mx-table code { font-family: var(--mono); font-size: 0.85rem; word-break: break-all; }
 
@@ -65,7 +93,6 @@
 .spf-meta dt { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); margin: 0 0 0.15rem; }
 .spf-meta dd { margin: 0; }
 .spf-meta code { font-family: var(--mono); font-size: 0.85rem; color: var(--text); }
-
 .spf-record-label {
   margin: 0.75rem 0 0.35rem; font-size: 0.75rem; text-transform: uppercase;
   letter-spacing: 0.04em; color: var(--text-dim);
@@ -74,18 +101,13 @@
   margin: 0; padding: 0.75rem 0.9rem; border-radius: var(--radius-sm);
   background: var(--bg); border: 1px solid var(--border-subtle); overflow-x: auto;
 }
-.spf-record code {
-  font-family: var(--mono); font-size: 0.8rem; color: var(--text); white-space: pre-wrap; word-break: break-word;
-}
-
-.mech-list, .warn-list { margin: 0; padding-left: 1.15rem; font-size: 0.875rem; color: var(--text-muted); }
-.mech-list code { font-family: var(--mono); font-size: 0.8rem; color: var(--text); }
-.warn-list li { margin-bottom: 0.35rem; }
+.spf-record code { font-family: var(--mono); font-size: 0.8rem; color: var(--text); white-space: pre-wrap; word-break: break-word; }
+.warn-list { margin: 0; padding-left: 1.15rem; font-size: 0.875rem; color: var(--text-muted); }
 .empty-note { margin: 0; font-size: 0.9rem; color: var(--text-dim); }
 .dkim-disclaimer { margin-top: 0.75rem; font-size: 0.8rem; }
-.btn-small { margin-top: 0.5rem; font-size: 0.8rem; padding: 0.35rem 0.65rem; }
 
 @media (max-width: 560px) {
   .tool-input-row { flex-direction: column; }
   .tool-input-row .btn { width: 100%; }
+  .score-cats { grid-template-columns: 1fr; }
 }

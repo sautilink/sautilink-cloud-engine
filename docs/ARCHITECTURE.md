@@ -1,7 +1,5 @@
-# Architecture — SautiLink Cloud Engine
+# Architecture
 
-Email module (`src/tools/email/`): `mx.js`, `spf.js`, `dmarc.js`, `dkim.js`, `index.js`.
+Email: `src/tools/email/{mx,spf,dmarc,dkim,score,index}.js`.
 
-DKIM queries `selector._domainkey.<domain>` via shared `lookupDns`. Automatic discovery uses a fixed list (`COMMON_DKIM_SELECTORS`, max 25) and stops on first hit. Explicit `selector` query param skips discovery.
-
-All DNS uses Cloudflare DoH only.
+Flow: domain normalize → parallel DoH (MX/TXT, _dmarc TXT, DKIM) → analyzers → `calculateEmailSecurityScore` (pure, v1.0).
