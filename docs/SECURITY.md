@@ -1,3 +1,3 @@
 # Security
 
-Sitemap analyzer: same SSRF stack as HTTP status. Bounded size/URLs/children/deadline. DNS-rebinding TOCTOU remains a platform limitation.
+Website analyzer: same SSRF/DoH/redirect controls as HTTP status. HTML treated as untrusted data. DNS-rebinding TOCTOU remains a platform limitation.

@@ -1,3 +1,3 @@
 # Architecture
 
-Sitemap: `src/tools/sitemap/*` → `functions/api/sitemap.js`. Reuses `prepareUrl` + `assertUrlSafeToFetch`. Child sitemaps and robots `Sitemap:` refs are validated before fetch. No XXE.
+Website analyzer: `src/tools/website/*` → `functions/api/website.js`. Reuses `prepareUrl` + `assertUrlSafeToFetch`. Lightweight HTML tag extraction (no DOM library, no script execution).

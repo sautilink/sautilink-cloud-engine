@@ -2,7 +2,7 @@
 
 **Site:** https://cloudengine.sautilink.com
 
-Tools include DNS, HTTP status, Email, Headers, Robots, **Sitemap** (`/api/sitemap?url=`).
+Tools: DNS, HTTP status, Email, Headers, Robots, Sitemap, **Website** (`/api/website?url=`).
 
 ```bash
 npm install && npm run dev

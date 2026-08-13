@@ -1,8 +1,7 @@
 # Roadmap
 
 ## Completed
-- Through Phase 6C: Sitemap Analyzer
+- Through Phase 6D: Website SEO & Performance Analyzer
 
 ## Not started
-- Phase 6D+
-- Telegram Bot
+- Telegram Bot and later tools
