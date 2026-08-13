@@ -14,14 +14,8 @@
 | GET | `/api/ssl?url=` |
 | GET | `/api/audit?url=` |
 
-## `GET /api/audit?url=`
+Health uses a legacy schema without a top-level `success` field. All other listed tools use `{ success, data | error, requestId? }`.
 
-Orchestrates existing analyzers (HTTP status, headers, SSL, website, mobile, robots, DNS, email, sitemap) with:
+`/api/audit` limits: deadline 18s, analyzer timeout 9s, concurrency 3. Cache-Control: `no-store` on active-fetch tools.
 
-- global deadline **18s**
-- per-analyzer timeout **9s**
-- concurrency **3**
-
-Partial failures return `analyzers[id].status` of `timeout` / `error` / `deadline_skipped` without failing the whole audit.
-
-Unified Score **v1.0** renormalizes when categories are unavailable. Cache: `no-store`.
+See `docs/TESTING.md` for Phase 6H regression notes.

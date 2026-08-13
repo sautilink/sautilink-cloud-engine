@@ -2,8 +2,10 @@
 
 **Site:** https://cloudengine.sautilink.com
 
-**Website Audit:** `/api/audit?url=` — unified multi-analyzer report (bounded concurrency).
+Cloudflare Pages + Pages Functions platform for DNS, HTTP, email, headers, robots, sitemap, website, mobile, SSL/HTTPS configuration, and **unified audit**.
 
 ```bash
 npm install && npm run dev
 ```
+
+Regression notes: `docs/TESTING.md`

@@ -26,6 +26,18 @@ import {
 } from "./score.js";
 
 /**
+ * Score objects may use `total` (most tools) or `score` (headers security).
+ * @param {object|null|undefined} s
+ * @returns {number|null}
+ */
+function scoreValue(s) {
+  if (!s || typeof s !== "object") return null;
+  if (typeof s.total === "number") return s.total;
+  if (typeof s.score === "number") return s.score;
+  return null;
+}
+
+/**
  * @param {string} input
  */
 export async function runWebsiteAudit(input) {
@@ -243,9 +255,10 @@ function buildCategories(analyzers) {
   if (ok("headers")) {
     const d = get("headers").data;
     const s = d.security || d.score;
-    if (s && typeof s.total === "number") {
+    const val = scoreValue(s);
+    if (val != null) {
       security.available = true;
-      security.score = s.total;
+      security.score = val;
       security.sources = ["headers"];
       for (const f of s.findings || []) {
         const n = normalizeFinding(f, "headers", "security");
@@ -267,9 +280,10 @@ function buildCategories(analyzers) {
   };
   if (ok("website")) {
     const s = get("website").data.score;
-    if (s && typeof s.total === "number") {
+    const val = scoreValue(s);
+    if (val != null) {
       seo.available = true;
-      seo.score = s.total;
+      seo.score = val;
       seo.sources = ["website"];
       for (const f of s.findings || []) {
         const n = normalizeFinding(f, "website", "seo");
@@ -291,9 +305,10 @@ function buildCategories(analyzers) {
   };
   if (ok("mobile")) {
     const s = get("mobile").data.score;
-    if (s && typeof s.total === "number") {
+    const val = scoreValue(s);
+    if (val != null) {
       mobile.available = true;
-      mobile.score = s.total;
+      mobile.score = val;
       mobile.sources = ["mobile"];
       for (const f of s.findings || []) {
         const n = normalizeFinding(f, "mobile", "mobile");
@@ -355,9 +370,10 @@ function buildCategories(analyzers) {
   };
   if (ok("email")) {
     const s = get("email").data.score;
-    if (s && typeof s.total === "number") {
+    const val = scoreValue(s);
+    if (val != null) {
       email.available = true;
-      email.score = s.total;
+      email.score = val;
       email.sources = ["email"];
       for (const f of s.findings || []) {
         const n = normalizeFinding(f, "email", "email");
@@ -379,9 +395,10 @@ function buildCategories(analyzers) {
   };
   if (ok("ssl")) {
     const s = get("ssl").data.score;
-    if (s && typeof s.total === "number") {
+    const val = scoreValue(s);
+    if (val != null) {
       https.available = true;
-      https.score = s.total;
+      https.score = val;
       https.sources = ["ssl"];
       for (const f of s.findings || []) {
         const n = normalizeFinding(f, "ssl", "https");
@@ -405,8 +422,9 @@ function buildCategories(analyzers) {
     const parts = [];
     if (ok("robots")) {
       const s = get("robots").data.score;
-      if (s && typeof s.total === "number") {
-        parts.push(s.total);
+      const val = scoreValue(s);
+      if (val != null) {
+        parts.push(val);
         technical.sources.push("robots");
         for (const f of s.findings || []) {
           const n = normalizeFinding(f, "robots", "technical");
@@ -416,8 +434,9 @@ function buildCategories(analyzers) {
     }
     if (ok("sitemap")) {
       const s = get("sitemap").data.score;
-      if (s && typeof s.total === "number") {
-        parts.push(s.total);
+      const val = scoreValue(s);
+      if (val != null) {
+        parts.push(val);
         technical.sources.push("sitemap");
         for (const f of s.findings || []) {
           const n = normalizeFinding(f, "sitemap", "technical");

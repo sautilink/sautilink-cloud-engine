@@ -1,23 +1,15 @@
 # Architecture
 
+Cloudflare Pages + Pages Functions. Stateless. No database.
+
 ## Unified audit
 
 `src/tools/audit/*` → `functions/api/audit.js`
 
-Orchestration only — reuses existing tool modules. No duplicated SSRF.
+Limits: deadline 18s, per-analyzer 9s, concurrency 3, fixed analyzer list (no unbounded fan-out).
 
-### Network fan-out (approximate upper bound)
+Score objects from tools may expose `total` or `score` (headers uses `security.score`); the audit layer accepts both.
 
-| Analyzer | Typical outbound |
-|----------|------------------|
-| httpStatus | 1 HTTP + DoH |
-| headers | 1 HTTP + DoH |
-| ssl | 2 HTTP + DoH |
-| website | 1 HTML GET + DoH |
-| mobile | 1 HTML GET + DoH |
-| robots | 1 GET + DoH |
-| sitemap | 1+ GETs (capped) + DoH |
-| dns | ≤4 DoH |
-| email | multiple DoH (DKIM capped) |
+## Fan-out budget
 
-Concurrency 3 and 18s deadline limit simultaneous amplification.
+Documented in Phase 6G notes: concurrent analyzers capped at 3; each analyzer retains its own body/redirect/DoH caps.
