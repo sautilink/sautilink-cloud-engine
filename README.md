@@ -7,22 +7,22 @@ SautiLink Cloud Engine is a modern, cloud-powered toolkit for website analysis, 
 **Product site:** [https://cloudengine.sautilink.com](https://cloudengine.sautilink.com)  
 **Parent ecosystem:** SautiLink
 
-This repository contains the **web platform and API foundation**. The Telegram Bot (SautiLink Cloud Engine) will consume the same API later — business logic lives only in the Cloud Engine API.
+This repository contains the **web platform and API**. The Telegram Bot will consume the same API later — business logic lives only in the Cloud Engine API.
 
 ---
 
-## Current scope (Phase 1 — Foundation)
+## Current scope (Phase 2 — DNS Engine)
 
 - Polished, responsive homepage
-- Tool category UI with modular cards (Coming Soon markers)
+- Tool category UI with modular cards
+- **Live DNS Lookup** (`GET /api/dns` + `/tools/dns`) via DNS-over-HTTPS
 - Stateless architecture (no database, no auth, no accounts)
 - Cloudflare Pages + Pages Functions compatible
 - `GET /api/health` endpoint
 - Shared validation & response helpers
-- DNS tool module interface (implementation deferred — see Architecture)
 - Full documentation set
 
-**Not included yet:** individual tool backends, Telegram Bot, database, authentication, payments, advertising.
+**Not included yet:** remaining tool backends, Telegram Bot, database, authentication, payments, advertising.
 
 ---
 
@@ -34,75 +34,35 @@ sautilink-cloud-engine/
 │   ├── index.html
 │   ├── styles.css
 │   ├── app.js
-│   ├── robots.txt
-│   ├── sitemap.xml
-│   ├── site.webmanifest
-│   └── favicon/
+│   ├── tools/dns.*           # DNS Lookup UI
+│   └── …
 ├── functions/              # Cloudflare Pages Functions
 │   └── api/
-│       └── health.js       # GET /api/health
-├── src/                    # Shared logic (imported by Functions later)
-│   ├── tools/
-│   │   └── dns/
+│       ├── health.js           # GET /api/health
+│       └── dns.js              # GET /api/dns
+├── src/
+│   ├── tools/dns/             # DoH lookup module
 │   ├── utils/
-│   │   ├── response.js
-│   │   └── validation.js
 │   └── config/
-│       └── tools.js
 ├── docs/
-│   ├── ARCHITECTURE.md
-│   ├── API.md
-│   ├── DEVELOPMENT.md
-│   └── ROADMAP.md
 ├── package.json
 ├── wrangler.jsonc
-├── .gitignore
 └── README.md
 ```
-
----
-
-## Requirements
-
-- Node.js 18+
-- [Wrangler](https://developers.cloudflare.com/workers/wrangler/) (installed via `npm`)
 
 ---
 
 ## Local development
 
 ```bash
-# Install dependencies
 npm install
-
-# Start local Pages + Functions environment
 npm run dev
 ```
 
-Open the URL printed by Wrangler (typically `http://localhost:8788`).
-
 - Homepage: `/`
-- Health API: `/api/health`
-
-No build step is required for the static frontend.
-
----
-
-## Deploy to Cloudflare
-
-1. Connect the GitHub repository to **Cloudflare Pages**.
-2. Set:
-   - **Build command:** leave empty (or `npm run check`)
-   - **Build output directory:** `public`
-   - **Root directory:** `/` (repository root)
-3. Pages Functions are picked up automatically from the `functions/` directory.
-4. Custom domain: `cloudengine.sautilink.com` (configure DNS in the Cloudflare dashboard — not from this application).
-
-Alternatively from the CLI (after `npx wrangler login`):
-
-```bash
-npm run deploy
-```
+- Health: `/api/health`
+- DNS API: `/api/dns?domain=example.com`
+- DNS UI: `/tools/dns`
 
 ---
 
@@ -113,32 +73,33 @@ npm run deploy
 ```json
 {
   "status": "ok",
-  "service": "SautiLink Cloud Engine",
-  "timestamp": "2026-08-13T00:00:00.000Z"
+  "service": "SautiLink Cloud Engine"
 }
 ```
 
-No authentication. See [docs/API.md](docs/API.md) for the planned endpoint map.
+### `GET /api/dns?domain=example.com`
+
+Live DNS lookup (A, AAAA, CNAME, MX, NS, TXT) via Cloudflare DNS-over-HTTPS.
+
+```json
+{
+  "success": true,
+  "data": {
+    "domain": "example.com",
+    "records": { "A": ["..."], "AAAA": [], "CNAME": [], "MX": [], "NS": [], "TXT": [] }
+  }
+}
+```
+
+See [docs/API.md](docs/API.md).
 
 ---
 
-## Architecture principles
+## Limitations
 
-- **Stateless** — no database in Phase 1.
-- **Shared API** — web UI and future Telegram Bot use the same backend.
-- **Cloudflare-native** — Pages + Functions, Web APIs, no Node-only DNS libraries.
-- **Security-first** — input validation, domain normalization, SSRF guards, controlled errors.
-- **Modular tools** — add tools without rewriting the core.
-
-Full details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-
----
-
-## Limitations (current)
-
-- Individual tools are UI-only (Coming Soon).
-- DNS resolution is not implemented yet (Cloudflare runtime has no Node `dns` module; DoH approach documented).
-- No rate limiting enforced in code yet (documented for later).
+- Most tools remain Coming Soon (DNS Lookup is live).
+- DNS uses public DoH only (fixed Cloudflare resolver).
+- No application-level rate limiting yet (use Cloudflare dashboard rules if needed).
 - Telegram Bot not integrated.
 
 ---
