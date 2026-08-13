@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DNS Lookup — SautiLink Cloud Engine</title>
+  <meta name="description" content="Look up A, AAAA, CNAME, MX, NS and TXT DNS records for any domain with SautiLink Cloud Engine." />
+  <link rel="canonical" href="https://cloudengine.sautilink.com/tools/dns" />
+  <meta name="theme-color" content="#0b0f19" />
+  <meta name="robots" content="index, follow" />
+  <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="brand" aria-label="SautiLink Cloud Engine home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <span class="brand-name">SautiLink</span>
+          <span class="brand-product">Cloud Engine</span>
+        </span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/#tools" class="nav-link">Tools</a>
+        <a href="/#api" class="nav-link">API</a>
+        <a href="/#about" class="nav-link">About</a>
+      </nav>
+      <div class="header-actions">
+        <a href="/#tools" class="btn btn-secondary">All tools</a>
+        <button type="button" class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" id="nav-toggle">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="tool-page">
+    <div class="container tool-layout">
+      <header class="tool-header">
+        <p class="eyebrow">DNS &amp; Email</p>
+        <h1>DNS Lookup</h1>
+        <p class="tool-lead">
+          Query A, AAAA, CNAME, MX, NS and TXT records for a domain using DNS-over-HTTPS.
+        </p>
+      </header>
+
+      <form class="tool-form" id="dns-form" novalidate>
+        <label for="domain-input" class="field-label">Domain</label>
+        <div class="tool-input-row">
+          <input
+            type="text"
+            id="domain-input"
+            name="domain"
+            placeholder="example.com"
+            autocomplete="off"
+            spellcheck="false"
+            inputmode="url"
+            required
+            aria-describedby="domain-hint domain-error"
+          />
+          <button type="submit" class="btn btn-primary" id="dns-submit">Check DNS</button>
+        </div>
+        <p class="field-hint" id="domain-hint">Enter a domain name only — no https:// or paths.</p>
+        <p class="field-error" id="domain-error" role="alert" hidden></p>
+      </form>
+
+      <div class="tool-status" id="dns-status" hidden aria-live="polite"></div>
+
+      <section class="dns-results" id="dns-results" hidden>
+        <div class="dns-results-meta">
+          <h2>Results for <code id="result-domain"></code></h2>
+        </div>
+        <div class="dns-record-grid" id="dns-record-grid"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand"><span class="brand-name">SautiLink</span> Cloud Engine</div>
+      <p class="footer-note">A product of the SautiLink ecosystem. · Domain: cloudengine.sautilink.com</p>
+      <p class="footer-copy">&copy; <span id="year"></span> SautiLink. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="/tools/dns.js"></script>
+</body>
+</html>
