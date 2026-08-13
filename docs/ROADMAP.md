@@ -1,8 +1,7 @@
 # Roadmap
 
 ## Completed
-- Through Phase 6F: SSL/HTTPS configuration analyzer (observable only)
+- Through Phase 6G: Unified Website Audit Engine
 
 ## Not started
-- Full certificate transparency / external SSL APIs (not planned without explicit design)
 - Telegram Bot

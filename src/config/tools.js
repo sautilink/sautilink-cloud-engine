@@ -5,6 +5,7 @@ export const TOOL_CATEGORIES = [
     name: "Website & SEO",
     description: "Analyze sites, crawlers, performance and search readiness.",
     tools: [
+      { id: "audit", name: "Website Audit", description: "Unified multi-analyzer report for a public URL.", route: "/tools/audit", status: "available" },
       { id: "website", name: "Website SEO & Performance", description: "On-page SEO, structure, social tags, and request-level timing.", route: "/tools/website", status: "available" },
       { id: "http-status", name: "HTTP Status Checker", description: "Check response status codes and redirects.", route: "/tools/http-status", status: "available" },
       { id: "robots", name: "Robots.txt Analyzer", description: "Fetch and analyze robots.txt crawl rules.", route: "/tools/robots", status: "available" },

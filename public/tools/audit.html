@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Website Audit — SautiLink Cloud Engine</title>
+  <meta name="description" content="Unified website audit combining security, SEO, mobile, HTTPS, DNS, and email checks." />
+  <link rel="canonical" href="https://cloudengine.sautilink.com/tools/audit" />
+  <meta name="theme-color" content="#0b0f19" />
+  <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/tools/audit.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><span class="brand-name">SautiLink</span><span class="brand-product">Cloud Engine</span></span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/#tools" class="nav-link">Tools</a>
+        <a href="/#api" class="nav-link">API</a>
+      </nav>
+      <div class="header-actions">
+        <a href="/#tools" class="btn btn-secondary">All tools</a>
+        <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+  <main id="main" class="tool-page">
+    <div class="container tool-layout">
+      <header class="tool-header">
+        <p class="eyebrow">Unified report</p>
+        <h1>Website Audit</h1>
+        <p class="tool-lead">Orchestrates existing Cloud Engine analyzers into one report. Not a Google ranking score, penetration test, or Lighthouse run.</p>
+      </header>
+      <form class="tool-form" id="audit-form" novalidate>
+        <label for="url-input" class="field-label">Website URL</label>
+        <div class="tool-input-row">
+          <input type="url" id="url-input" placeholder="https://example.com" required />
+          <button type="submit" class="btn btn-primary" id="audit-submit">Run audit</button>
+        </div>
+        <p class="field-hint">Public http/https only. Bounded concurrency and deadline — some analyzers may time out.</p>
+        <p class="field-error" id="url-error" hidden></p>
+      </form>
+      <div class="tool-status" id="status" hidden></div>
+      <section id="results" hidden>
+        <article class="card score-card">
+          <div class="score-hero">
+            <p class="score-kicker">Unified audit score</p>
+            <p class="score-total" id="score-total">—</p>
+            <p class="score-grade" id="score-grade"></p>
+            <p class="score-label" id="score-label"></p>
+            <div class="score-bar" id="score-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="score-bar-fill" id="score-bar-fill"></div></div>
+            <p class="score-version" id="score-version"></p>
+          </div>
+        </article>
+        <article class="card"><h2>Categories</h2><ul class="score-cats" id="score-cats"></ul></article>
+        <article class="card"><h2>Analyzer status</h2><ul class="analyzer-list" id="analyzer-list"></ul></article>
+        <article class="card"><h2>Findings</h2><ul class="findings-list" id="findings-list"></ul></article>
+        <article class="card"><h2>Recommendations</h2><ol class="recs-list" id="recs-list"></ol></article>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer"><div class="container footer-inner"><p class="footer-copy">&copy; <span id="year"></span> SautiLink</p></div></footer>
+  <script type="module" src="/tools/audit.js"></script>
+</body>
+</html>

@@ -1,3 +1,3 @@
 # Security
 
-SSL analyzer reuses SSRF/DoH/redirect controls. Does not claim independent certificate validation beyond runtime acceptance of HTTPS fetch.
+`/api/audit` applies the same `prepareUrl` + `assertUrlSafeToFetch` gate before fan-out. Private/localhost targets return 403 without launching analyzers.
