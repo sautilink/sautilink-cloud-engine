@@ -21,7 +21,7 @@ export const TOOL_CATEGORIES = [
         name: "HTTP Status Checker",
         description: "Check response status codes and redirects.",
         route: "/tools/http-status",
-        status: "coming_soon",
+        status: "available",
       },
       {
         id: "robots",

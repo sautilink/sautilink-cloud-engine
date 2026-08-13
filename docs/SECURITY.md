@@ -6,9 +6,9 @@ This document describes application-level protections and the honest boundary be
 
 ## Threat model (current phase)
 
-- Public, unauthenticated read-mostly tools (DNS, health).
+- Public, unauthenticated read-mostly tools (DNS, health, HTTP status).
 - No user accounts, no secrets in client code, no database.
-- Primary risks: abuse (volume), invalid/malicious input, SSRF via future URL tools, information leakage in errors.
+- Primary risks: abuse (volume), invalid/malicious input, SSRF via outbound URL tools, information leakage in errors.
 
 ---
 
@@ -16,85 +16,58 @@ This document describes application-level protections and the honest boundary be
 
 | Control | Behavior |
 |---------|----------|
-| Input validation | Domains normalized; URLs/paths/localhost/private targets rejected for DNS |
-| Request size | Max URL length 2048; max query value 512 chars |
+| Input validation | Domains/URLs normalized; private targets rejected |
+| Request size | Max URL length 2048; max query value 2048 |
 | Method handling | Only GET and OPTIONS on tool endpoints; others → 405 |
 | Unknown API routes | JSON 404 (`NOT_FOUND`), not HTML |
 | Error responses | Structured `{ success, error: { code, message } }`; no stack traces |
-| Request ID | `X-Request-Id` on responses; echoed if client sends a valid one |
-| CORS | Allowlist: production origin + local Wrangler/dev ports; not `*` |
-| Security headers | `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, `Permissions-Policy` on API; CSP via `public/_headers` for static |
-| DNS upstream | Fixed Cloudflare DoH endpoint only; never fetches user-supplied URLs |
-| DNS timeouts | 8s per record type via `AbortController` |
+| Request ID | `X-Request-Id` on responses |
+| CORS | Allowlist: production origin + local Wrangler/dev ports |
+| Security headers | nosniff, referrer-policy, frame deny, permissions-policy; CSP on static |
+| DNS upstream | Fixed Cloudflare DoH endpoint only |
+| HTTP status upstream | Controlled `fetch` with SSRF gates (below) |
 
 ---
 
-## Rate limiting — important distinction
+## HTTP status checker — SSRF
 
-### What this repository does **not** claim
+Outbound requests are untrusted-input driven. Protections:
 
-There is **no** durable, globally consistent application-level rate limiter in code.
+1. **URL parse:** only `http:` / `https:`; reject credentials; length limit.
+2. **Hostname denylist:** `localhost`, `*.local`, `*.internal`, cloud metadata hostnames, etc.
+3. **IP literal checks:** IPv4/IPv6 private, loopback, link-local, CGNAT, multicast, reserved ranges (including IPv4-mapped IPv6).
+4. **Pre-fetch DNS:** resolve A/AAAA via Cloudflare DoH; reject if any answer is private/reserved.
+5. **Redirects:** `redirect: "manual"`; every `Location` re-validated (parse + hostname + DNS) up to 5 hops.
+6. **Timeout:** 8s hard limit via `AbortController`.
+7. **Body cap:** 64 KiB when GET fallback is used; HEAD preferred.
 
-Cloudflare Pages Functions run across many isolates. An in-memory `Map` of IP → counters:
+### DNS rebinding limitation (honest)
 
-- is not shared across isolates or data centers,
-- resets on isolate recycle,
-- cannot enforce a true global quota.
+Application code **cannot** pin the TCP connection to the exact address returned by DoH. Between resolution and `fetch()`, a hostile DNS server could change answers (TOCTOU / rebinding).
 
-Implementing such a map and calling it “production rate limiting” would be misleading.
+Cloudflare’s network still blocks many internal destinations at the platform layer, but that is not a substitute for application policy and is not fully controllable from this repository.
 
-### What to use for real global limits
+**Claimed protection level:** strong against static private IPs, localhost, metadata hostnames, and private DNS answers observed at check time. **Not** a perfect guarantee against sophisticated rebinding races.
 
-Configure **Cloudflare-native** controls in the dashboard (outside this repo):
+---
 
-1. **Rate limiting rules** (Security → Rate limiting) on paths such as `/api/dns*`
-2. **WAF custom rules** for abusive patterns
-3. Optional **Bot Fight Mode** / managed challenges if abuse appears
+## Rate limiting
 
-Recommended starting point for DNS (tune after observing traffic):
+There is **no** durable global application-level rate limiter in code (isolates do not share memory).
 
-- Path: `/api/dns*`
-- Threshold: e.g. 30–60 requests per minute per IP
-- Action: Block or Managed Challenge
-- Response: ensure clients can treat HTTP 429 as rate limited
-
-When dashboard rules return 429, clients should see that status. Application code may later map a platform 429 into `{ success: false, error: { code: "RATE_LIMITED", message: "..." } }` if a Workers binding or transform makes that practical; it is not required for this phase.
-
-### Application-level “soft” guards
-
-Request size limits and method restrictions reduce cheap abuse vectors but are **not** a substitute for edge rate limiting.
+Use Cloudflare dashboard Rate Limiting / WAF on `/api/dns*` and `/api/http-status*` before heavy traffic.
 
 ---
 
 ## CORS policy
 
-Allowed origins:
-
-- `https://cloudengine.sautilink.com`
-- `http://localhost:8788`, `8787`, `3000`
-- `http://127.0.0.1` with the same ports
-
-Same-origin fetches from the production site do not require CORS. Cross-origin browser clients only receive `Access-Control-Allow-Origin` when their `Origin` is on the allowlist.
-
-**Rationale for not using `*`:** future authenticated or cookie-based endpoints must not inherit a wildcard policy. Public unauthenticated tools still work for allowlisted frontends and non-browser clients (curl, Telegram server-side) which are not subject to CORS.
+Allowed origins: production `https://cloudengine.sautilink.com` and local Wrangler/dev ports. No wildcard.
 
 ---
 
 ## HTTP security headers
 
-### Static site (`public/_headers`)
-
-- `Content-Security-Policy`: `'self'` for scripts/styles; `connect-src 'self'` (API same-origin); `frame-ancestors 'none'`
-- `X-Content-Type-Options: nosniff`
-- `Referrer-Policy: strict-origin-when-cross-origin`
-- `X-Frame-Options: DENY`
-- `Permissions-Policy`: disable camera, microphone, geolocation
-
-**CSP exceptions:** none required today — no external CDNs, fonts, or analytics scripts. If a future tool needs an external script, document the exception here before relaxing CSP.
-
-### API responses
-
-Same baseline headers except CSP is primarily enforced on HTML documents.
+Static CSP is `'self'`-oriented via `public/_headers`. API responses reuse shared security headers from `src/utils/security.js`.
 
 ---
 
@@ -104,40 +77,22 @@ Same baseline headers except CSP is primarily enforced on HTML documents.
 |----------|---------|--------|
 | `/api/health` | `no-store` | `no-store` |
 | `/api/dns` | `public, max-age=30` | `no-store` |
+| `/api/http-status` | `no-store` | `no-store` |
 
-DNS answers change slowly enough that a 30-second browser/CDN cache is safe and reduces repeated DoH load. Errors are never cached aggressively.
-
-No KV or database is used for caching.
-
----
-
-## Request ID
-
-- Header: `X-Request-Id`
-- Generated with `crypto.randomUUID()` when the client does not send one
-- Included on error JSON as top-level `requestId` (tool endpoints)
-- **Not** authentication; never treat as a secret or capability token
+HTTP status is intentionally not cached: results change quickly and must stay accurate.
 
 ---
 
-## Status codes
+## Status codes (engine vs target)
 
-| Code | Use |
-|------|-----|
-| 200 | Success |
-| 400 | Invalid / missing input, oversized request |
-| 404 | Unknown API route |
-| 405 | Unsupported method |
-| 429 | Reserved for edge rate limiting (dashboard) |
-| 500 | Unexpected internal error (no details leaked) |
-| 502 | Upstream DoH failure for all record types |
+Target site status (200/403/404/500/…) is returned inside `data.status` with Cloud Engine API **200** and `success: true` when the probe completed.
 
-Empty DNS record sets are **200** with empty arrays, not errors.
+Engine-level blocks (SSRF, timeout, invalid URL) use `success: false` and appropriate API status codes (400/403/502/504).
 
 ---
 
 ## Secrets & deployment
 
-- No API keys required for health or DNS
+- No API keys required for current tools
 - Never commit `.env`, `.dev.vars`, tokens, or credentials
-- Custom domain and Pages Git integration are managed in the Cloudflare dashboard, not by application code
+- Custom domain and Pages Git integration managed in the Cloudflare dashboard

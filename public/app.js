@@ -9,7 +9,7 @@ const TOOL_CATEGORIES = [
     description: "Analyze sites, crawlers, performance and search readiness.",
     tools: [
       { id: "seo-checker", name: "SEO Checker", description: "Inspect on-page SEO signals for a given URL.", route: "/tools/seo", status: "coming_soon" },
-      { id: "http-status", name: "HTTP Status Checker", description: "Check response status codes and redirects.", route: "/tools/http-status", status: "coming_soon" },
+      { id: "http-status", name: "HTTP Status Checker", description: "Check response status codes and redirects.", route: "/tools/http-status", status: "available" },
       { id: "robots", name: "Robots.txt Analyzer", description: "Fetch and analyze robots.txt rules.", route: "/tools/robots", status: "coming_soon" },
       { id: "sitemap", name: "Sitemap Analyzer", description: "Inspect XML sitemaps and coverage.", route: "/tools/sitemap", status: "coming_soon" },
       { id: "mobile-friendly", name: "Mobile Friendly Checker", description: "Evaluate mobile usability signals.", route: "/tools/mobile", status: "coming_soon" },
@@ -60,10 +60,10 @@ const TOOL_CATEGORIES = [
 
 function escapeHtml(str) {
   return String(str)
-    .replace(/&/g, "&")
-    .replace(/</g, "<")
-    .replace(/>/g, ">")
-    .replace(/"/g, """);
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function renderCategories() {

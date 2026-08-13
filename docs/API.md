@@ -34,17 +34,20 @@ All tool endpoints follow the response conventions below (except `/api/health`, 
 - Response header `X-Request-Id` is always set on hardened endpoints.
 - Do not expose internal stack traces or infrastructure details.
 
-### HTTP status codes
+### HTTP status codes (Cloud Engine API)
 
 | Status | Meaning |
 |--------|---------|
-| 200 | Success |
-| 400 | Bad request (validation, size) |
+| 200 | Success (including when the *target* site returns 4xx/5xx) |
+| 400 | Bad request (validation) |
+| 403 | SSRF / private destination blocked |
 | 404 | Unknown API route |
 | 405 | Method not allowed |
+| 413 | Request input too large |
 | 429 | Rate limited (Cloudflare edge rules, when configured) |
 | 500 | Unexpected internal error |
-| 502 | Upstream dependency failure (e.g. DoH) |
+| 502 | Upstream/network failure |
+| 504 | Upstream timeout |
 
 ---
 
@@ -82,52 +85,86 @@ Live DNS lookup via DNS-over-HTTPS (Cloudflare DoH). No authentication.
 
 **Example:** `/api/dns?domain=example.com`
 
-**Success (200):**
+**Success (200):** structured A/AAAA/CNAME/MX/NS/TXT records. Empty arrays mean no records of that type.
+
+**Caching:** successful responses may use `public, max-age=30`. Errors use `no-store`.
+
+See earlier Phase 2 documentation for full error codes.
+
+---
+
+### `GET /api/http-status`
+
+Safe HTTP/HTTPS status probe with SSRF protections. No authentication.
+
+**Query parameters:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `url` | yes | Public `http` or `https` URL (max 2048 chars) |
+
+**Example:** `/api/http-status?url=https://example.com`
+
+**Success (200)** — engine contacted the target (target status may be any code):
 
 ```json
 {
   "success": true,
   "data": {
-    "domain": "example.com",
-    "records": {
-      "A": ["93.184.216.34"],
-      "AAAA": ["2606:2800:220:1:248:1893:25c8:1946"],
-      "CNAME": [],
-      "MX": [],
-      "NS": ["a.iana-servers.net", "b.iana-servers.net"],
-      "TXT": ["v=spf1 -all"]
-    }
+    "url": "https://example.com/",
+    "finalUrl": "https://example.com/",
+    "status": 200,
+    "statusText": "OK",
+    "protocol": "https",
+    "redirected": false,
+    "redirectCount": 0,
+    "redirectChain": [],
+    "responseTimeMs": 123,
+    "contentType": "text/html; charset=UTF-8",
+    "contentLength": null,
+    "server": "EO-Server",
+    "location": null
   }
 }
 ```
 
-Empty arrays mean no records of that type (not an error).
+**Important:** A target `404` or `403` is still `success: true` with API HTTP 200. Engine failures use `success: false`.
+
+**Behavior:**
+
+- Protocols: `http`, `https` only
+- Credentials in URL rejected
+- HEAD first; GET fallback on 405/501
+- Manual redirects, max 5; each hop re-validated for SSRF
+- Timeout: 8 seconds (not user-controllable)
+- Response body cap: 64 KiB when GET is used
+- Safe headers only: content-type, content-length, server, location
+- Caching: `no-store`
 
 **Error codes:**
 
 | Code | HTTP | Meaning |
 |------|------|---------|
-| `MISSING_DOMAIN` | 400 | No `domain` parameter |
-| `INVALID_DOMAIN` | 400 | Malformed domain, URL, localhost, or private target |
-| `REQUEST_TOO_LARGE` | 400 | URL or query value exceeds limits |
-| `METHOD_NOT_ALLOWED` | 405 | Non-GET/OPTIONS method |
-| `DNS_RESOLVER_ERROR` | 502 | DoH upstream unreachable / failed for all types |
-| `INTERNAL_ERROR` | 500 | Unexpected failure (no stack traces) |
-| `NOT_FOUND` | 404 | Unknown `/api/*` path |
-
-**Supported record types:** A, AAAA, CNAME, MX, NS, TXT
-
-**Validation:** Rejects protocols (`https://`), paths, queries, fragments, `localhost`, private IPs, and bare IPv4. Normalizes case and trailing dots (`Example.COM.` → `example.com`).
-
-**Caching:** successful responses may be cached briefly (`public, max-age=30`). Errors use `no-store`.
-
-**Architecture:** Queries go only to Cloudflare DoH (`https://cloudflare-dns.com/dns-query`). The API never fetches arbitrary user-supplied URLs.
+| `MISSING_URL` | 400 | No `url` parameter |
+| `INVALID_URL` | 400 | Malformed URL |
+| `UNSUPPORTED_PROTOCOL` | 400 | Not http/https |
+| `CREDENTIALS_NOT_ALLOWED` | 400 | Userinfo in URL |
+| `PRIVATE_ADDRESS_BLOCKED` | 403 | Private/reserved IP or resolution |
+| `SSRF_BLOCKED` | 403 | Blocked hostname class |
+| `REDIRECT_LIMIT` | 400 | More than 5 redirects |
+| `REQUEST_TIMEOUT` | 504 | Target did not respond in time |
+| `UPSTREAM_DNS_ERROR` | 502 | Hostname could not be resolved |
+| `UPSTREAM_CONNECTION_ERROR` | 502 | Connection failed |
+| `RESPONSE_TOO_LARGE` | 502 | Body exceeded size limit |
+| `METHOD_NOT_ALLOWED` | 405 | Non-GET/OPTIONS |
+| `REQUEST_TOO_LARGE` | 413 | Oversized request input |
+| `INTERNAL_ERROR` | 500 | Unexpected failure |
 
 ---
 
 ### Unknown routes
 
-`GET /api/<unknown>` → JSON 404 with code `NOT_FOUND` (not the homepage HTML).
+`GET /api/<unknown>` → JSON 404 with code `NOT_FOUND`.
 
 ---
 
@@ -135,70 +172,14 @@ Empty arrays mean no records of that type (not an error).
 
 Allowlisted origins only (production + local Wrangler/dev). See [SECURITY.md](SECURITY.md).
 
-Preflight: `OPTIONS` with `Access-Control-Allow-Methods: GET, OPTIONS`.
-
 ---
 
 ## Rate limiting
 
-**Application code does not enforce a global request quota.** Pages Functions isolates cannot share a consistent counter without external state.
-
-For production-wide limits, configure **Cloudflare Rate Limiting** (or WAF rules) in the dashboard on `/api/dns*` and other expensive paths. See [SECURITY.md](SECURITY.md).
-
-Application-level guards that *are* enforced:
-
-- Maximum URL length (2048)
-- Maximum query value length (512)
-- Method allowlist
-- Domain validation / SSRF-oriented rejection
-
----
-
-## Planned endpoint map
-
-### DNS & Email
-
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET | `/api/dns` | General DNS lookup **(implemented)** |
-| GET/POST | `/api/dns/mx` | MX records |
-| GET/POST | `/api/dns/spf` | SPF record analysis |
-| GET/POST | `/api/dns/dkim` | DKIM selector check |
-| GET/POST | `/api/dns/dmarc` | DMARC policy |
-| GET/POST | `/api/dns/ns` | Nameservers |
-
-### Website & SEO
-
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET/POST | `/api/website/http-status` | Status codes & redirects |
-| GET/POST | `/api/website/robots` | robots.txt |
-| GET/POST | `/api/website/sitemap` | Sitemap analysis |
-| GET/POST | `/api/website/seo` | Basic SEO signals |
-| GET/POST | `/api/website/performance` | Performance-related signals |
-
-### Security
-
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET/POST | `/api/security/ssl` | TLS/certificate |
-| GET/POST | `/api/security/headers` | Security headers |
-| GET/POST | `/api/security/blacklist` | Blacklist status |
-| GET/POST | `/api/security/waf` | WAF detection |
-| GET/POST | `/api/security/cdn` | CDN / Cloudflare detection |
-
-### Infrastructure
-
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET/POST | `/api/infrastructure/ip` | IP details |
-| GET/POST | `/api/infrastructure/asn` | ASN lookup |
-| GET/POST | `/api/infrastructure/rdns` | Reverse DNS |
-| GET/POST | `/api/infrastructure/headers` | HTTP response headers |
-| GET/POST | `/api/infrastructure/hosting` | Hosting provider hints |
+Application code does not enforce a global request quota. Configure Cloudflare Rate Limiting / WAF on expensive paths (`/api/dns*`, `/api/http-status*`). See [SECURITY.md](SECURITY.md).
 
 ---
 
 ## Versioning
 
-No version prefix yet (`/api/v1/...`). Introduce versioning when breaking changes are required or a public API program starts.
+No version prefix yet (`/api/v1/...`).
