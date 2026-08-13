@@ -1,5 +1,6 @@
 /**
  * SautiLink Cloud Engine — client-side application
+ * Tool list mirrors src/config/tools.js (no bundler; keep in sync).
  */
 
 const TOOL_CATEGORIES = [
@@ -22,7 +23,7 @@ const TOOL_CATEGORIES = [
     description: "Inspect DNS records and email authentication setup.",
     tools: [
       { id: "dns-lookup", name: "DNS Lookup", description: "Query common DNS record types for a domain.", route: "/tools/dns", status: "available" },
-      { id: "email-infra", name: "Email Infrastructure Checker", description: "Check MX mail servers and SPF sender policy for a domain.", route: "/tools/email", status: "available" },
+      { id: "email-infra", name: "Email Infrastructure Checker", description: "Check MX, SPF, DMARC, DKIM and email security score.", route: "/tools/email", status: "available" },
       { id: "mx", name: "MX Record Checker", description: "Check the mail exchange records configured for a domain.", route: "/tools/mx", status: "coming_soon" },
       { id: "spf", name: "SPF Checker", description: "Validate SPF records and policy.", route: "/tools/spf", status: "coming_soon" },
       { id: "dkim", name: "DKIM Checker", description: "Inspect DKIM selectors and keys.", route: "/tools/dkim", status: "coming_soon" },
@@ -37,7 +38,7 @@ const TOOL_CATEGORIES = [
     tools: [
       { id: "blacklist", name: "Blacklist Checker", description: "Check domain/IP against common blacklists.", route: "/tools/blacklist", status: "coming_soon" },
       { id: "ssl", name: "SSL/TLS Checker", description: "Inspect certificate chain and TLS configuration.", route: "/tools/ssl", status: "coming_soon" },
-      { id: "security-headers", name: "Security Headers", description: "Review HTTP security headers.", route: "/tools/security-headers", status: "coming_soon" },
+      { id: "security-headers", name: "HTTP Headers Analyzer", description: "Review HTTP security headers and configuration score.", route: "/tools/headers", status: "available" },
       { id: "port-scanner", name: "Basic Port Scanner", description: "Check common open ports (carefully rate-limited).", route: "/tools/ports", status: "coming_soon" },
       { id: "waf", name: "WAF Detector", description: "Detect presence of a Web Application Firewall.", route: "/tools/waf", status: "coming_soon" },
       { id: "cloudflare", name: "Cloudflare Detector", description: "Detect Cloudflare proxying and related signals.", route: "/tools/cloudflare", status: "coming_soon" },
@@ -53,7 +54,7 @@ const TOOL_CATEGORIES = [
       { id: "asn", name: "ASN Lookup", description: "Find Autonomous System information.", route: "/tools/asn", status: "coming_soon" },
       { id: "hosting", name: "Hosting Provider Detector", description: "Identify likely hosting or cloud provider.", route: "/tools/hosting", status: "coming_soon" },
       { id: "rdns", name: "Reverse DNS", description: "Perform reverse DNS (PTR) lookups.", route: "/tools/rdns", status: "coming_soon" },
-      { id: "http-headers", name: "HTTP Headers", description: "Fetch and display response headers.", route: "/tools/headers", status: "coming_soon" },
+      { id: "http-headers", name: "HTTP Headers", description: "Fetch and analyze response headers.", route: "/tools/headers", status: "available" },
       { id: "server-info", name: "Server Information", description: "Gather basic server and technology signals.", route: "/tools/server", status: "coming_soon" },
     ],
   },

@@ -1,20 +1,19 @@
 # API Reference — SautiLink Cloud Engine
 
-## `GET /api/email?domain=example.com&selector=`
+## Endpoints
 
-Returns `mx`, `spf`, `dmarc`, `dkim`, and **`score`** (model **v1.0**).
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | `/api/health` | Legacy body schema |
+| GET | `/api/dns?domain=` | DoH lookups |
+| GET | `/api/http-status?url=` | Status probe, `no-store` |
+| GET | `/api/email?domain=&selector=` | MX/SPF/DMARC/DKIM + email score v1.0 |
+| GET | `/api/headers?url=` | Headers + HTTP security score v1.0, `no-store` |
 
-### DKIM discovery
+### `GET /api/headers?url=https://example.com`
 
-| Mode | Behavior |
-|------|----------|
-| Explicit `selector=` | Single TXT lookup at `selector._domainkey.domain` |
-| Heuristic (no selector) | Up to **25** common selectors, batches of **4**, shared **12s** discovery deadline, stop when first hit (list-order deterministic) |
+Reuses HTTP-status SSRF/redirect/timeout stack. Returns sanitized headers (no `Set-Cookie` values), cookie **metadata only**, heuristic CSP/HSTS analysis, and configuration score.
 
-Individual DoH queries retain the DNS module timeout. Discovery is intentionally limited and non-exhaustive. DNS public-key inspection only — no signature verification.
+**Score weights (v1.0):** HSTS 15 · CSP 25 · Content-Type 10 · Clickjacking 15 · Referrer 10 · Permissions 10 · Cookies 15.
 
-### Score object
-
-Weights: MX 15 · SPF 25 · DMARC 35 · DKIM 25. Grades: 90–100 A · 80–89 B · 70–79 C · 60–69 D · 0–59 F. Version `1.0`.
-
-Configuration assessment only — not a guarantee of email security.
+CSP analysis is **heuristic**. Score is not proof of security. Cookie values are never returned.

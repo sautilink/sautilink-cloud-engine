@@ -2,14 +2,13 @@
 
 **Site:** [https://cloudengine.sautilink.com](https://cloudengine.sautilink.com)
 
-## Live tools
-
 | Tool | API |
 |------|-----|
 | Health | `/api/health` |
 | DNS | `/api/dns?domain=` |
 | HTTP Status | `/api/http-status?url=` |
-| Email + Score v1.0 | `/api/email?domain=&selector=` |
+| Email + Score | `/api/email?domain=&selector=` |
+| HTTP Headers | `/api/headers?url=` |
 
 ```bash
 npm install && npm run dev

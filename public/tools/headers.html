@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTTP Headers Analyzer — SautiLink Cloud Engine</title>
+  <meta name="description" content="Analyze HTTP security headers, CSP, HSTS, and cookie flags for any public URL." />
+  <link rel="canonical" href="https://cloudengine.sautilink.com/tools/headers" />
+  <meta name="theme-color" content="#0b0f19" />
+  <meta name="robots" content="index, follow" />
+  <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/tools/headers.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="brand" aria-label="SautiLink Cloud Engine home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <span class="brand-name">SautiLink</span>
+          <span class="brand-product">Cloud Engine</span>
+        </span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/#tools" class="nav-link">Tools</a>
+        <a href="/#api" class="nav-link">API</a>
+        <a href="/#about" class="nav-link">About</a>
+      </nav>
+      <div class="header-actions">
+        <a href="/#tools" class="btn btn-secondary">All tools</a>
+        <button type="button" class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" id="nav-toggle">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="tool-page">
+    <div class="container tool-layout">
+      <header class="tool-header">
+        <p class="eyebrow">Security</p>
+        <h1>HTTP Headers Analyzer</h1>
+        <p class="tool-lead">
+          Inspect response headers and an HTTP security configuration score for a public URL.
+        </p>
+      </header>
+
+      <form class="tool-form" id="headers-form" novalidate>
+        <label for="url-input" class="field-label">URL</label>
+        <div class="tool-input-row">
+          <input type="url" id="url-input" name="url" placeholder="https://example.com" autocomplete="off" spellcheck="false" inputmode="url" required aria-describedby="url-hint url-error" />
+          <button type="submit" class="btn btn-primary" id="headers-submit">Analyze headers</button>
+        </div>
+        <p class="field-hint" id="url-hint">Public http/https only. Private and local addresses are blocked.</p>
+        <p class="field-error" id="url-error" role="alert" hidden></p>
+      </form>
+
+      <div class="tool-status" id="headers-status" hidden aria-live="polite"></div>
+
+      <section class="headers-results" id="headers-results" hidden>
+        <article class="email-card score-card">
+          <div class="score-hero">
+            <p class="score-kicker">HTTP security configuration score</p>
+            <p class="score-total" id="score-total">—</p>
+            <p class="score-grade" id="score-grade"></p>
+            <p class="score-label" id="score-label"></p>
+            <div class="score-bar" role="progressbar" id="score-bar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="score-bar-fill" id="score-bar-fill"></div>
+            </div>
+            <p class="score-version" id="score-version"></p>
+          </div>
+          <ul class="score-cats" id="score-cats"></ul>
+        </article>
+
+        <article class="email-card">
+          <div class="email-card-header"><h2>Response</h2></div>
+          <dl class="meta-grid" id="meta-grid"></dl>
+        </article>
+
+        <article class="email-card">
+          <div class="email-card-header"><h2>Findings</h2></div>
+          <ul class="findings-list" id="findings-list"></ul>
+        </article>
+
+        <article class="email-card">
+          <div class="email-card-header"><h2>Recommendations</h2></div>
+          <ol class="recs-list" id="recs-list"></ol>
+        </article>
+
+        <article class="email-card">
+          <div class="email-card-header"><h2>Cookies (metadata only)</h2></div>
+          <div id="cookies-body"></div>
+        </article>
+
+        <article class="email-card">
+          <div class="email-card-header"><h2>Response headers</h2></div>
+          <div id="headers-body"></div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand"><span class="brand-name">SautiLink</span> Cloud Engine</div>
+      <p class="footer-note">A product of the SautiLink ecosystem. · Domain: cloudengine.sautilink.com</p>
+      <p class="footer-copy">&copy; <span id="year"></span> SautiLink. All rights reserved.</p>
+    </div>
+  </footer>
+  <script type="module" src="/tools/headers.js"></script>
+</body>
+</html>

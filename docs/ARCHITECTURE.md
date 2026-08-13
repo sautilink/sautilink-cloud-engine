@@ -1,13 +1,5 @@
 # Architecture
 
-Email: `src/tools/email/{mx,spf,dmarc,dkim,score,index}.js`.
+Headers tool: `src/tools/headers/{index,analyzer,score}.js` + `functions/api/headers.js`.
 
-DKIM heuristic discovery (`dkim.js`):
-
-1. Cap list at `MAX_DKIM_SELECTORS` (25)
-2. Process in batches of `DKIM_DISCOVERY_CONCURRENCY` (4)
-3. Shared `DKIM_DISCOVERY_DEADLINE_MS` (12000)
-4. After each batch, if any `found`, pick the earliest selector in the curated list (deterministic)
-5. Explicit `selector` skips discovery entirely
-
-All DNS uses Cloudflare DoH only.
+Reuses `prepareUrl` and `probeHttpStatus(..., { fullHeaders: true })` from `src/tools/http-status/` (same SSRF path). Cookie values stripped; auth-related headers omitted from maps.
