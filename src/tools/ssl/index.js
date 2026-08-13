@@ -9,6 +9,15 @@ import { calculateSslScore } from "./score.js";
 
 const GLOBAL_DEADLINE_MS = 12_000;
 
+const BLOCK_CODES = new Set([
+  "PRIVATE_ADDRESS_BLOCKED",
+  "SSRF_BLOCKED",
+  "CREDENTIALS_NOT_ALLOWED",
+  "UNSUPPORTED_PROTOCOL",
+  "INVALID_URL",
+  "MISSING_URL",
+]);
+
 /**
  * @param {string} input
  */
@@ -25,7 +34,6 @@ export async function analyzeSsl(input) {
   const deadlineAt = Date.now() + GLOBAL_DEADLINE_MS;
   const site = prepared.url;
 
-  // Prefer probing HTTPS origin explicitly
   const httpsUrl = new URL(site.toString());
   httpsUrl.protocol = "https:";
 
@@ -43,7 +51,21 @@ export async function analyzeSsl(input) {
     }
   }
 
-  // HTTP upgrade check on same host (SSRF applies)
+  // Security policy failures must not become soft analysis results
+  if (httpsError && BLOCK_CODES.has(httpsError.code)) {
+    throw {
+      code: httpsError.code,
+      message: httpsError.message,
+      httpStatus:
+        typeof httpsError.httpStatus === "number"
+          ? httpsError.httpStatus
+          : httpsError.code === "PRIVATE_ADDRESS_BLOCKED" ||
+              httpsError.code === "SSRF_BLOCKED"
+            ? 403
+            : 400,
+    };
+  }
+
   let httpProbe = null;
   let httpError = null;
   try {
@@ -52,7 +74,32 @@ export async function analyzeSsl(input) {
     httpProbe = await probeUrl(httpUrl, { deadlineAt });
   } catch (err) {
     if (err && err.code) httpError = err;
-    else httpError = { code: "UPSTREAM_CONNECTION_ERROR", message: "HTTP probe failed." };
+    else {
+      httpError = {
+        code: "UPSTREAM_CONNECTION_ERROR",
+        message: "HTTP probe failed.",
+      };
+    }
+  }
+
+  if (httpError && BLOCK_CODES.has(httpError.code)) {
+    // Same host blocked on HTTP — treat as hard failure if HTTPS also failed
+    if (!httpsProbe) {
+      throw {
+        code: httpError.code,
+        message: httpError.message,
+        httpStatus:
+          typeof httpError.httpStatus === "number"
+            ? httpError.httpStatus
+            : httpError.code === "PRIVATE_ADDRESS_BLOCKED" ||
+                httpError.code === "SSRF_BLOCKED"
+              ? 403
+              : 400,
+      };
+    }
+    // HTTPS succeeded but HTTP blocked (unusual); ignore HTTP upgrade data
+    httpError = null;
+    httpProbe = null;
   }
 
   const analysis = analyzeHttpsConfig({
