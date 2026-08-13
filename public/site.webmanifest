@@ -1,0 +1,18 @@
+{
+  "name": "SautiLink Cloud Engine",
+  "short_name": "Cloud Engine",
+  "description": "Powerful tools for website analysis, DNS, security and infrastructure.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/favicon/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
