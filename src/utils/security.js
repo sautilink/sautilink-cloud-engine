@@ -54,8 +54,8 @@ export const API_SECURITY_HEADERS = {
 export const LIMITS = {
   /** Maximum full request URL length (chars) */
   MAX_URL_LENGTH: 2048,
-  /** Maximum single query parameter value length */
-  MAX_QUERY_VALUE_LENGTH: 512,
+  /** Maximum single query parameter value length (allows full target URLs) */
+  MAX_QUERY_VALUE_LENGTH: 2048,
   /** Maximum domain label string after trim (RFC-ish) */
   MAX_DOMAIN_LENGTH: 253,
 };

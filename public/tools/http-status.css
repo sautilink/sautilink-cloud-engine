@@ -1,0 +1,143 @@
+/* HTTP Status Checker — extends global styles */
+
+.http-results {
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.http-results-header {
+  margin-bottom: 1.25rem;
+}
+
+.status-badge-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.5rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+  background: rgba(148, 163, 184, 0.2);
+  color: #e2e8f0;
+}
+
+.status-badge.ok {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.status-badge.redirect {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.status-badge.client {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+.status-badge.server {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.status-text {
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+.final-url {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #94a3b8;
+  word-break: break-all;
+}
+
+.final-url code {
+  color: #e2e8f0;
+  font-size: 0.85rem;
+}
+
+.http-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem 1.25rem;
+  margin: 0;
+}
+
+.meta-item {
+  margin: 0;
+}
+
+.meta-item dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  margin-bottom: 0.2rem;
+}
+
+.meta-item dd {
+  margin: 0;
+  word-break: break-all;
+}
+
+.meta-item code {
+  font-size: 0.875rem;
+  color: #e2e8f0;
+}
+
+.redirect-block {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.redirect-block h2 {
+  font-size: 1rem;
+  margin: 0 0 0.75rem;
+  color: #cbd5e1;
+}
+
+.redirect-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.redirect-list li {
+  margin-bottom: 0.5rem;
+  word-break: break-all;
+}
+
+.hop-status {
+  display: inline-block;
+  min-width: 2rem;
+  font-weight: 600;
+  color: #60a5fa;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .http-results {
+    padding: 1rem;
+  }
+
+  .http-meta-grid {
+    grid-template-columns: 1fr;
+  }
+}
