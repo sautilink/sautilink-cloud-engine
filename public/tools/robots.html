@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Robots.txt Analyzer — SautiLink Cloud Engine</title>
+  <meta name="description" content="Analyze robots.txt crawl rules, sitemaps, and configuration for any public website." />
+  <link rel="canonical" href="https://cloudengine.sautilink.com/tools/robots" />
+  <meta name="theme-color" content="#0b0f19" />
+  <meta name="robots" content="index, follow" />
+  <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/tools/robots.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="brand" aria-label="SautiLink Cloud Engine home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <span class="brand-name">SautiLink</span>
+          <span class="brand-product">Cloud Engine</span>
+        </span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/#tools" class="nav-link">Tools</a>
+        <a href="/#api" class="nav-link">API</a>
+        <a href="/#about" class="nav-link">About</a>
+      </nav>
+      <div class="header-actions">
+        <a href="/#tools" class="btn btn-secondary">All tools</a>
+        <button type="button" class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" id="nav-toggle">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="tool-page">
+    <div class="container tool-layout">
+      <header class="tool-header">
+        <p class="eyebrow">Website &amp; SEO</p>
+        <h1>Robots.txt Analyzer</h1>
+        <p class="tool-lead">Inspect crawl rules, user-agent groups, and Sitemap declarations from robots.txt.</p>
+      </header>
+
+      <form class="tool-form" id="robots-form" novalidate>
+        <label for="url-input" class="field-label">Website URL</label>
+        <div class="tool-input-row">
+          <input type="url" id="url-input" name="url" placeholder="https://example.com" autocomplete="off" spellcheck="false" inputmode="url" required />
+          <button type="submit" class="btn btn-primary" id="robots-submit">Analyze robots.txt</button>
+        </div>
+        <p class="field-hint">Public http/https only. Fetches /robots.txt only — does not crawl the site or fetch sitemaps.</p>
+        <p class="field-error" id="url-error" role="alert" hidden></p>
+      </form>
+
+      <div class="tool-status" id="robots-status" hidden aria-live="polite"></div>
+
+      <section id="robots-results" hidden>
+        <article class="card score-card">
+          <div class="score-hero">
+            <p class="score-kicker">Robots configuration score</p>
+            <p class="score-total" id="score-total">—</p>
+            <p class="score-grade" id="score-grade"></p>
+            <p class="score-label" id="score-label"></p>
+            <div class="score-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="score-bar">
+              <div class="score-bar-fill" id="score-bar-fill"></div>
+            </div>
+            <p class="score-version" id="score-version"></p>
+          </div>
+          <ul class="score-cats" id="score-cats"></ul>
+        </article>
+
+        <article class="card">
+          <h2>Fetch</h2>
+          <dl class="meta-grid" id="meta-grid"></dl>
+        </article>
+
+        <article class="card">
+          <h2>Findings</h2>
+          <ul class="findings-list" id="findings-list"></ul>
+        </article>
+
+        <article class="card">
+          <h2>Recommendations</h2>
+          <ol class="recs-list" id="recs-list"></ol>
+        </article>
+
+        <article class="card">
+          <h2>Groups</h2>
+          <div id="groups-body"></div>
+        </article>
+
+        <article class="card">
+          <h2>Sitemaps (declared only)</h2>
+          <div id="sitemaps-body"></div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand"><span class="brand-name">SautiLink</span> Cloud Engine</div>
+      <p class="footer-note">Domain: cloudengine.sautilink.com</p>
+      <p class="footer-copy">&copy; <span id="year"></span> SautiLink</p>
+    </div>
+  </footer>
+  <script type="module" src="/tools/robots.js"></script>
+</body>
+</html>

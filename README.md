@@ -1,17 +1,16 @@
 # SautiLink Cloud Engine
 
-**Site:** [https://cloudengine.sautilink.com](https://cloudengine.sautilink.com)
+**Site:** https://cloudengine.sautilink.com
 
 | Tool | API |
 |------|-----|
 | Health | `/api/health` |
 | DNS | `/api/dns?domain=` |
 | HTTP Status | `/api/http-status?url=` |
-| Email + Score | `/api/email?domain=&selector=` |
-| HTTP Headers | `/api/headers?url=` |
+| Email | `/api/email?domain=` |
+| Headers | `/api/headers?url=` |
+| Robots.txt | `/api/robots?url=` |
 
 ```bash
 npm install && npm run dev
 ```
-
-UNLICENSED — proprietary to SautiLink.

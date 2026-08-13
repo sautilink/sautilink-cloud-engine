@@ -1,5 +1,5 @@
 # Architecture
 
-Headers tool: `src/tools/headers/{index,analyzer,score}.js` + `functions/api/headers.js`.
+Robots: `src/tools/robots/{fetch,parser,analyzer,score,index}.js` → `functions/api/robots.js`.
 
-Reuses `prepareUrl` and `probeHttpStatus(..., { fullHeaders: true })` from `src/tools/http-status/` (same SSRF path). Cookie values stripped; auth-related headers omitted from maps.
+Fetch derives `origin/robots.txt`, validates each hop via shared `assertUrlSafeToFetch`. Parser is pure; Sitemap lines are not fetched.

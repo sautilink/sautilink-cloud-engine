@@ -1,10 +1,8 @@
 # Roadmap
 
 ## Completed
-- Phases 1–5: foundation, DNS, hardening, HTTP status, email suite + score
-- Phase 5E: DKIM discovery performance
-- Phase 6A: HTTP Headers Analyzer
+- Phases 1–5 email suite, headers (6A), robots (6B)
 
 ## Not started
-- Phase 6B+
+- Phase 6C Sitemap Analyzer (must not fetch from robots phase)
 - Telegram Bot

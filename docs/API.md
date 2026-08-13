@@ -1,19 +1,20 @@
-# API Reference — SautiLink Cloud Engine
+# API Reference
 
-## Endpoints
+| Method | Path |
+|--------|------|
+| GET | `/api/health` |
+| GET | `/api/dns?domain=` |
+| GET | `/api/http-status?url=` |
+| GET | `/api/email?domain=&selector=` |
+| GET | `/api/headers?url=` |
+| GET | `/api/robots?url=` |
 
-| Method | Path | Notes |
-|--------|------|-------|
-| GET | `/api/health` | Legacy body schema |
-| GET | `/api/dns?domain=` | DoH lookups |
-| GET | `/api/http-status?url=` | Status probe, `no-store` |
-| GET | `/api/email?domain=&selector=` | MX/SPF/DMARC/DKIM + email score v1.0 |
-| GET | `/api/headers?url=` | Headers + HTTP security score v1.0, `no-store` |
+## `GET /api/robots?url=https://example.com`
 
-### `GET /api/headers?url=https://example.com`
+Fetches **only** `/robots.txt` for the given site origin (path/query stripped). Reuses HTTP-status SSRF/redirect stack. Does **not** fetch Sitemap URLs.
 
-Reuses HTTP-status SSRF/redirect/timeout stack. Returns sanitized headers (no `Set-Cookie` values), cookie **metadata only**, heuristic CSP/HSTS analysis, and configuration score.
-
-**Score weights (v1.0):** HSTS 15 · CSP 25 · Content-Type 10 · Clickjacking 15 · Referrer 10 · Permissions 10 · Cookies 15.
-
-CSP analysis is **heuristic**. Score is not proof of security. Cookie values are never returned.
+- 200 body analysis when robots.txt is returned
+- 404/403 treated as structured outcomes (`robots.found: false`), not engine failures
+- `ROBOTS_TOO_LARGE` if body exceeds 256 KiB
+- Score model **v1.0** (availability / syntax / crawl / sitemap / quality)
+- Cache: `no-store`
