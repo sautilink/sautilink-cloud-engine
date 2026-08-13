@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Completed
-- Through Phase 6D: Website SEO & Performance Analyzer
+- Through Phase 6E: Mobile-Friendly Analyzer
 
 ## Not started
 - Telegram Bot and later tools

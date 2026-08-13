@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mobile-Friendly Analyzer — SautiLink Cloud Engine</title>
+  <meta name="description" content="Heuristic mobile SEO and responsive signals from primary HTML. Not Google Mobile-Friendly Test or Lighthouse." />
+  <link rel="canonical" href="https://cloudengine.sautilink.com/tools/mobile" />
+  <meta name="theme-color" content="#0b0f19" />
+  <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/tools/mobile.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><span class="brand-name">SautiLink</span><span class="brand-product">Cloud Engine</span></span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/#tools" class="nav-link">Tools</a>
+        <a href="/#api" class="nav-link">API</a>
+      </nav>
+      <div class="header-actions">
+        <a href="/#tools" class="btn btn-secondary">All tools</a>
+        <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+  <main id="main" class="tool-page">
+    <div class="container tool-layout">
+      <header class="tool-header">
+        <p class="eyebrow">Website &amp; SEO</p>
+        <h1>Mobile-Friendly Analyzer</h1>
+        <p class="tool-lead">Viewport, responsive signals, and mobile SEO heuristics from primary HTML only — not browser rendering, Lighthouse, or Google Mobile-Friendly Test.</p>
+      </header>
+      <form class="tool-form" id="mobile-form" novalidate>
+        <label for="url-input" class="field-label">Website URL</label>
+        <div class="tool-input-row">
+          <input type="url" id="url-input" placeholder="https://example.com" required />
+          <button type="submit" class="btn btn-primary" id="mobile-submit">Analyze</button>
+        </div>
+        <p class="field-hint">Public http/https only. One HTML fetch — no asset crawling.</p>
+        <p class="field-error" id="url-error" hidden></p>
+      </form>
+      <div class="tool-status" id="status" hidden></div>
+      <section id="results" hidden>
+        <article class="card score-card">
+          <div class="score-hero">
+            <p class="score-kicker">Mobile configuration score</p>
+            <p class="score-total" id="score-total">—</p>
+            <p class="score-grade" id="score-grade"></p>
+            <p class="score-label" id="score-label"></p>
+            <div class="score-bar" id="score-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="score-bar-fill" id="score-bar-fill"></div></div>
+            <p class="score-version" id="score-version"></p>
+          </div>
+          <ul class="score-cats" id="score-cats"></ul>
+        </article>
+        <article class="card"><h2>Request</h2><dl class="meta-grid" id="meta-grid"></dl></article>
+        <article class="card"><h2>Viewport</h2><div id="viewport-body"></div></article>
+        <article class="card"><h2>Findings</h2><ul class="findings-list" id="findings-list"></ul></article>
+        <article class="card"><h2>Recommendations</h2><ol class="recs-list" id="recs-list"></ol></article>
+        <article class="card"><h2>Images, media &amp; navigation</h2><div id="media-body"></div></article>
+        <article class="card"><h2>Mobile SEO</h2><div id="seo-body"></div></article>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer"><div class="container footer-inner"><p class="footer-copy">&copy; <span id="year"></span> SautiLink</p></div></footer>
+  <script type="module" src="/tools/mobile.js"></script>
+</body>
+</html>

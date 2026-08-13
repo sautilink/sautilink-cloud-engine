@@ -10,9 +10,8 @@
 | GET | `/api/robots?url=` |
 | GET | `/api/sitemap?url=` |
 | GET | `/api/website?url=` |
+| GET | `/api/mobile?url=` |
 
-## `GET /api/website?url=https://example.com`
+## `GET /api/mobile?url=`
 
-Fetches **primary HTML only** (no crawl, no assets). SSRF via shared stack. Score **v1.0** (technical / on-page / request performance / security summary / social / HTML quality). Performance is **server/request-level**, not Lighthouse or Core Web Vitals. Cache: `no-store`.
-
-Limits: ~8s timeout, 512 KiB HTML body, existing redirect max.
+Primary-HTML mobile heuristics (viewport, fixed-width signals, images, SEO). **Not** Google Mobile-Friendly Test, Lighthouse, or Core Web Vitals. Score **v1.0**. Cache: `no-store`. Limits: ~8s, 512 KiB HTML.
