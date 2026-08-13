@@ -1,0 +1,29 @@
+{
+  "name": "sautilink-cloud-engine",
+  "version": "0.1.0",
+  "description": "SautiLink Cloud Engine — Powerful tools for website analysis, SEO, DNS, security, and infrastructure diagnostics.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler pages dev public --compatibility-date=2024-09-23",
+    "deploy": "wrangler pages deploy public --project-name=sautilink-cloud-engine",
+    "check": "echo \"No build step required for static + Pages Functions\""
+  },
+  "keywords": [
+    "sautilink",
+    "cloud-engine",
+    "dns",
+    "seo",
+    "security",
+    "infrastructure",
+    "cloudflare"
+  ],
+  "author": "SautiLink",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "wrangler": "^3.78.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
