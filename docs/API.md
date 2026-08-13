@@ -2,7 +2,7 @@
 
 Base URL (production): `https://cloudengine.sautilink.com`
 
-All tool endpoints (when implemented) should follow the response conventions below.
+All tool endpoints follow the response conventions below.
 
 ---
 
@@ -37,9 +37,9 @@ Do not expose internal stack traces or infrastructure details.
 
 ### `GET /api/health`
 
-Health check for deployment verification and connectivity tests (web, Telegram, monitoring).
+Health check for deployment verification and connectivity tests.
 
-**Authentication:** none  
+**Authentication:** none
 
 **Response (200):**
 
@@ -51,21 +51,67 @@ Health check for deployment verification and connectivity tests (web, Telegram, 
 }
 ```
 
-Note: This endpoint currently returns a compact shape focused on status. Future consistency may wrap it in `{ success, data }` if desired; keep backward compatible.
+**CORS:** GET, OPTIONS
 
-**CORS:** `Access-Control-Allow-Origin: *` (GET, OPTIONS)
+---
+
+### `GET /api/dns`
+
+Live DNS lookup via DNS-over-HTTPS (Cloudflare DoH). No authentication.
+
+**Query parameters:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `domain` | yes | Public domain name only (e.g. `example.com`) |
+
+**Example:** `/api/dns?domain=example.com`
+
+**Success (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "domain": "example.com",
+    "records": {
+      "A": ["93.184.216.34"],
+      "AAAA": ["2606:2800:220:1:248:1893:25c8:1946"],
+      "CNAME": [],
+      "MX": [],
+      "NS": ["a.iana-servers.net", "b.iana-servers.net"],
+      "TXT": ["v=spf1 -all"]
+    }
+  }
+}
+```
+
+Empty arrays mean no records of that type (not an error).
+
+**Error codes:**
+
+| Code | HTTP | Meaning |
+|------|------|---------|
+| `MISSING_DOMAIN` | 400 | No `domain` parameter |
+| `INVALID_DOMAIN` | 400 | Malformed domain, URL, localhost, or private target |
+| `DNS_RESOLVER_ERROR` | 502 | DoH upstream unreachable / failed for all types |
+| `INTERNAL_ERROR` | 500 | Unexpected failure (no stack traces) |
+
+**Supported record types:** A, AAAA, CNAME, MX, NS, TXT
+
+**Validation:** Rejects protocols (`https://`), paths, queries, fragments, `localhost`, private IPs, and bare IPv4. Normalizes case and trailing dots (`Example.COM.` → `example.com`).
+
+**Architecture:** Queries are sent only to Cloudflare DoH (`https://cloudflare-dns.com/dns-query`). The API never fetches arbitrary user-supplied URLs.
 
 ---
 
 ## Planned endpoint map
 
-These routes are **not implemented** in Phase 1. They define the intended structure.
-
 ### DNS & Email
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| GET/POST | `/api/dns` | General DNS lookup |
+| GET | `/api/dns` | General DNS lookup **(implemented)** |
 | GET/POST | `/api/dns/mx` | MX records |
 | GET/POST | `/api/dns/spf` | SPF record analysis |
 | GET/POST | `/api/dns/dkim` | DKIM selector check |
@@ -104,23 +150,13 @@ These routes are **not implemented** in Phase 1. They define the intended struct
 
 ---
 
-## Common parameters (planned)
-
-- `domain` — normalized public domain (required for DNS tools)
-- `url` — public HTTP(S) URL (required for website tools)
-- `type` — DNS record type filter where applicable
-
-All inputs must pass through validation helpers (`src/utils/validation.js`).
-
----
-
 ## Rate limiting
 
-Not enforced in Phase 1. Before public tool endpoints go live:
+Not enforced in application code yet. Before heavy public traffic:
 
-- Define per-IP and per-route limits (Cloudflare rate limiting rules or Workers KV/Durable Objects later).
-- Document limits in this file.
-- Return a consistent error code, e.g. `RATE_LIMITED`.
+- Prefer Cloudflare dashboard rate limiting rules
+- Document limits here
+- Return `RATE_LIMITED` when enforced
 
 ---
 
