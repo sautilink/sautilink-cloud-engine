@@ -1,78 +1,31 @@
 # Architecture — SautiLink Cloud Engine
 
-## High-level flow
+## Flow
 
 ```
-Web UI (public/)  →  Cloud Engine API (functions/api/)  →  Tool modules (src/tools/)
-                              ↑
-              Future Telegram Bot (same API only)
-                              ↓
-                    External services / DoH / outbound HTTP
+Web UI (public/) → Pages Functions (functions/api/) → src/tools/* → DoH / outbound HTTP
+                         ↑
+              Future Telegram Bot (same API)
 ```
-
-The **API is the single source of truth**. The Telegram Bot must not duplicate business logic.
-
----
 
 ## Runtime
 
-- **Frontend:** static HTML/CSS/JS from `public/` (Cloudflare Pages).
-- **Backend:** Cloudflare Pages Functions under `functions/`.
-- **Shared modules:** `src/` (validation, responses, security, tools).
+Cloudflare Pages + Pages Functions. Shared logic in `src/`. Stateless; no database.
 
-Prefer Web APIs (`fetch`, `Request`, `Response`, `URL`, `crypto`, `AbortController`, `performance`).
+## Tools
 
----
+| Tool | Module | Route |
+|------|--------|-------|
+| DNS Lookup | `src/tools/dns/` | `/api/dns` |
+| HTTP Status | `src/tools/http-status/` | `/api/http-status` |
+| Email (MX+SPF) | `src/tools/email/` | `/api/email` |
 
-## Stateless design
+Email reuses `prepareDomain` + `lookupDns` from the DNS module (MX + TXT only), then `mx.js` / `spf.js` analyzers.
 
-No database, accounts, sessions, or stored API keys in current phases. Every request is independent.
+## DNS / email resolution
 
----
+Fixed Cloudflare DoH (`https://cloudflare-dns.com/dns-query`). 8s timeout. No Node `dns`.
 
-## Tool modules
+## Security
 
-| Tool | Module | Function route |
-|------|--------|----------------|
-| DNS Lookup | `src/tools/dns/` | `functions/api/dns.js` |
-| HTTP Status | `src/tools/http-status/` | `functions/api/http-status.js` |
-
-HTTP status is split into `url.js`, `ssrf.js`, `fetch.js`, and `index.js` for validation, SSRF, probing, and orchestration.
-
----
-
-## DNS implementation
-
-DoH to Cloudflare only. See Phase 2 notes. No Node `dns` module.
-
----
-
-## HTTP status implementation
-
-1. Validate/normalize URL (`prepareUrl`)
-2. SSRF gate: hostname denylist + IP literal ranges + DoH A/AAAA privacy check
-3. `fetch` with `redirect: "manual"`, HEAD then optional GET
-4. Re-run SSRF gate on every redirect (max 5)
-5. 8s timeout; 64 KiB body cap; safe header subset only
-
-DNS rebinding TOCTOU limitation is documented in [SECURITY.md](SECURITY.md).
-
----
-
-## API hardening
-
-Shared: `response.js`, `request.js`, `security.js`, catch-all `functions/api/[[path]].js`, `public/_headers`.
-
-Global rate limits: Cloudflare dashboard, not in-memory Maps.
-
----
-
-## Deployment topology
-
-```
-GitHub (main)
-  → Cloudflare Pages (build: public/)
-    → Static assets (+ _headers)
-    → Pages Functions (functions/)
-Custom domain: cloudengine.sautilink.com
-```
+See [SECURITY.md](SECURITY.md). HTTP status has SSRF gates; domain tools reject URLs, IPs, localhost.

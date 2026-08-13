@@ -1,0 +1,88 @@
+/* Email Infrastructure Checker */
+.tool-page { padding: 2.5rem 0 3.5rem; min-height: calc(100vh - var(--header-h) - 120px); }
+.tool-layout { max-width: 800px; }
+.tool-header { margin-bottom: 1.75rem; }
+.tool-header h1 { font-size: clamp(1.6rem, 4vw, 2rem); font-weight: 700; letter-spacing: -0.02em; margin: 0 0 0.5rem; }
+.tool-lead { margin: 0; color: var(--text-muted); font-size: 1rem; max-width: 540px; }
+.tool-form {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.25rem 1.35rem; margin-bottom: 1.25rem;
+}
+.field-label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.45rem; color: var(--text-muted); }
+.tool-input-row { display: flex; gap: 0.75rem; }
+.tool-input-row input {
+  flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); font-family: inherit; font-size: 0.95rem;
+  padding: 0.7rem 0.9rem; outline: none;
+}
+.tool-input-row input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.field-hint { margin: 0.55rem 0 0; font-size: 0.8rem; color: var(--text-dim); }
+.field-error { margin: 0.55rem 0 0; font-size: 0.85rem; color: #f87171; }
+.tool-status {
+  margin-bottom: 1.25rem; padding: 0.85rem 1rem; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-muted); font-size: 0.9rem;
+}
+.tool-status.loading { border-color: rgba(59, 130, 246, 0.4); color: var(--accent-hover); }
+.tool-status.error { border-color: rgba(248, 113, 113, 0.45); color: #fca5a5; }
+
+.results-domain { margin: 0 0 1rem; font-size: 1rem; color: var(--text-muted); }
+.results-domain code { color: var(--accent-hover); font-family: var(--mono); }
+
+.email-card {
+  background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius);
+  padding: 1.15rem 1.25rem; margin-bottom: 1rem;
+}
+.email-card-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+.email-card-header h2 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+
+.state-badge {
+  display: inline-block; padding: 0.2rem 0.55rem; border-radius: 999px;
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em;
+  background: rgba(148, 163, 184, 0.2); color: #cbd5e1;
+}
+.state-badge.ok { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+.state-badge.warn { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.state-badge.error { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+.state-badge.muted { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
+
+.mx-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.mx-table th {
+  text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--text-dim); padding: 0.35rem 0.5rem 0.5rem 0; border-bottom: 1px solid var(--border-subtle);
+}
+.mx-table td { padding: 0.45rem 0.5rem 0.45rem 0; border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+.mx-table .prio { width: 5rem; font-variant-numeric: tabular-nums; color: var(--text-muted); }
+.mx-table code { font-family: var(--mono); font-size: 0.85rem; word-break: break-all; }
+
+.spf-meta {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.65rem;
+  margin: 0 0 1rem;
+}
+.spf-meta dt { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); margin: 0 0 0.15rem; }
+.spf-meta dd { margin: 0; }
+.spf-meta code { font-family: var(--mono); font-size: 0.85rem; color: var(--text); }
+
+.spf-record-label {
+  margin: 0.75rem 0 0.35rem; font-size: 0.75rem; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--text-dim);
+}
+.spf-record {
+  margin: 0; padding: 0.75rem 0.9rem; border-radius: var(--radius-sm);
+  background: var(--bg); border: 1px solid var(--border-subtle); overflow-x: auto;
+}
+.spf-record code {
+  font-family: var(--mono); font-size: 0.8rem; color: var(--text); white-space: pre-wrap; word-break: break-word;
+}
+
+.mech-list, .warn-list { margin: 0; padding-left: 1.15rem; font-size: 0.875rem; color: var(--text-muted); }
+.mech-list code { font-family: var(--mono); font-size: 0.8rem; color: var(--text); }
+.warn-list li { margin-bottom: 0.35rem; }
+.empty-note { margin: 0; font-size: 0.9rem; color: var(--text-dim); }
+
+@media (max-width: 560px) {
+  .tool-input-row { flex-direction: column; }
+  .tool-input-row .btn { width: 100%; }
+}

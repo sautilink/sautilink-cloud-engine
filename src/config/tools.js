@@ -66,6 +66,13 @@ export const TOOL_CATEGORIES = [
         status: "available",
       },
       {
+        id: "email-infra",
+        name: "Email Infrastructure Checker",
+        description: "Check MX mail servers and SPF sender policy for a domain.",
+        route: "/tools/email",
+        status: "available",
+      },
+      {
         id: "mx",
         name: "MX Record Checker",
         description: "Check the mail exchange records configured for a domain.",

@@ -22,6 +22,7 @@ const TOOL_CATEGORIES = [
     description: "Inspect DNS records and email authentication setup.",
     tools: [
       { id: "dns-lookup", name: "DNS Lookup", description: "Query common DNS record types for a domain.", route: "/tools/dns", status: "available" },
+      { id: "email-infra", name: "Email Infrastructure Checker", description: "Check MX mail servers and SPF sender policy for a domain.", route: "/tools/email", status: "available" },
       { id: "mx", name: "MX Record Checker", description: "Check the mail exchange records configured for a domain.", route: "/tools/mx", status: "coming_soon" },
       { id: "spf", name: "SPF Checker", description: "Validate SPF records and policy.", route: "/tools/spf", status: "coming_soon" },
       { id: "dkim", name: "DKIM Checker", description: "Inspect DKIM selectors and keys.", route: "/tools/dkim", status: "coming_soon" },
