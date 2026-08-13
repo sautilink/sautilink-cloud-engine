@@ -1,5 +1,3 @@
 # Architecture
 
-Robots: `src/tools/robots/{fetch,parser,analyzer,score,index}.js` → `functions/api/robots.js`.
-
-Fetch derives `origin/robots.txt`, validates each hop via shared `assertUrlSafeToFetch`. Parser is pure; Sitemap lines are not fetched.
+Sitemap: `src/tools/sitemap/*` → `functions/api/sitemap.js`. Reuses `prepareUrl` + `assertUrlSafeToFetch`. Child sitemaps and robots `Sitemap:` refs are validated before fetch. No XXE.

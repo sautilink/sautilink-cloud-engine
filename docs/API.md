@@ -8,13 +8,12 @@
 | GET | `/api/email?domain=&selector=` |
 | GET | `/api/headers?url=` |
 | GET | `/api/robots?url=` |
+| GET | `/api/sitemap?url=` |
 
-## `GET /api/robots?url=https://example.com`
+## `GET /api/sitemap?url=`
 
-Fetches **only** `/robots.txt` for the given site origin (path/query stripped). Reuses HTTP-status SSRF/redirect stack. Does **not** fetch Sitemap URLs.
+Fetches and analyzes XML sitemaps / sitemap indexes.
 
-- 200 body analysis when robots.txt is returned
-- 404/403 treated as structured outcomes (`robots.found: false`), not engine failures
-- `ROBOTS_TOO_LARGE` if body exceeds 256 KiB
-- Score model **v1.0** (availability / syntax / crawl / sitemap / quality)
-- Cache: `no-store`
+**Limits:** 512 KiB/doc · 5000 URLs · 25 child sitemaps · depth 2 · 10s global deadline.
+
+Every URL (including children and robots-discovered refs) passes shared SSRF checks. Score model **v1.0**. Cache: `no-store`.
