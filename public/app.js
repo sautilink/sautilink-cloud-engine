@@ -11,7 +11,7 @@ const TOOL_CATEGORIES = [
     tools: [
       { id: "seo-checker", name: "SEO Checker", description: "Inspect on-page SEO signals for a given URL.", route: "/tools/seo", status: "coming_soon" },
       { id: "http-status", name: "HTTP Status Checker", description: "Check response status codes and redirects.", route: "/tools/http-status", status: "available" },
-      { id: "robots", name: "Robots.txt Analyzer", description: "Fetch and analyze robots.txt rules.", route: "/tools/robots", status: "coming_soon" },
+      { id: "robots", name: "Robots.txt Analyzer", description: "Fetch and analyze robots.txt crawl rules.", route: "/tools/robots", status: "available" },
       { id: "sitemap", name: "Sitemap Analyzer", description: "Inspect XML sitemaps and coverage.", route: "/tools/sitemap", status: "coming_soon" },
       { id: "mobile-friendly", name: "Mobile Friendly Checker", description: "Evaluate mobile usability signals.", route: "/tools/mobile", status: "coming_soon" },
       { id: "lighthouse", name: "Lighthouse / Performance", description: "Performance, accessibility and best-practice insights.", route: "/tools/performance", status: "coming_soon" },
@@ -62,10 +62,10 @@ const TOOL_CATEGORIES = [
 
 function escapeHtml(str) {
   return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/&/g, "&")
+    .replace(/</g, "<")
+    .replace(/>/g, ">")
+    .replace(/"/g, """);
 }
 
 function renderCategories() {
