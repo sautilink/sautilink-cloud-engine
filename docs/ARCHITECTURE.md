@@ -1,27 +1,7 @@
 # Architecture — SautiLink Cloud Engine
 
-## Flow
+Email module (`src/tools/email/`): `mx.js`, `spf.js`, `dmarc.js`, `dkim.js`, `index.js`.
 
-```
-Web UI → Pages Functions → src/tools/* → Cloudflare DoH / outbound HTTP
-              ↑
-   Future Telegram Bot (same API)
-```
+DKIM queries `selector._domainkey.<domain>` via shared `lookupDns`. Automatic discovery uses a fixed list (`COMMON_DKIM_SELECTORS`, max 25) and stops on first hit. Explicit `selector` query param skips discovery.
 
-## Tools
-
-| Tool | Module | Route |
-|------|--------|-------|
-| DNS | `src/tools/dns/` | `/api/dns` |
-| HTTP Status | `src/tools/http-status/` | `/api/http-status` |
-| Email (MX+SPF+DMARC) | `src/tools/email/` | `/api/email` |
-
-Email module: `mx.js`, `spf.js`, `dmarc.js`, `index.js`. DMARC queries `_dmarc.<domain>` TXT in parallel with domain MX/TXT.
-
-## Resolution
-
-Fixed Cloudflare DoH only. No Node DNS. 8s timeout per query type.
-
-## Security
-
-See [SECURITY.md](SECURITY.md). Domain tools reject URLs/IPs/localhost. HTTP status has SSRF gates. DMARC does not contact `rua`/`ruf` destinations.
+All DNS uses Cloudflare DoH only.

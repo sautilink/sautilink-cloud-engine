@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Email Infrastructure Checker — SautiLink Cloud Engine</title>
-  <meta name="description" content="Check MX, SPF, and DMARC email infrastructure for any domain with SautiLink Cloud Engine." />
+  <meta name="description" content="Check MX, SPF, DMARC, and DKIM for any domain with SautiLink Cloud Engine." />
   <link rel="canonical" href="https://cloudengine.sautilink.com/tools/email" />
   <meta name="theme-color" content="#0b0f19" />
   <meta name="robots" content="index, follow" />
@@ -45,7 +45,7 @@
         <p class="eyebrow">DNS &amp; Email</p>
         <h1>Email Infrastructure Checker</h1>
         <p class="tool-lead">
-          Inspect MX, SPF, and DMARC configuration for a domain using DNS-over-HTTPS.
+          Inspect MX, SPF, DMARC, and DKIM for a domain using DNS-over-HTTPS.
         </p>
       </header>
 
@@ -63,9 +63,23 @@
             required
             aria-describedby="domain-hint domain-error"
           />
-          <button type="submit" class="btn btn-primary" id="email-submit">Check email</button>
         </div>
         <p class="field-hint" id="domain-hint">Domain name only — no https:// or paths.</p>
+
+        <label for="selector-input" class="field-label field-label-spaced">DKIM selector (optional)</label>
+        <div class="tool-input-row">
+          <input
+            type="text"
+            id="selector-input"
+            name="selector"
+            placeholder="e.g. google, selector1 — leave empty to auto-discover"
+            autocomplete="off"
+            spellcheck="false"
+            aria-describedby="selector-hint"
+          />
+          <button type="submit" class="btn btn-primary" id="email-submit">Check email</button>
+        </div>
+        <p class="field-hint" id="selector-hint">Empty selector runs heuristic discovery (common selectors only, not exhaustive).</p>
         <p class="field-error" id="domain-error" role="alert" hidden></p>
       </form>
 
@@ -96,6 +110,14 @@
             <span class="state-badge" id="dmarc-badge">—</span>
           </div>
           <div id="dmarc-body"></div>
+        </article>
+
+        <article class="email-card" id="dkim-card">
+          <div class="email-card-header">
+            <h2>DKIM</h2>
+            <span class="state-badge" id="dkim-badge">—</span>
+          </div>
+          <div id="dkim-body"></div>
         </article>
       </section>
     </div>

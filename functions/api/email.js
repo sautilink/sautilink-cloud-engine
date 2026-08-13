@@ -1,6 +1,6 @@
 /**
- * GET /api/email?domain=example.com
- * MX + SPF email infrastructure check via DNS-over-HTTPS.
+ * GET /api/email?domain=example.com&selector=optional
+ * MX + SPF + DMARC + DKIM via DNS-over-HTTPS.
  */
 
 import { checkEmailInfrastructure } from "../../src/tools/email/index.js";
@@ -39,8 +39,9 @@ export async function onRequest(context) {
 
     const url = new URL(request.url);
     const domainParam = url.searchParams.get("domain");
+    const selectorParam = url.searchParams.get("selector");
 
-    const data = await checkEmailInfrastructure(domainParam);
+    const data = await checkEmailInfrastructure(domainParam, selectorParam);
     return success(data, 200, {
       request,
       requestId,
