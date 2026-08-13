@@ -9,6 +9,8 @@ SautiLink Cloud Engine is a modern, cloud-powered toolkit for website analysis, 
 
 This repository contains the **web platform and API**. The Telegram Bot will consume the same API later — business logic lives only in the Cloud Engine API.
 
+Cloudflare Pages Git deployment connection verified.
+
 ---
 
 ## Current scope (Phase 2 — DNS Engine)
