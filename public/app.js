@@ -21,7 +21,7 @@ const TOOL_CATEGORIES = [
     name: "DNS & Email",
     description: "Inspect DNS records and email authentication setup.",
     tools: [
-      { id: "dns-lookup", name: "DNS Lookup", description: "Query common DNS record types for a domain.", route: "/tools/dns", status: "coming_soon" },
+      { id: "dns-lookup", name: "DNS Lookup", description: "Query common DNS record types for a domain.", route: "/tools/dns", status: "available" },
       { id: "mx", name: "MX Record Checker", description: "Check the mail exchange records configured for a domain.", route: "/tools/mx", status: "coming_soon" },
       { id: "spf", name: "SPF Checker", description: "Validate SPF records and policy.", route: "/tools/spf", status: "coming_soon" },
       { id: "dkim", name: "DKIM Checker", description: "Inspect DKIM selectors and keys.", route: "/tools/dkim", status: "coming_soon" },
@@ -60,10 +60,10 @@ const TOOL_CATEGORIES = [
 
 function escapeHtml(str) {
   return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/&/g, "&")
+    .replace(/</g, "<")
+    .replace(/>/g, ">")
+    .replace(/"/g, """);
 }
 
 function renderCategories() {
