@@ -63,7 +63,7 @@ export const TOOL_CATEGORIES = [
         name: "DNS Lookup",
         description: "Query common DNS record types for a domain.",
         route: "/tools/dns",
-        status: "coming_soon",
+        status: "available",
       },
       {
         id: "mx",
