@@ -9,7 +9,7 @@ const TOOL_CATEGORIES = [
     name: "Website & SEO",
     description: "Analyze sites, crawlers, performance and search readiness.",
     tools: [
-      { id: "seo-checker", name: "SEO Checker", description: "Inspect on-page SEO signals for a given URL.", route: "/tools/seo", status: "coming_soon" },
+      { id: "website", name: "Website SEO & Performance", description: "On-page SEO, structure, social tags, and request-level timing.", route: "/tools/website", status: "available" },
       { id: "http-status", name: "HTTP Status Checker", description: "Check response status codes and redirects.", route: "/tools/http-status", status: "available" },
       { id: "robots", name: "Robots.txt Analyzer", description: "Fetch and analyze robots.txt crawl rules.", route: "/tools/robots", status: "available" },
       { id: "sitemap", name: "Sitemap Analyzer", description: "Inspect XML sitemaps and coverage.", route: "/tools/sitemap", status: "available" },
