@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Email Infrastructure Checker — SautiLink Cloud Engine</title>
-  <meta name="description" content="Check MX, SPF, DMARC, and DKIM for any domain with SautiLink Cloud Engine." />
+  <meta name="description" content="Check MX, SPF, DMARC, DKIM and email security configuration score for any domain." />
   <link rel="canonical" href="https://cloudengine.sautilink.com/tools/email" />
   <meta name="theme-color" content="#0b0f19" />
   <meta name="robots" content="index, follow" />
@@ -45,41 +45,23 @@
         <p class="eyebrow">DNS &amp; Email</p>
         <h1>Email Infrastructure Checker</h1>
         <p class="tool-lead">
-          Inspect MX, SPF, DMARC, and DKIM for a domain using DNS-over-HTTPS.
+          Inspect MX, SPF, DMARC, DKIM, and a transparent email security configuration score.
         </p>
       </header>
 
       <form class="tool-form" id="email-form" novalidate>
         <label for="domain-input" class="field-label">Domain</label>
         <div class="tool-input-row">
-          <input
-            type="text"
-            id="domain-input"
-            name="domain"
-            placeholder="example.com"
-            autocomplete="off"
-            spellcheck="false"
-            inputmode="url"
-            required
-            aria-describedby="domain-hint domain-error"
-          />
+          <input type="text" id="domain-input" name="domain" placeholder="example.com" autocomplete="off" spellcheck="false" inputmode="url" required aria-describedby="domain-hint domain-error" />
         </div>
         <p class="field-hint" id="domain-hint">Domain name only — no https:// or paths.</p>
 
         <label for="selector-input" class="field-label field-label-spaced">DKIM selector (optional)</label>
         <div class="tool-input-row">
-          <input
-            type="text"
-            id="selector-input"
-            name="selector"
-            placeholder="e.g. google, selector1 — leave empty to auto-discover"
-            autocomplete="off"
-            spellcheck="false"
-            aria-describedby="selector-hint"
-          />
+          <input type="text" id="selector-input" name="selector" placeholder="e.g. google, selector1 — leave empty to auto-discover" autocomplete="off" spellcheck="false" aria-describedby="selector-hint" />
           <button type="submit" class="btn btn-primary" id="email-submit">Check email</button>
         </div>
-        <p class="field-hint" id="selector-hint">Empty selector runs heuristic discovery (common selectors only, not exhaustive).</p>
+        <p class="field-hint" id="selector-hint">Empty selector runs heuristic discovery (not exhaustive).</p>
         <p class="field-error" id="domain-error" role="alert" hidden></p>
       </form>
 
@@ -87,6 +69,30 @@
 
       <section class="email-results" id="email-results" hidden>
         <p class="results-domain">Results for <code id="result-domain"></code></p>
+
+        <article class="email-card score-card" id="score-card">
+          <div class="score-hero">
+            <p class="score-kicker">Email security configuration score</p>
+            <p class="score-total" id="score-total">—</p>
+            <p class="score-grade" id="score-grade"></p>
+            <p class="score-label" id="score-label"></p>
+            <div class="score-bar" role="progressbar" id="score-bar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="score-bar-fill" id="score-bar-fill"></div>
+            </div>
+            <p class="score-version" id="score-version"></p>
+          </div>
+          <ul class="score-cats" id="score-cats"></ul>
+        </article>
+
+        <article class="email-card" id="findings-card">
+          <div class="email-card-header"><h2>Findings</h2></div>
+          <ul class="findings-list" id="findings-list"></ul>
+        </article>
+
+        <article class="email-card" id="recs-card">
+          <div class="email-card-header"><h2>Recommendations</h2></div>
+          <ol class="recs-list" id="recs-list"></ol>
+        </article>
 
         <article class="email-card" id="mx-card">
           <div class="email-card-header">

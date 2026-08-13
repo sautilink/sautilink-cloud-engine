@@ -1,5 +1,5 @@
 /**
- * Email infrastructure checker — MX + SPF + DMARC + DKIM via DoH.
+ * Email infrastructure checker — MX + SPF + DMARC + DKIM + score via DoH.
  */
 
 import { prepareDomain, lookupDns } from "../dns/index.js";
@@ -7,14 +7,14 @@ import { analyzeMx } from "./mx.js";
 import { analyzeSpf } from "./spf.js";
 import { analyzeDmarc } from "./dmarc.js";
 import { checkDkim, prepareSelector } from "./dkim.js";
+import { calculateEmailSecurityScore } from "./score.js";
 
 export { prepareDomain };
 
 /**
- * @param {string} domainInput - raw domain query param
- * @param {string|null|undefined} [selectorInput] - optional DKIM selector
- * @returns {Promise<object>} data payload
- * @throws {{ code: string, message: string }}
+ * @param {string} domainInput
+ * @param {string|null|undefined} [selectorInput]
+ * @returns {Promise<object>}
  */
 export async function checkEmailInfrastructure(domainInput, selectorInput) {
   const prepared = prepareDomain(domainInput);
@@ -58,6 +58,7 @@ export async function checkEmailInfrastructure(domainInput, selectorInput) {
   const mx = analyzeMx(dnsResult.records.MX || []);
   const spf = analyzeSpf(dnsResult.records.TXT || []);
   const dmarc = analyzeDmarc(dmarcDns.records.TXT || []);
+  const score = calculateEmailSecurityScore({ mx, spf, dmarc, dkim });
 
   return {
     domain,
@@ -65,5 +66,6 @@ export async function checkEmailInfrastructure(domainInput, selectorInput) {
     spf,
     dmarc,
     dkim,
+    score,
   };
 }
