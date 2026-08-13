@@ -1,7 +1,8 @@
 # Roadmap
 
 ## Completed
-- Through Phase 6E: Mobile-Friendly Analyzer
+- Through Phase 6F: SSL/HTTPS configuration analyzer (observable only)
 
 ## Not started
-- Telegram Bot and later tools
+- Full certificate transparency / external SSL APIs (not planned without explicit design)
+- Telegram Bot

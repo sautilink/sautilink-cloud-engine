@@ -33,7 +33,7 @@ export const TOOL_CATEGORIES = [
     description: "Basic security posture and infrastructure detection.",
     tools: [
       { id: "blacklist", name: "Blacklist Checker", description: "Check blacklists.", route: "/tools/blacklist", status: "coming_soon" },
-      { id: "ssl", name: "SSL/TLS Checker", description: "Inspect TLS.", route: "/tools/ssl", status: "coming_soon" },
+      { id: "ssl", name: "SSL/TLS & HTTPS Analyzer", description: "Observable HTTPS, redirects, and HSTS (not full cert audit).", route: "/tools/ssl", status: "available" },
       { id: "security-headers", name: "HTTP Headers Analyzer", description: "Review security headers.", route: "/tools/headers", status: "available" },
       { id: "port-scanner", name: "Basic Port Scanner", description: "Common ports.", route: "/tools/ports", status: "coming_soon" },
       { id: "waf", name: "WAF Detector", description: "Detect WAF.", route: "/tools/waf", status: "coming_soon" },

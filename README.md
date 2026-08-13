@@ -2,7 +2,7 @@
 
 **Site:** https://cloudengine.sautilink.com
 
-Tools: DNS, HTTP status, Email, Headers, Robots, Sitemap, Website, **Mobile** (`/api/mobile?url=`).
+Tools include **SSL/HTTPS** (`/api/ssl?url=`) — HSTS and HTTPS configuration only; certificate chain fields are not observable in Pages Functions.
 
 ```bash
 npm install && npm run dev

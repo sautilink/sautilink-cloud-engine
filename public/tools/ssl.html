@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SSL/TLS &amp; HTTPS Analyzer — SautiLink Cloud Engine</title>
+  <meta name="description" content="Observable HTTPS and HSTS configuration checks. Certificate chain details are not exposed by Cloudflare Pages Functions fetch." />
+  <link rel="canonical" href="https://cloudengine.sautilink.com/tools/ssl" />
+  <meta name="theme-color" content="#0b0f19" />
+  <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/tools/ssl.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><span class="brand-name">SautiLink</span><span class="brand-product">Cloud Engine</span></span></a>
+      <nav class="nav" aria-label="Primary">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/#tools" class="nav-link">Tools</a>
+        <a href="/#api" class="nav-link">API</a>
+      </nav>
+      <div class="header-actions">
+        <a href="/#tools" class="btn btn-secondary">All tools</a>
+        <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+  <main id="main" class="tool-page">
+    <div class="container tool-layout">
+      <header class="tool-header">
+        <p class="eyebrow">Security</p>
+        <h1>SSL/TLS &amp; HTTPS Analyzer</h1>
+        <p class="tool-lead">Checks HTTPS availability, HTTP→HTTPS redirects, and HSTS. Does <strong>not</strong> read certificate issuer, SANs, expiry, or cipher — those are not exposed by Pages Functions <code>fetch</code>.</p>
+      </header>
+      <form class="tool-form" id="ssl-form" novalidate>
+        <label for="url-input" class="field-label">Website URL</label>
+        <div class="tool-input-row">
+          <input type="url" id="url-input" placeholder="https://example.com" required />
+          <button type="submit" class="btn btn-primary" id="ssl-submit">Analyze</button>
+        </div>
+        <p class="field-hint">Public http/https only. Probes HTTPS and HTTP with shared SSRF protections.</p>
+        <p class="field-error" id="url-error" hidden></p>
+      </form>
+      <div class="tool-status" id="status" hidden></div>
+      <section id="results" hidden>
+        <article class="card score-card">
+          <div class="score-hero">
+            <p class="score-kicker">HTTPS configuration score</p>
+            <p class="score-total" id="score-total">—</p>
+            <p class="score-grade" id="score-grade"></p>
+            <p class="score-label" id="score-label"></p>
+            <div class="score-bar" id="score-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="score-bar-fill" id="score-bar-fill"></div></div>
+            <p class="score-version" id="score-version"></p>
+          </div>
+          <ul class="score-cats" id="score-cats"></ul>
+        </article>
+        <article class="card"><h2>HTTPS</h2><div id="https-body"></div></article>
+        <article class="card"><h2>HSTS</h2><div id="hsts-body"></div></article>
+        <article class="card"><h2>Certificate / TLS details</h2><div id="cert-body"></div></article>
+        <article class="card"><h2>Findings</h2><ul class="findings-list" id="findings-list"></ul></article>
+        <article class="card"><h2>Recommendations</h2><ol class="recs-list" id="recs-list"></ol></article>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer"><div class="container footer-inner"><p class="footer-copy">&copy; <span id="year"></span> SautiLink</p></div></footer>
+  <script type="module" src="/tools/ssl.js"></script>
+</body>
+</html>

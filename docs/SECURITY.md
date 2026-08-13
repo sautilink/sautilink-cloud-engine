@@ -1,3 +1,3 @@
 # Security
 
-Mobile analyzer: same SSRF/DoH/redirect controls as HTTP status. No asset crawling.
+SSL analyzer reuses SSRF/DoH/redirect controls. Does not claim independent certificate validation beyond runtime acceptance of HTTPS fetch.

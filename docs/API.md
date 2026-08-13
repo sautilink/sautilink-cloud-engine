@@ -11,7 +11,12 @@
 | GET | `/api/sitemap?url=` |
 | GET | `/api/website?url=` |
 | GET | `/api/mobile?url=` |
+| GET | `/api/ssl?url=` |
 
-## `GET /api/mobile?url=`
+## `GET /api/ssl?url=`
 
-Primary-HTML mobile heuristics (viewport, fixed-width signals, images, SEO). **Not** Google Mobile-Friendly Test, Lighthouse, or Core Web Vitals. Score **v1.0**. Cache: `no-store`. Limits: ~8s, 512 KiB HTML.
+Observable HTTPS configuration: HTTPS reachability, HTTP→HTTPS redirects, HSTS parsing.
+
+**Not available in Pages Functions fetch:** certificate issuer, SANs, expiry, chain, fingerprint, TLS version, cipher. Those fields are returned as `not_observable`.
+
+Score **v1.0** (HTTPS / redirect / HSTS / HSTS quality / consistency). Cache: `no-store`.

@@ -1,3 +1,3 @@
 # Architecture
 
-Mobile: `src/tools/mobile/*` → `functions/api/mobile.js`. Shared SSRF/URL stack. HTML-only; no rendering.
+SSL tool: `src/tools/ssl/*` → `functions/api/ssl.js`. Uses `fetch` only; no Node `tls`. Certificate properties are explicitly unsupported on this runtime.
