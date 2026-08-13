@@ -1,5 +1,5 @@
 /**
- * Email Infrastructure Checker UI — /api/email
+ * Email Infrastructure Checker UI — /api/email (MX + SPF + DMARC)
  */
 
 function escapeHtml(str) {
@@ -118,12 +118,88 @@ function renderSpf(spf) {
   body.innerHTML = html;
 }
 
+function renderDmarc(dmarc) {
+  const badge = document.getElementById("dmarc-badge");
+  const body = document.getElementById("dmarc-body");
+  if (!body) return;
+
+  if (!dmarc || !dmarc.found) {
+    setBadge(badge, "Missing", "error");
+    body.innerHTML = `<p class="empty-note">No DMARC record at _dmarc.&lt;domain&gt;.</p>`;
+    if (dmarc?.warnings?.length) {
+      body.innerHTML += `<ul class="warn-list">${dmarc.warnings
+        .map((w) => `<li>${escapeHtml(w)}</li>`)
+        .join("")}</ul>`;
+    }
+    return;
+  }
+
+  if (dmarc.valid === false) {
+    setBadge(badge, "Invalid", "error");
+  } else if (dmarc.policy === "none" || (dmarc.warnings && dmarc.warnings.length > 2)) {
+    setBadge(badge, "Warning", "warn");
+  } else if (dmarc.policy === "reject") {
+    setBadge(badge, "Configured", "ok");
+  } else {
+    setBadge(badge, "Valid", "ok");
+  }
+
+  const sp = dmarc.subdomainPolicy == null ? "(inherits p)" : dmarc.subdomainPolicy;
+  const pct = dmarc.percentage == null ? "—" : String(dmarc.percentage);
+  const adkim = dmarc.alignment?.dkim || "—";
+  const aspf = dmarc.alignment?.spf || "—";
+
+  let html = `
+    <dl class="spf-meta">
+      <div><dt>Policy (p)</dt><dd><code>${escapeHtml(String(dmarc.policy || "—"))}</code></dd></div>
+      <div><dt>Subdomain (sp)</dt><dd><code>${escapeHtml(String(sp))}</code></dd></div>
+      <div><dt>Percentage</dt><dd><code>${escapeHtml(pct)}</code></dd></div>
+      <div><dt>DKIM alignment</dt><dd><code>${escapeHtml(adkim)}</code></dd></div>
+      <div><dt>SPF alignment</dt><dd><code>${escapeHtml(aspf)}</code></dd></div>
+      <div><dt>Valid</dt><dd><code>${dmarc.valid ? "yes" : "no"}</code></dd></div>
+    </dl>`;
+
+  if (dmarc.record) {
+    html += `<p class="spf-record-label">Record</p><pre class="spf-record"><code>${escapeHtml(dmarc.record)}</code></pre>`;
+  }
+
+  const agg = dmarc.reporting?.aggregate || [];
+  const forens = dmarc.reporting?.forensic || [];
+  html += `<p class="spf-record-label">Aggregate reporting (rua)</p>`;
+  html +=
+    agg.length === 0
+      ? `<p class="empty-note">None</p>`
+      : `<ul class="mech-list">${agg.map((x) => `<li><code>${escapeHtml(x)}</code></li>`).join("")}</ul>`;
+  html += `<p class="spf-record-label">Forensic reporting (ruf)</p>`;
+  html +=
+    forens.length === 0
+      ? `<p class="empty-note">None</p>`
+      : `<ul class="mech-list">${forens.map((x) => `<li><code>${escapeHtml(x)}</code></li>`).join("")}</ul>`;
+
+  if (dmarc.options && Object.keys(dmarc.options).length) {
+    html += `<p class="spf-record-label">Options / other tags</p><ul class="mech-list">`;
+    for (const [k, v] of Object.entries(dmarc.options)) {
+      html += `<li><code>${escapeHtml(k)}=${escapeHtml(Array.isArray(v) ? v.join(",") : String(v))}</code></li>`;
+    }
+    html += `</ul>`;
+  }
+
+  if (Array.isArray(dmarc.warnings) && dmarc.warnings.length) {
+    html += `<p class="spf-record-label">Notes</p><ul class="warn-list">${dmarc.warnings
+      .map((w) => `<li>${escapeHtml(w)}</li>`)
+      .join("")}</ul>`;
+  }
+
+  body.innerHTML = html;
+}
+
 function renderResults(data) {
   const section = document.getElementById("email-results");
   const domainEl = document.getElementById("result-domain");
   if (domainEl) domainEl.textContent = data.domain;
   renderMx(data.mx);
   renderSpf(data.spf);
+  renderDmarc(data.dmarc);
   if (section) section.hidden = false;
 }
 
@@ -132,7 +208,7 @@ async function runCheck(domain) {
   const results = document.getElementById("email-results");
 
   setError("");
-  setStatus("Checking MX and SPF…", "loading");
+  setStatus("Checking MX, SPF, and DMARC…", "loading");
   if (results) results.hidden = true;
   if (submit) {
     submit.disabled = true;

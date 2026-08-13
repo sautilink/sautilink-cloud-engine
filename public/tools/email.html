@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Email Infrastructure Checker — SautiLink Cloud Engine</title>
-  <meta name="description" content="Check MX and SPF email infrastructure for any domain with SautiLink Cloud Engine." />
+  <meta name="description" content="Check MX, SPF, and DMARC email infrastructure for any domain with SautiLink Cloud Engine." />
   <link rel="canonical" href="https://cloudengine.sautilink.com/tools/email" />
   <meta name="theme-color" content="#0b0f19" />
   <meta name="robots" content="index, follow" />
@@ -45,7 +45,7 @@
         <p class="eyebrow">DNS &amp; Email</p>
         <h1>Email Infrastructure Checker</h1>
         <p class="tool-lead">
-          Inspect MX mail servers and SPF sender policy for a domain using DNS-over-HTTPS.
+          Inspect MX, SPF, and DMARC configuration for a domain using DNS-over-HTTPS.
         </p>
       </header>
 
@@ -88,6 +88,14 @@
             <span class="state-badge" id="spf-badge">—</span>
           </div>
           <div id="spf-body"></div>
+        </article>
+
+        <article class="email-card" id="dmarc-card">
+          <div class="email-card-header">
+            <h2>DMARC</h2>
+            <span class="state-badge" id="dmarc-badge">—</span>
+          </div>
+          <div id="dmarc-body"></div>
         </article>
       </section>
     </div>

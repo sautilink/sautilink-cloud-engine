@@ -1,10 +1,11 @@
 /**
- * Email infrastructure checker — MX + SPF via shared DoH lookups.
+ * Email infrastructure checker — MX + SPF + DMARC via shared DoH lookups.
  */
 
 import { prepareDomain, lookupDns } from "../dns/index.js";
 import { analyzeMx } from "./mx.js";
 import { analyzeSpf } from "./spf.js";
+import { analyzeDmarc } from "./dmarc.js";
 
 export { prepareDomain };
 
@@ -23,10 +24,15 @@ export async function checkEmailInfrastructure(input) {
   }
 
   const domain = prepared.domain;
+  const dmarcName = `_dmarc.${domain}`;
 
   let dnsResult;
+  let dmarcDns;
   try {
-    dnsResult = await lookupDns(domain, ["MX", "TXT"]);
+    [dnsResult, dmarcDns] = await Promise.all([
+      lookupDns(domain, ["MX", "TXT"]),
+      lookupDns(dmarcName, ["TXT"]),
+    ]);
   } catch (err) {
     if (err && err.code === "DNS_RESOLVER_ERROR") {
       throw {
@@ -39,10 +45,12 @@ export async function checkEmailInfrastructure(input) {
 
   const mx = analyzeMx(dnsResult.records.MX || []);
   const spf = analyzeSpf(dnsResult.records.TXT || []);
+  const dmarc = analyzeDmarc(dmarcDns.records.TXT || []);
 
   return {
     domain,
     mx,
     spf,
+    dmarc,
   };
 }

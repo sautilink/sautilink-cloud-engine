@@ -1,31 +1,19 @@
 # Roadmap — SautiLink Cloud Engine
 
-## Phase 1 — Foundation
-- [x] Pages + Functions, homepage, health, docs
+## Completed
+- Phase 1 Foundation
+- Phase 2 DNS Lookup
+- Phase 3 API hardening
+- Phase 4 HTTP Status + SSRF
+- Phase 5A Email MX + SPF
+- Phase 5B DMARC analyzer (`data.dmarc` on `/api/email`)
 
-## Phase 2 — DNS
-- [x] DNS Lookup (DoH) + `/tools/dns`
+## Phase 5C+ (not started)
+- [ ] DKIM checker
+- [ ] Email Security Score
+- [ ] Recursive SPF / lookup budget
 
-## Phase 3 — API hardening
-- [x] Responses, methods, 404, CORS, headers, SECURITY.md
-
-## Phase 4 — HTTP status
-- [x] HTTP/HTTPS Status Checker + SSRF protections
-
-## Phase 5A — Email (MX + SPF)
-- [x] Email Infrastructure Checker (`/api/email`, `/tools/email`)
-- [x] MX structured records
-- [x] SPF detection, multi-record invalid, basic policy/mechanisms/warnings
-- [ ] Recursive SPF evaluation / 10-lookup limit
-- [ ] DMARC
-- [ ] DKIM
-
-## Phase 5B+ — DMARC / DKIM / score
-- Planned after 5A
-
-## Later phases
-- Website tools (robots, sitemap, SEO)
-- Security tools
-- Infrastructure tools
+## Later
+- Website tools, security tools, infrastructure tools
 - Telegram Bot (same API)
 - Optional accounts / DB when required

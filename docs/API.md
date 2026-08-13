@@ -16,15 +16,15 @@ Tool endpoints use `{ success, data }` / `{ success, error }` except `/api/healt
 
 ### `GET /api/dns?domain=example.com`
 
-Live DNS (A, AAAA, CNAME, MX, NS, TXT) via Cloudflare DoH. See prior docs for full schema.
+Live DNS (A, AAAA, CNAME, MX, NS, TXT) via Cloudflare DoH.
 
 ### `GET /api/http-status?url=https://example.com`
 
-Safe HTTP/HTTPS status probe with SSRF protections. Target 4xx/5xx still yield API `success: true`.
+Safe HTTP/HTTPS status probe with SSRF protections.
 
 ### `GET /api/email?domain=example.com`
 
-MX + SPF email infrastructure check via DNS-over-HTTPS.
+MX + SPF + DMARC email infrastructure check via DNS-over-HTTPS.
 
 **Methods:** GET, OPTIONS  
 **Authentication:** none
@@ -36,38 +36,51 @@ MX + SPF email infrastructure check via DNS-over-HTTPS.
   "success": true,
   "data": {
     "domain": "example.com",
-    "mx": {
-      "found": true,
-      "records": [{ "priority": 0, "host": "." }]
-    },
+    "mx": { "found": true, "records": [{ "priority": 0, "host": "." }] },
     "spf": {
       "found": true,
       "valid": true,
       "recordCount": 1,
       "record": "v=spf1 -all",
       "policy": "hardfail",
-      "mechanisms": [{ "type": "all", "qualifier": "-", "value": null, "raw": "-all" }],
+      "mechanisms": [],
+      "warnings": []
+    },
+    "dmarc": {
+      "found": true,
+      "valid": true,
+      "record": "v=DMARC1; p=reject; ...",
+      "policy": "reject",
+      "subdomainPolicy": null,
+      "percentage": 100,
+      "alignment": { "dkim": "relaxed", "spf": "relaxed" },
+      "reporting": { "aggregate": [], "forensic": [] },
+      "options": {},
       "warnings": []
     }
   }
 }
 ```
 
-**MX:** `found` is false when no MX answers (not an engine error). Records sorted by priority ascending.
+**MX / SPF:** unchanged from Phase 5A (backwards compatible; `dmarc` is additive).
 
-**SPF:**
+**DMARC:**
 
-- Collects all TXT records starting with `v=spf1`
-- `recordCount > 1` → `valid: false`, `error: "MULTIPLE_SPF_RECORDS"`
-- Policy from terminal `all`: `-all` hardfail, `~all` softfail, `?all` neutral, `+all` pass, missing → none
-- Mechanisms detected (non-recursive): ip4, ip6, a, mx, include, redirect, all, and others as tokens
-- Warnings for missing SPF, multiple records, weak/permissive `all`, include/redirect present
+- Queries TXT at `_dmarc.<domain>`
+- Requires `v=DMARC1` and `p=` (`none` | `quarantine` | `reject`)
+- Multiple DMARC TXT → `valid: false`, `error: "MULTIPLE_DMARC_RECORDS"`
+- Tags: `v`, `p`, `sp`, `pct` (default 100), `rua`, `ruf`, `adkim`/`aspf` (`r`→relaxed, `s`→strict; default relaxed), `fo`, `rf`, `ri`
+- `rua`/`ruf`: only `mailto:` destinations collected (no callbacks)
+- Unknown tags preserved under `options` with a warning
+- Missing record → `found: false` (not an engine error)
 
-**Does not** expand `include:` / `redirect:` or enforce the RFC 10-lookup limit (planned later).
+**Error codes (engine):** `MISSING_DOMAIN`, `INVALID_DOMAIN`, `DNS_LOOKUP_FAILED` (502), `METHOD_NOT_ALLOWED` (405), `INTERNAL_ERROR` (500)
 
-**Error codes:** `MISSING_DOMAIN`, `INVALID_DOMAIN`, `DNS_LOOKUP_FAILED` (502), `METHOD_NOT_ALLOWED` (405), `INTERNAL_ERROR` (500)
+DMARC structural issues are returned inside `data.dmarc` (`valid: false`, optional `error`), not as top-level API failures.
 
-**Caching:** `public, max-age=30` on success (same short TTL as DNS); errors `no-store`.
+**Caching:** `public, max-age=30` on success; errors `no-store`.
+
+**Not included:** DKIM, Email Security Score, recursive SPF.
 
 ---
 

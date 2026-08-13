@@ -3,29 +3,25 @@
 ## Flow
 
 ```
-Web UI (public/) → Pages Functions (functions/api/) → src/tools/* → DoH / outbound HTTP
-                         ↑
-              Future Telegram Bot (same API)
+Web UI → Pages Functions → src/tools/* → Cloudflare DoH / outbound HTTP
+              ↑
+   Future Telegram Bot (same API)
 ```
-
-## Runtime
-
-Cloudflare Pages + Pages Functions. Shared logic in `src/`. Stateless; no database.
 
 ## Tools
 
 | Tool | Module | Route |
 |------|--------|-------|
-| DNS Lookup | `src/tools/dns/` | `/api/dns` |
+| DNS | `src/tools/dns/` | `/api/dns` |
 | HTTP Status | `src/tools/http-status/` | `/api/http-status` |
-| Email (MX+SPF) | `src/tools/email/` | `/api/email` |
+| Email (MX+SPF+DMARC) | `src/tools/email/` | `/api/email` |
 
-Email reuses `prepareDomain` + `lookupDns` from the DNS module (MX + TXT only), then `mx.js` / `spf.js` analyzers.
+Email module: `mx.js`, `spf.js`, `dmarc.js`, `index.js`. DMARC queries `_dmarc.<domain>` TXT in parallel with domain MX/TXT.
 
-## DNS / email resolution
+## Resolution
 
-Fixed Cloudflare DoH (`https://cloudflare-dns.com/dns-query`). 8s timeout. No Node `dns`.
+Fixed Cloudflare DoH only. No Node DNS. 8s timeout per query type.
 
 ## Security
 
-See [SECURITY.md](SECURITY.md). HTTP status has SSRF gates; domain tools reject URLs, IPs, localhost.
+See [SECURITY.md](SECURITY.md). Domain tools reject URLs/IPs/localhost. HTTP status has SSRF gates. DMARC does not contact `rua`/`ruf` destinations.
