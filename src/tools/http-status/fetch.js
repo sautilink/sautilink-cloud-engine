@@ -11,6 +11,15 @@ export const MAX_BODY_BYTES = 64 * 1024;
 
 const USER_AGENT = "SautiLinkCloudEngine/1.0 (+https://cloudengine.sautilink.com)";
 
+/** Header names never returned in fullHeaders maps (case-insensitive). */
+const REDACTED_HEADER_NAMES = new Set([
+  "set-cookie",
+  "set-cookie2",
+  "authorization",
+  "proxy-authenticate",
+  "www-authenticate",
+]);
+
 /**
  * @param {Headers} headers
  * @returns {{ contentType: string|null, contentLength: number|null, server: string|null, location: string|null }}
@@ -28,6 +37,80 @@ function pickSafeHeaders(headers) {
     server: headers.get("server") || null,
     location: headers.get("location") || null,
   };
+}
+
+/**
+ * Build a lowercase-keyed header map without cookie/auth values.
+ * Set-Cookie is omitted entirely (use parseCookiesMetadata).
+ * @param {Headers} headers
+ * @returns {Record<string, string>}
+ */
+export function headersToSafeObject(headers) {
+  const out = {};
+  for (const [name, value] of headers.entries()) {
+    const key = String(name).toLowerCase();
+    if (REDACTED_HEADER_NAMES.has(key)) continue;
+    // Multiple values: last wins for simple map (also collect via getSetCookie if needed)
+    out[key] = String(value);
+  }
+  return out;
+}
+
+/**
+ * Parse Set-Cookie for metadata only — never returns cookie values.
+ * @param {Headers} headers
+ * @returns {Array<{ name: string, secure: boolean, httpOnly: boolean, sameSite: string|null, path: string|null }>}
+ */
+export function parseCookiesMetadata(headers) {
+  let rawList = [];
+  if (typeof headers.getSetCookie === "function") {
+    try {
+      rawList = headers.getSetCookie() || [];
+    } catch {
+      rawList = [];
+    }
+  }
+  if (rawList.length === 0) {
+    const single = headers.get("set-cookie");
+    if (single) rawList = [single];
+  }
+
+  const cookies = [];
+  for (const raw of rawList) {
+    if (!raw || typeof raw !== "string") continue;
+    const parts = raw.split(";").map((p) => p.trim());
+    if (!parts.length) continue;
+    const nv = parts[0];
+    const eq = nv.indexOf("=");
+    const name = (eq === -1 ? nv : nv.slice(0, eq)).trim();
+    if (!name) continue;
+
+    let secure = false;
+    let httpOnly = false;
+    let sameSite = null;
+    let path = null;
+
+    for (let i = 1; i < parts.length; i++) {
+      const p = parts[i];
+      const pl = p.toLowerCase();
+      if (pl === "secure") secure = true;
+      else if (pl === "httponly") httpOnly = true;
+      else if (pl.startsWith("samesite=")) {
+        sameSite = p.slice(p.indexOf("=") + 1).trim() || null;
+      } else if (pl.startsWith("path=")) {
+        path = p.slice(p.indexOf("=") + 1).trim() || null;
+      }
+    }
+
+    cookies.push({
+      name,
+      secure,
+      httpOnly,
+      sameSite,
+      path,
+    });
+  }
+  return cookies;
 }
 
 /**
@@ -59,13 +142,6 @@ async function consumeBodyLimited(res) {
   }
 }
 
-/**
- * Single hop with timeout and manual redirect handling.
- * @param {URL} url
- * @param {string} method
- * @param {AbortSignal} signal
- * @returns {Promise<Response>}
- */
 async function probeOnce(url, method, signal) {
   return fetch(url.toString(), {
     method,
@@ -80,10 +156,12 @@ async function probeOnce(url, method, signal) {
 
 /**
  * @param {URL} startUrl - already validated structure
+ * @param {{ fullHeaders?: boolean }} [options]
  * @returns {Promise<object>} data payload for success response
  * @throws {{ code: string, message: string, httpStatus?: number }}
  */
-export async function probeHttpStatus(startUrl) {
+export async function probeHttpStatus(startUrl, options = {}) {
+  const wantHeaders = options.fullHeaders === true;
   const redirectChain = [];
   let current = new URL(startUrl.toString());
   let redirectCount = 0;
@@ -100,14 +178,16 @@ export async function probeHttpStatus(startUrl) {
         throw {
           code: safe.code,
           message: safe.message,
-          httpStatus: safe.code === "PRIVATE_ADDRESS_BLOCKED" || safe.code === "SSRF_BLOCKED" ? 403 : 400,
+          httpStatus:
+            safe.code === "PRIVATE_ADDRESS_BLOCKED" || safe.code === "SSRF_BLOCKED"
+              ? 403
+              : 400,
         };
       }
 
       let res;
       try {
         res = await probeOnce(current, "HEAD", controller.signal);
-        // Some servers mishandle HEAD → try GET for 405/501
         if (res.status === 405 || res.status === 501) {
           res = await probeOnce(current, "GET", controller.signal);
         }
@@ -134,14 +214,12 @@ export async function probeHttpStatus(startUrl) {
         };
       }
 
-      // Redirects: 3xx with Location
       if (res.status >= 300 && res.status < 400) {
         const loc = res.headers.get("location");
         if (!loc) {
-          // Redirect without location — treat as final response
           const elapsed = Math.round(performance.now() - started);
           const headers = pickSafeHeaders(res.headers);
-          return {
+          const payload = {
             url: startUrl.toString(),
             finalUrl: current.toString(),
             status: res.status,
@@ -156,6 +234,11 @@ export async function probeHttpStatus(startUrl) {
             server: headers.server,
             location: headers.location,
           };
+          if (wantHeaders) {
+            payload.headers = headersToSafeObject(res.headers);
+            payload.cookies = parseCookiesMetadata(res.headers);
+          }
+          return payload;
         }
 
         if (redirectCount >= MAX_REDIRECTS) {
@@ -203,7 +286,6 @@ export async function probeHttpStatus(startUrl) {
         continue;
       }
 
-      // Final non-redirect response — limit body if GET was used
       if (res.body) {
         const { truncated } = await consumeBodyLimited(res);
         if (truncated) {
@@ -218,7 +300,7 @@ export async function probeHttpStatus(startUrl) {
       const elapsed = Math.round(performance.now() - started);
       const headers = pickSafeHeaders(res.headers);
 
-      return {
+      const payload = {
         url: startUrl.toString(),
         finalUrl: current.toString(),
         status: res.status,
@@ -233,6 +315,13 @@ export async function probeHttpStatus(startUrl) {
         server: headers.server,
         location: headers.location,
       };
+
+      if (wantHeaders) {
+        payload.headers = headersToSafeObject(res.headers);
+        payload.cookies = parseCookiesMetadata(res.headers);
+      }
+
+      return payload;
     }
   } finally {
     clearTimeout(timer);
