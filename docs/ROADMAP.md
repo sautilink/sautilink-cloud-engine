@@ -1,6 +1,6 @@
 # Roadmap — SautiLink Cloud Engine
 
-## Phase 1 — Foundation (current)
+## Phase 1 — Foundation
 
 - [x] Project structure (Cloudflare Pages + Functions)
 - [x] Homepage UI (hero, tools, API, about)
@@ -12,9 +12,10 @@
 - [x] SEO basics (title, meta, OG, robots, sitemap, favicon)
 - [x] Stateless, no database, no auth
 
-## Phase 2 — DNS tools
+## Phase 2 — DNS tools (in progress)
 
-- DNS Lookup (DoH-based)
+- [x] DNS Lookup (DoH-based)
+- [x] Dedicated `/tools/dns` page
 - MX Record Checker
 - SPF Checker
 - DKIM Checker
