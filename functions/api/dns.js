@@ -4,38 +4,67 @@
  */
 
 import { prepareDomain, lookupDns, DEFAULT_TYPES } from "../../src/tools/dns/index.js";
-import { success, error, corsPreflight } from "../../src/utils/response.js";
+import {
+  success,
+  error,
+  corsPreflight,
+  methodNotAllowed,
+} from "../../src/utils/response.js";
+import { getRequestId, guardRequestSize } from "../../src/utils/request.js";
+import { DNS_SUCCESS_CACHE_SECONDS } from "../../src/utils/security.js";
 
-export async function onRequestOptions() {
-  return corsPreflight();
-}
+const ALLOWED = ["GET", "OPTIONS"];
 
-export async function onRequestGet(context) {
+export async function onRequest(context) {
+  const { request } = context;
+  const requestId = getRequestId(request);
+  const method = request.method.toUpperCase();
+
+  if (method === "OPTIONS") {
+    return corsPreflight(request);
+  }
+
+  if (method !== "GET") {
+    return methodNotAllowed(ALLOWED, { request, requestId });
+  }
+
   try {
-    const url = new URL(context.request.url);
+    const sizeGuard = guardRequestSize(request);
+    if (!sizeGuard.ok) {
+      return error(sizeGuard.code, sizeGuard.message, 400, {
+        request,
+        requestId,
+      });
+    }
+
+    const url = new URL(request.url);
     const domainParam = url.searchParams.get("domain");
 
     const prepared = prepareDomain(domainParam);
     if (prepared.error) {
-      const status =
-        prepared.error.code === "MISSING_DOMAIN" ? 400 : 400;
-      return error(prepared.error.code, prepared.error.message, status);
+      return error(prepared.error.code, prepared.error.message, 400, {
+        request,
+        requestId,
+      });
     }
 
     const data = await lookupDns(prepared.domain, DEFAULT_TYPES);
-    return success(data, 200);
+    return success(data, 200, {
+      request,
+      requestId,
+      cacheControl: `public, max-age=${DNS_SUCCESS_CACHE_SECONDS}`,
+    });
   } catch (err) {
-    // Structured tool errors
     if (err && typeof err === "object" && err.code && err.message) {
       const status = err.code === "DNS_RESOLVER_ERROR" ? 502 : 400;
-      return error(err.code, err.message, status);
+      return error(err.code, err.message, status, { request, requestId });
     }
 
-    // Never leak stack traces
     return error(
       "INTERNAL_ERROR",
       "An unexpected error occurred while looking up DNS records.",
-      500
+      500,
+      { request, requestId }
     );
   }
 }

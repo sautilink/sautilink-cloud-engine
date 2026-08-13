@@ -18,9 +18,9 @@ The **API is the single source of truth**. The Telegram Bot must not duplicate b
 
 - **Frontend:** static HTML/CSS/JS served from `public/` via Cloudflare Pages.
 - **Backend:** Cloudflare Pages Functions under `functions/`.
-- **Shared modules:** `src/` (validation, responses, tool helpers). Functions import from `src` via relative paths.
+- **Shared modules:** `src/` (validation, responses, security, tool helpers). Functions import from `src` via relative paths.
 
-Prefer **Web APIs** (`fetch`, `Request`, `Response`, `URL`) over Node-specific APIs so the same code runs on the Cloudflare edge.
+Prefer **Web APIs** (`fetch`, `Request`, `Response`, `URL`, `crypto`) over Node-specific APIs so the same code runs on the Cloudflare edge.
 
 ---
 
@@ -69,14 +69,30 @@ The API **never** fetches arbitrary user-supplied URLs — only the fixed DoH en
 
 ---
 
+## API hardening (Phase 3)
+
+Shared utilities:
+
+- `src/utils/response.js` — success/error/405/404 helpers, CORS, security headers
+- `src/utils/request.js` — request ID, URL/query size guards
+- `src/utils/security.js` — CORS allowlist, limits, cache constants
+- `functions/api/[[path]].js` — JSON 404 for unknown `/api/*` routes
+- `public/_headers` — CSP and baseline headers for static assets
+
+**Rate limiting:** not globally enforceable in application memory. Production quotas should use Cloudflare dashboard Rate Limiting / WAF. See [SECURITY.md](SECURITY.md).
+
+**Caching:** DNS successes may use short `max-age` (30s); errors and health use `no-store`.
+
+---
+
 ## Security boundaries
 
 - **Input validation:** domains and URLs are normalized; private/localhost targets rejected.
 - **SSRF:** DNS tool accepts domain names only; DoH URL is fixed. Future URL-based tools must refuse private IP ranges.
 - **Secrets:** never embed API keys in frontend JavaScript.
 - **Errors:** return structured `{ success: false, error: { code, message } }` — no stack traces to clients.
-- **CORS:** health and tools use shared response helpers; tighten further if needed.
-- **Sensitive tools** (port scan, arbitrary URL fetch): design with strict allowlists, timeouts, and rate limits before shipping.
+- **CORS:** controlled allowlist (production + local dev), not wildcard.
+- **Sensitive tools** (port scan, arbitrary URL fetch): design with strict allowlists, timeouts, and edge rate limits before shipping.
 
 ---
 
@@ -95,7 +111,7 @@ The bot is a thin client. All analysis logic remains in the API.
 ```
 GitHub (main)
   → Cloudflare Pages (build: public/)
-    → Static assets
+    → Static assets (+ _headers)
     → Pages Functions (functions/)
 Custom domain: cloudengine.sautilink.com
 ```

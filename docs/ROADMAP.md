@@ -12,19 +12,31 @@
 - [x] SEO basics (title, meta, OG, robots, sitemap, favicon)
 - [x] Stateless, no database, no auth
 
-## Phase 2 — DNS tools (in progress)
+## Phase 2 — DNS tools
 
 - [x] DNS Lookup (DoH-based)
 - [x] Dedicated `/tools/dns` page
-- MX Record Checker
-- SPF Checker
-- DKIM Checker
-- DMARC Checker
-- Nameserver Lookup
-- Dedicated tool pages under `/tools/...`
-- Rate-limiting considerations documented and enforced where needed
+- [ ] MX Record Checker
+- [ ] SPF Checker
+- [ ] DKIM Checker
+- [ ] DMARC Checker
+- [ ] Nameserver Lookup
+- [ ] Dedicated tool pages under `/tools/...`
 
-## Phase 3 — Website tools
+## Phase 3 — API hardening
+
+- [x] Standardized error/success responses
+- [x] Method handling (405)
+- [x] Unknown `/api/*` JSON 404
+- [x] Request size guards
+- [x] Request ID (`X-Request-Id`)
+- [x] Controlled CORS allowlist
+- [x] Security headers + CSP for static assets
+- [x] Conservative DNS response caching
+- [x] Documented rate-limiting strategy (Cloudflare-native for global limits)
+- [x] `docs/SECURITY.md`
+
+## Phase 4 — Website tools
 
 - HTTP Status Checker
 - Robots.txt Analyzer
@@ -33,7 +45,7 @@
 - Mobile-friendly signals
 - Performance-related endpoints (careful with external dependencies)
 
-## Phase 4 — Security tools
+## Phase 5 — Security tools
 
 - SSL/TLS Checker
 - Security Headers
@@ -41,7 +53,7 @@
 - WAF / Cloudflare / CDN detectors
 - Basic port scanner (strict limits, ethical constraints, documentation)
 
-## Phase 5 — Infrastructure tools
+## Phase 6 — Infrastructure tools
 
 - IP Lookup
 - ASN Lookup
@@ -50,7 +62,7 @@
 - HTTP Headers
 - Server Information
 
-## Phase 6 — Telegram Bot integration
+## Phase 7 — Telegram Bot integration
 
 - Official SautiLink Cloud Engine Telegram Bot
 - Thin bot client calling the same Cloud Engine API
@@ -61,7 +73,7 @@
 User → Telegram → Bot → Cloud Engine API → Tool → Result → Telegram
 ```
 
-## Phase 7 — Optional accounts / history / monitoring
+## Phase 8 — Optional accounts / history / monitoring
 
 - Introduce database only when required
 - User accounts (optional)
@@ -80,3 +92,4 @@ User → Telegram → Bot → Cloud Engine API → Tool → Result → Telegram
 4. Never ship fake tool results.
 5. Validate inputs and guard against SSRF.
 6. Document security boundaries for sensitive tools before release.
+7. Do not claim global rate limiting without edge infrastructure support.

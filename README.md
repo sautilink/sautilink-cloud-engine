@@ -13,7 +13,7 @@ Cloudflare Pages Git deployment connection verified.
 
 ---
 
-## Current scope (Phase 2 — DNS Engine)
+## Current scope (Phase 3 — API hardening)
 
 - Polished, responsive homepage
 - Tool category UI with modular cards
@@ -21,8 +21,11 @@ Cloudflare Pages Git deployment connection verified.
 - Stateless architecture (no database, no auth, no accounts)
 - Cloudflare Pages + Pages Functions compatible
 - `GET /api/health` endpoint
-- Shared validation & response helpers
-- Full documentation set
+- Shared validation, response, security helpers
+- Request size guards, method handling, JSON 404 for unknown API routes
+- Controlled CORS, security headers, request IDs
+- Documented rate-limiting strategy (Cloudflare dashboard for global limits)
+- Full documentation set including [docs/SECURITY.md](docs/SECURITY.md)
 
 **Not included yet:** remaining tool backends, Telegram Bot, database, authentication, payments, advertising.
 
@@ -36,15 +39,17 @@ sautilink-cloud-engine/
 │   ├── index.html
 │   ├── styles.css
 │   ├── app.js
-│   ├── tools/dns.*           # DNS Lookup UI
+│   ├── _headers            # CSP + security headers
+│   ├── tools/dns.*         # DNS Lookup UI
 │   └── …
 ├── functions/              # Cloudflare Pages Functions
 │   └── api/
-│       ├── health.js           # GET /api/health
-│       └── dns.js              # GET /api/dns
+│       ├── health.js       # GET /api/health
+│       ├── dns.js          # GET /api/dns
+│       └── [[path]].js     # JSON 404 catch-all
 ├── src/
-│   ├── tools/dns/             # DoH lookup module
-│   ├── utils/
+│   ├── tools/dns/          # DoH lookup module
+│   ├── utils/              # response, validation, request, security
 │   └── config/
 ├── docs/
 ├── package.json
@@ -75,7 +80,8 @@ npm run dev
 ```json
 {
   "status": "ok",
-  "service": "SautiLink Cloud Engine"
+  "service": "SautiLink Cloud Engine",
+  "timestamp": "..."
 }
 ```
 
@@ -93,7 +99,13 @@ Live DNS lookup (A, AAAA, CNAME, MX, NS, TXT) via Cloudflare DNS-over-HTTPS.
 }
 ```
 
-See [docs/API.md](docs/API.md).
+See [docs/API.md](docs/API.md) and [docs/SECURITY.md](docs/SECURITY.md).
+
+---
+
+## Rate limiting
+
+Application code applies request size limits and method checks only. **Global rate limiting requires Cloudflare dashboard rules** (isolates cannot share an in-memory counter). Configure Rate Limiting / WAF on `/api/dns*` before heavy public traffic.
 
 ---
 
@@ -101,7 +113,7 @@ See [docs/API.md](docs/API.md).
 
 - Most tools remain Coming Soon (DNS Lookup is live).
 - DNS uses public DoH only (fixed Cloudflare resolver).
-- No application-level rate limiting yet (use Cloudflare dashboard rules if needed).
+- No application-level global rate limiter (by design — use Cloudflare edge rules).
 - Telegram Bot not integrated.
 
 ---

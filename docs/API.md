@@ -2,7 +2,7 @@
 
 Base URL (production): `https://cloudengine.sautilink.com`
 
-All tool endpoints follow the response conventions below.
+All tool endpoints follow the response conventions below (except `/api/health`, which keeps a fixed legacy body).
 
 ---
 
@@ -25,11 +25,26 @@ All tool endpoints follow the response conventions below.
   "error": {
     "code": "INVALID_DOMAIN",
     "message": "Please provide a valid domain."
-  }
+  },
+  "requestId": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
-Do not expose internal stack traces or infrastructure details.
+- `requestId` is present on tool error responses when available.
+- Response header `X-Request-Id` is always set on hardened endpoints.
+- Do not expose internal stack traces or infrastructure details.
+
+### HTTP status codes
+
+| Status | Meaning |
+|--------|---------|
+| 200 | Success |
+| 400 | Bad request (validation, size) |
+| 404 | Unknown API route |
+| 405 | Method not allowed |
+| 429 | Rate limited (Cloudflare edge rules, when configured) |
+| 500 | Unexpected internal error |
+| 502 | Upstream dependency failure (e.g. DoH) |
 
 ---
 
@@ -39,9 +54,9 @@ Do not expose internal stack traces or infrastructure details.
 
 Health check for deployment verification and connectivity tests.
 
-**Authentication:** none
-
-**Response (200):**
+**Authentication:** none  
+**Methods:** GET, OPTIONS  
+**Body schema (unchanged):**
 
 ```json
 {
@@ -51,7 +66,7 @@ Health check for deployment verification and connectivity tests.
 }
 ```
 
-**CORS:** GET, OPTIONS
+**Caching:** `Cache-Control: no-store`
 
 ---
 
@@ -94,14 +109,48 @@ Empty arrays mean no records of that type (not an error).
 |------|------|---------|
 | `MISSING_DOMAIN` | 400 | No `domain` parameter |
 | `INVALID_DOMAIN` | 400 | Malformed domain, URL, localhost, or private target |
+| `REQUEST_TOO_LARGE` | 400 | URL or query value exceeds limits |
+| `METHOD_NOT_ALLOWED` | 405 | Non-GET/OPTIONS method |
 | `DNS_RESOLVER_ERROR` | 502 | DoH upstream unreachable / failed for all types |
 | `INTERNAL_ERROR` | 500 | Unexpected failure (no stack traces) |
+| `NOT_FOUND` | 404 | Unknown `/api/*` path |
 
 **Supported record types:** A, AAAA, CNAME, MX, NS, TXT
 
 **Validation:** Rejects protocols (`https://`), paths, queries, fragments, `localhost`, private IPs, and bare IPv4. Normalizes case and trailing dots (`Example.COM.` → `example.com`).
 
-**Architecture:** Queries are sent only to Cloudflare DoH (`https://cloudflare-dns.com/dns-query`). The API never fetches arbitrary user-supplied URLs.
+**Caching:** successful responses may be cached briefly (`public, max-age=30`). Errors use `no-store`.
+
+**Architecture:** Queries go only to Cloudflare DoH (`https://cloudflare-dns.com/dns-query`). The API never fetches arbitrary user-supplied URLs.
+
+---
+
+### Unknown routes
+
+`GET /api/<unknown>` → JSON 404 with code `NOT_FOUND` (not the homepage HTML).
+
+---
+
+## CORS
+
+Allowlisted origins only (production + local Wrangler/dev). See [SECURITY.md](SECURITY.md).
+
+Preflight: `OPTIONS` with `Access-Control-Allow-Methods: GET, OPTIONS`.
+
+---
+
+## Rate limiting
+
+**Application code does not enforce a global request quota.** Pages Functions isolates cannot share a consistent counter without external state.
+
+For production-wide limits, configure **Cloudflare Rate Limiting** (or WAF rules) in the dashboard on `/api/dns*` and other expensive paths. See [SECURITY.md](SECURITY.md).
+
+Application-level guards that *are* enforced:
+
+- Maximum URL length (2048)
+- Maximum query value length (512)
+- Method allowlist
+- Domain validation / SSRF-oriented rejection
 
 ---
 
@@ -147,16 +196,6 @@ Empty arrays mean no records of that type (not an error).
 | GET/POST | `/api/infrastructure/rdns` | Reverse DNS |
 | GET/POST | `/api/infrastructure/headers` | HTTP response headers |
 | GET/POST | `/api/infrastructure/hosting` | Hosting provider hints |
-
----
-
-## Rate limiting
-
-Not enforced in application code yet. Before heavy public traffic:
-
-- Prefer Cloudflare dashboard rate limiting rules
-- Document limits here
-- Return `RATE_LIMITED` when enforced
 
 ---
 
