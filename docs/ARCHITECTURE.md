@@ -3,15 +3,11 @@
 ## High-level flow
 
 ```
-┌─────────────┐     ┌───────────────────────┐     ┌────────────────┐
-│  Web UI     │────▶│  Cloud Engine API    │────▶│  Tool modules   │
-│  (public/)  │     │  (functions/api/)    │     │  (src/tools/)   │
-└─────────────┘     └───────────────────────┘     └────────┘────────┘
-                                                           │
-┌─────────────┐     ┌───────────────────────┐              ▼
-│  Telegram   │────▶│  Same Cloud Engine   │     External network
-│  Bot (later)│     │  API                 │     services / DoH / etc.
-└─────────────┘     └───────────────────────┘
+Web UI (public/)  →  Cloud Engine API (functions/api/)  →  Tool modules (src/tools/)
+                              ↑
+              Future Telegram Bot (same API only)
+                              ↓
+                    External services / DoH
 ```
 
 The **API is the single source of truth**. The Telegram Bot must not duplicate business logic. Future clients (mobile app, public API) will also call this API.
@@ -22,7 +18,7 @@ The **API is the single source of truth**. The Telegram Bot must not duplicate b
 
 - **Frontend:** static HTML/CSS/JS served from `public/` via Cloudflare Pages.
 - **Backend:** Cloudflare Pages Functions under `functions/`.
-- **Shared modules:** `src/` (validation, responses, tool helpers). Functions can import from `src` when needed (path-relative or via build configuration).
+- **Shared modules:** `src/` (validation, responses, tool helpers). Functions import from `src` via relative paths.
 
 Prefer **Web APIs** (`fetch`, `Request`, `Response`, `URL`) over Node-specific APIs so the same code runs on the Cloudflare edge.
 
@@ -30,7 +26,7 @@ Prefer **Web APIs** (`fetch`, `Request`, `Response`, `URL`) over Node-specific A
 
 ## Stateless design
 
-The initial product **does not use a database**.
+The product **does not use a database** in current phases.
 
 - No user accounts
 - No scan history
@@ -41,17 +37,7 @@ Every request is independent. This simplifies deployment, scaling, and privacy.
 
 ### Future database candidates
 
-When persistence is required, candidates may include:
-
-- User accounts
-- Scan / query history
-- Saved domains
-- Monitoring schedules
-- API keys for public API consumers
-- Usage analytics
-- Subscriptions
-
-Introduce a database only when a concrete feature needs it. Document the boundary clearly at that time.
+When persistence is required, candidates may include user accounts, scan history, saved domains, monitoring, API keys, analytics, and subscriptions. Introduce a database only when a concrete feature needs it.
 
 ---
 
@@ -59,55 +45,45 @@ Introduce a database only when a concrete feature needs it. Document the boundar
 
 Tools live under `src/tools/<category>/`.
 
-Example interface pattern:
-
 ```js
 // src/tools/dns/index.js
 export function prepareDomain(input) { /* validate + normalize */ }
-export async function lookupDns(domain, types) { /* implementation */ }
+export async function lookupDns(domain, types) { /* DoH implementation */ }
 ```
 
 API routes under `functions/api/` call these modules and return consistent JSON via `src/utils/response.js`.
 
 ---
 
-## DNS implementation note
+## DNS implementation (Phase 2)
 
-Cloudflare Workers / Pages Functions **do not** provide Node’s `dns` module.
+Cloudflare Pages Functions **do not** provide Node’s `dns` module. Live lookups use **DNS-over-HTTPS (DoH)**:
 
-**Recommended approach (Phase 2):**
+1. Client → `GET /api/dns?domain=…` (Pages Function: `functions/api/dns.js`)
+2. Function validates domain via `prepareDomain` (rejects URLs, localhost, private targets)
+3. `lookupDns` in `src/tools/dns/index.js` queries Cloudflare DoH (`https://cloudflare-dns.com/dns-query`) with `fetch()` + `Accept: application/dns-json`
+4. Parallel queries for A, AAAA, CNAME, MX, NS, TXT (8s timeout per type via `AbortController`)
+5. Structured JSON returned; empty record sets are success, not errors
 
-1. Use **DNS-over-HTTPS (DoH)** against a public resolver (e.g. Cloudflare `cloudflare-dns.com` or Google).
-2. Validate and normalize the domain with `src/utils/validation.js` first.
-3. Apply rate limiting and caching considerations at the edge.
-4. Never return fabricated DNS data.
-
-Do not introduce Node-only packages (`dns`, `dns-packet` used with raw sockets, etc.) that cannot run on the Workers runtime.
+The API **never** fetches arbitrary user-supplied URLs — only the fixed DoH endpoint with a validated domain name parameter. No Node-only packages.
 
 ---
 
 ## Security boundaries
 
 - **Input validation:** domains and URLs are normalized; private/localhost targets rejected.
-- **SSRF:** URL-based tools must refuse private IP ranges and link-local addresses.
-- **Secrets:** never embed API keys in frontend JavaScript. Use Cloudflare secrets / environment bindings when needed.
+- **SSRF:** DNS tool accepts domain names only; DoH URL is fixed. Future URL-based tools must refuse private IP ranges.
+- **Secrets:** never embed API keys in frontend JavaScript.
 - **Errors:** return structured `{ success: false, error: { code, message } }` — no stack traces to clients.
-- **CORS:** currently open for simplicity on health; tighten for production tool endpoints as needed.
-- **Sensitive tools** (port scan, arbitrary URL fetch): design with strict allowlists, timeouts, and rate limits. Document safe boundaries before shipping.
+- **CORS:** health and tools use shared response helpers; tighten further if needed.
+- **Sensitive tools** (port scan, arbitrary URL fetch): design with strict allowlists, timeouts, and rate limits before shipping.
 
 ---
 
 ## Telegram future architecture
 
 ```
-User
-  → Telegram
-    → SautiLink Cloud Engine Bot
-      → Cloud Engine API  (/api/...)
-        → Tool module
-          → Result
-            → Bot formats message
-              → Telegram
+User → Telegram → Bot → Cloud Engine API → Tool → Result → Telegram
 ```
 
 The bot is a thin client. All analysis logic remains in the API.
