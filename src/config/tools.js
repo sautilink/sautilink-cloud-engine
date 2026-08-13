@@ -1,7 +1,4 @@
-/**
- * Tool registry — keep synchronized with public/app.js (no bundler).
- */
-
+/** Tool registry — keep in sync with public/app.js */
 export const TOOL_CATEGORIES = [
   {
     id: "website-seo",
@@ -11,7 +8,7 @@ export const TOOL_CATEGORIES = [
       { id: "seo-checker", name: "SEO Checker", description: "Inspect on-page SEO signals for a given URL.", route: "/tools/seo", status: "coming_soon" },
       { id: "http-status", name: "HTTP Status Checker", description: "Check response status codes and redirects.", route: "/tools/http-status", status: "available" },
       { id: "robots", name: "Robots.txt Analyzer", description: "Fetch and analyze robots.txt crawl rules.", route: "/tools/robots", status: "available" },
-      { id: "sitemap", name: "Sitemap Analyzer", description: "Inspect XML sitemaps and coverage.", route: "/tools/sitemap", status: "coming_soon" },
+      { id: "sitemap", name: "Sitemap Analyzer", description: "Inspect XML sitemaps and coverage.", route: "/tools/sitemap", status: "available" },
       { id: "mobile-friendly", name: "Mobile Friendly Checker", description: "Evaluate mobile usability signals.", route: "/tools/mobile", status: "coming_soon" },
       { id: "lighthouse", name: "Lighthouse / Performance", description: "Performance, accessibility and best-practice insights.", route: "/tools/performance", status: "coming_soon" },
     ],
@@ -23,11 +20,11 @@ export const TOOL_CATEGORIES = [
     tools: [
       { id: "dns-lookup", name: "DNS Lookup", description: "Query common DNS record types for a domain.", route: "/tools/dns", status: "available" },
       { id: "email-infra", name: "Email Infrastructure Checker", description: "Check MX, SPF, DMARC, DKIM and email security score.", route: "/tools/email", status: "available" },
-      { id: "mx", name: "MX Record Checker", description: "Check the mail exchange records configured for a domain.", route: "/tools/mx", status: "coming_soon" },
-      { id: "spf", name: "SPF Checker", description: "Validate SPF records and policy.", route: "/tools/spf", status: "coming_soon" },
-      { id: "dkim", name: "DKIM Checker", description: "Inspect DKIM selectors and keys.", route: "/tools/dkim", status: "coming_soon" },
-      { id: "dmarc", name: "DMARC Checker", description: "Review DMARC policy and reporting setup.", route: "/tools/dmarc", status: "coming_soon" },
-      { id: "nameserver", name: "Nameserver Lookup", description: "List authoritative nameservers for a domain.", route: "/tools/nameserver", status: "coming_soon" },
+      { id: "mx", name: "MX Record Checker", description: "Check MX records.", route: "/tools/mx", status: "coming_soon" },
+      { id: "spf", name: "SPF Checker", description: "Validate SPF records.", route: "/tools/spf", status: "coming_soon" },
+      { id: "dkim", name: "DKIM Checker", description: "Inspect DKIM selectors.", route: "/tools/dkim", status: "coming_soon" },
+      { id: "dmarc", name: "DMARC Checker", description: "Review DMARC policy.", route: "/tools/dmarc", status: "coming_soon" },
+      { id: "nameserver", name: "Nameserver Lookup", description: "List nameservers.", route: "/tools/nameserver", status: "coming_soon" },
     ],
   },
   {
@@ -35,13 +32,13 @@ export const TOOL_CATEGORIES = [
     name: "Security",
     description: "Basic security posture and infrastructure detection.",
     tools: [
-      { id: "blacklist", name: "Blacklist Checker", description: "Check domain/IP against common blacklists.", route: "/tools/blacklist", status: "coming_soon" },
-      { id: "ssl", name: "SSL/TLS Checker", description: "Inspect certificate chain and TLS configuration.", route: "/tools/ssl", status: "coming_soon" },
-      { id: "security-headers", name: "HTTP Headers Analyzer", description: "Review HTTP security headers and configuration score.", route: "/tools/headers", status: "available" },
-      { id: "port-scanner", name: "Basic Port Scanner", description: "Check common open ports (carefully rate-limited).", route: "/tools/ports", status: "coming_soon" },
-      { id: "waf", name: "WAF Detector", description: "Detect presence of a Web Application Firewall.", route: "/tools/waf", status: "coming_soon" },
-      { id: "cloudflare", name: "Cloudflare Detector", description: "Detect Cloudflare proxying and related signals.", route: "/tools/cloudflare", status: "coming_soon" },
-      { id: "cdn", name: "CDN Detector", description: "Identify CDN providers in use.", route: "/tools/cdn", status: "coming_soon" },
+      { id: "blacklist", name: "Blacklist Checker", description: "Check blacklists.", route: "/tools/blacklist", status: "coming_soon" },
+      { id: "ssl", name: "SSL/TLS Checker", description: "Inspect TLS.", route: "/tools/ssl", status: "coming_soon" },
+      { id: "security-headers", name: "HTTP Headers Analyzer", description: "Review security headers.", route: "/tools/headers", status: "available" },
+      { id: "port-scanner", name: "Basic Port Scanner", description: "Common ports.", route: "/tools/ports", status: "coming_soon" },
+      { id: "waf", name: "WAF Detector", description: "Detect WAF.", route: "/tools/waf", status: "coming_soon" },
+      { id: "cloudflare", name: "Cloudflare Detector", description: "Detect Cloudflare.", route: "/tools/cloudflare", status: "coming_soon" },
+      { id: "cdn", name: "CDN Detector", description: "Identify CDN.", route: "/tools/cdn", status: "coming_soon" },
     ],
   },
   {
@@ -49,12 +46,12 @@ export const TOOL_CATEGORIES = [
     name: "Infrastructure",
     description: "Hosting, IP, ASN and server information.",
     tools: [
-      { id: "ip", name: "IP Lookup", description: "Resolve and inspect IP address details.", route: "/tools/ip", status: "coming_soon" },
-      { id: "asn", name: "ASN Lookup", description: "Find Autonomous System information.", route: "/tools/asn", status: "coming_soon" },
-      { id: "hosting", name: "Hosting Provider Detector", description: "Identify likely hosting or cloud provider.", route: "/tools/hosting", status: "coming_soon" },
-      { id: "rdns", name: "Reverse DNS", description: "Perform reverse DNS (PTR) lookups.", route: "/tools/rdns", status: "coming_soon" },
-      { id: "http-headers", name: "HTTP Headers", description: "Fetch and analyze response headers.", route: "/tools/headers", status: "available" },
-      { id: "server-info", name: "Server Information", description: "Gather basic server and technology signals.", route: "/tools/server", status: "coming_soon" },
+      { id: "ip", name: "IP Lookup", description: "IP details.", route: "/tools/ip", status: "coming_soon" },
+      { id: "asn", name: "ASN Lookup", description: "ASN info.", route: "/tools/asn", status: "coming_soon" },
+      { id: "hosting", name: "Hosting Provider Detector", description: "Hosting signals.", route: "/tools/hosting", status: "coming_soon" },
+      { id: "rdns", name: "Reverse DNS", description: "PTR lookups.", route: "/tools/rdns", status: "coming_soon" },
+      { id: "http-headers", name: "HTTP Headers", description: "Response headers.", route: "/tools/headers", status: "available" },
+      { id: "server-info", name: "Server Information", description: "Server signals.", route: "/tools/server", status: "coming_soon" },
     ],
   },
 ];
