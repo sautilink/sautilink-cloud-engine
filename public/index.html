@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SautiLink Cloud Engine — Powerful Tools for the Modern Web</title>
+  <meta name="description" content="Analyze websites, domains, DNS, security and infrastructure with SautiLink Cloud Engine." />
+  <link rel="canonical" href="https://cloudengine.sautilink.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://cloudengine.sautilink.com/" />
+  <meta property="og:title" content="SautiLink Cloud Engine — Powerful Tools for the Modern Web" />
+  <meta property="og:description" content="Analyze websites, domains, DNS, security and infrastructure with SautiLink Cloud Engine." />
+  <meta property="og:site_name" content="SautiLink Cloud Engine" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SautiLink Cloud Engine — Powerful Tools for the Modern Web" />
+  <meta name="twitter:description" content="Analyze websites, domains, DNS, security and infrastructure with SautiLink Cloud Engine." />
+  <meta name="theme-color" content="#0b0f19" />
+  <meta name="robots" content="index, follow" />
+  <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="brand" aria-label="SautiLink Cloud Engine home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <span class="brand-name">SautiLink</span>
+          <span class="brand-product">Cloud Engine</span>
+        </span>
+      </a>
+      <nav class="nav" aria-label="Primary">
+        <a href="/" class="nav-link active">Home</a>
+        <a href="#tools" class="nav-link">Tools</a>
+        <a href="#api" class="nav-link">API</a>
+        <a href="#about" class="nav-link">About</a>
+      </nav>
+      <div class="header-actions">
+        <a href="#telegram-placeholder" class="btn btn-telegram" id="telegram-btn" title="Telegram Bot — username will be published when the bot is live">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06-.01.24 0 .38z"/>
+          </svg>
+          Open Telegram Bot
+        </a>
+        <button type="button" class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" id="nav-toggle">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+  <main id="main">
+    <section class="hero">
+      <div class="container hero-inner">
+        <p class="eyebrow">SautiLink · Cloud Engine</p>
+        <h1>Powerful Tools for the Modern Web</h1>
+        <p class="hero-lead">Analyze websites, inspect domains, diagnose infrastructure, and check security — all from one cloud-powered toolkit.</p>
+        <form class="universal-search" id="universal-search" role="search" aria-label="Search domain or tool">
+          <label for="search-input" class="visually-hidden">Enter a domain, URL, IP address, or search for a tool</label>
+          <input type="search" id="search-input" name="q" placeholder="Enter a domain, URL, IP address, or search for a tool..." autocomplete="off" spellcheck="false" />
+          <button type="submit" class="btn btn-primary">Explore Tools</button>
+        </form>
+        <p class="hero-note">Stateless · Fast · Privacy-friendly · No account required</p>
+      </div>
+    </section>
+    <section class="section" id="tools">
+      <div class="container">
+        <div class="section-header">
+          <h2>Tool Categories</h2>
+          <p>Modular utilities for DNS, SEO, security and infrastructure. New tools ship continuously.</p>
+        </div>
+        <div id="tool-categories" class="categories"></div>
+      </div>
+    </section>
+    <section class="section section-alt" id="api">
+      <div class="container">
+        <div class="section-header">
+          <h2>API Foundation</h2>
+          <p>The same backend powers the web UI and, later, the Telegram Bot. Start with the health endpoint.</p>
+        </div>
+        <div class="api-card">
+          <div class="api-meta">
+            <span class="method get">GET</span>
+            <code class="endpoint">/api/health</code>
+          </div>
+          <p class="api-desc">Health check for deployment verification and connectivity tests. No authentication required.</p>
+          <pre class="code-block"><code>{
+  "status": "ok",
+  "service": "SautiLink Cloud Engine"
+}</code></pre>
+          <button type="button" class="btn btn-secondary" id="try-health">Try it live</button>
+          <div id="health-result" class="api-result" hidden></div>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="about">
+      <div class="container about-grid">
+        <div>
+          <h2>About Cloud Engine</h2>
+          <p>SautiLink Cloud Engine is a technology and utility product within the SautiLink ecosystem. It provides fast, privacy-respecting tools for website analysis, DNS, email authentication, security checks and infrastructure detection — designed for developers and operators.</p>
+          <p>The platform is intentionally stateless in this foundation release. No accounts, no database, no tracking of your queries. Future phases will add the Telegram Bot and optional advanced features while keeping the API as the single source of truth.</p>
+        </div>
+        <div class="about-points">
+          <div class="point"><strong>Shared API</strong><span>Web and Telegram consume the same engine.</span></div>
+          <div class="point"><strong>Cloudflare-native</strong><span>Built for Pages + Functions edge runtime.</span></div>
+          <div class="point"><strong>Security-first</strong><span>Input validation, SSRF guards, controlled errors.</span></div>
+          <div class="point"><strong>Extensible</strong><span>Modular tool architecture for rapid growth.</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand"><span class="brand-name">SautiLink</span> Cloud Engine</div>
+      <p class="footer-note">A product of the SautiLink ecosystem. · Domain: cloudengine.sautilink.com</p>
+      <p class="footer-copy">&copy; <span id="year"></span> SautiLink. All rights reserved.</p>
+    </div>
+  </footer>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
