@@ -1,5 +1,5 @@
 /**
- * Process a single Telegram Update (stateless, best-effort hardening).
+ * Process a single Telegram Update (stateless, public product UX).
  */
 
 import { parseCommand, KNOWN_COMMANDS } from "./router.js";
@@ -24,10 +24,11 @@ import {
 import { isDuplicateUpdate } from "./dedup.js";
 import { checkCooldown, tryBeginAudit, endAudit } from "./cooldown.js";
 import { newCorrelationId, logTelegram } from "./log.js";
+import { authorizeUser } from "./authz.js";
 
 /**
  * @param {object} update
- * @param {{ token: string, cloudEngineBaseUrl: string }}
+ * @param {{ token: string, cloudEngineBaseUrl: string, env?: object }}
  */
 export async function processUpdate(update, config) {
   const started = Date.now();
@@ -68,22 +69,23 @@ export async function processUpdate(update, config) {
     return { handled: false, reason: "no_chat" };
   }
 
+  const auth = authorizeUser({ from, chat, env: config.env });
+  if (!auth.allowed) {
+    await sendMessage(
+      config.token,
+      chat.id,
+      "This command is not available for your account."
+    );
+    return { handled: true, reason: "denied" };
+  }
+
   const parsed = parseCommand(message.text);
   if (!parsed) {
     return { handled: false, reason: "not_command" };
   }
 
-  if (!KNOWN_COMMANDS.has(parsed.command)) {
+  if (!KNOWN_COMMANDS.has(parsed.rawCommand) && !KNOWN_COMMANDS.has(parsed.command)) {
     await sendMessage(config.token, chat.id, "Unknown command. Try /help.");
-    logTelegram({
-      event: "telegram_unknown_command",
-      correlation_id: correlationId,
-      update_id: updateId,
-      command: parsed.command,
-      chat_id: chat.id,
-      status: "ok",
-      duration_ms: Date.now() - started,
-    });
     return { handled: true, command: parsed.command };
   }
 
@@ -92,17 +94,8 @@ export async function processUpdate(update, config) {
     await sendMessage(
       config.token,
       chat.id,
-      `⏳ Please wait ${cool.retryAfterSec || 1}s before running /${parsed.command} again.`
+      "⏱ You're checking too quickly.\n\nPlease wait a moment and try again."
     );
-    logTelegram({
-      event: "telegram_cooldown",
-      correlation_id: correlationId,
-      update_id: updateId,
-      command: parsed.command,
-      chat_id: chat.id,
-      status: "cooldown",
-      duration_ms: Date.now() - started,
-    });
     return { handled: true, command: parsed.command, reason: "cooldown" };
   }
 
@@ -142,12 +135,7 @@ export async function processUpdate(update, config) {
   let result;
   try {
     result = await handleCommand(
-      {
-        command: parsed.command,
-        arg: parsed.arg,
-        chat,
-        from,
-      },
+      { command: parsed.command, arg: parsed.arg, chat, from },
       config
     );
   } finally {
@@ -175,10 +163,7 @@ export async function processUpdate(update, config) {
       text,
       extra
     );
-    if (!edited.ok) {
-      // Fallback once — avoid response explosion
-      await sendMessage(config.token, chat.id, text, extra);
-    }
+    if (!edited.ok) await sendMessage(config.token, chat.id, text, extra);
   } else {
     await sendMessage(config.token, chat.id, text, extra);
   }
@@ -199,32 +184,27 @@ export async function processUpdate(update, config) {
 async function processCallback(cq, config, meta) {
   const { correlationId, updateId, started } = meta;
   const cqId = cq && cq.id;
+  if (cqId) await answerCallbackQuery(config.token, cqId);
 
-  if (cqId) {
-    await answerCallbackQuery(config.token, cqId);
+  const auth = authorizeUser({
+    from: cq.from,
+    chat: cq.message && cq.message.chat,
+    env: config.env,
+  });
+  if (!auth.allowed) {
+    return { handled: true, reason: "denied" };
   }
 
   const action = parseCallbackAction(cq && cq.data);
   if (!action) {
-    if (cqId) {
-      await answerCallbackQuery(config.token, cqId, "Unknown action");
-    }
-    logTelegram({
-      event: "telegram_callback_unknown",
-      correlation_id: correlationId,
-      update_id: updateId,
-      status: "rejected",
-      duration_ms: Date.now() - started,
-    });
+    if (cqId) await answerCallbackQuery(config.token, cqId, "Unknown action");
     return { handled: true, reason: "unknown_callback" };
   }
 
   const msg = cq.message;
   const chatId = msg && msg.chat && msg.chat.id;
   const messageId = msg && msg.message_id;
-  if (chatId == null) {
-    return { handled: true, reason: "no_chat" };
-  }
+  if (chatId == null) return { handled: true, reason: "no_chat" };
 
   const target = recoverAuditTargetFromMessage(msg && msg.text);
   if (!target) {
@@ -238,13 +218,8 @@ async function processCallback(cq, config, meta) {
 
   if (action === "audit:rerun") {
     if (!tryBeginAudit(chatId)) {
-      if (cqId) {
-        await answerCallbackQuery(
-          config.token,
-          cqId,
-          "Audit already running"
-        );
-      }
+      if (cqId)
+        await answerCallbackQuery(config.token, cqId, "Audit already running");
       return { handled: true, action, reason: "inflight" };
     }
     try {
@@ -322,10 +297,11 @@ async function processCallback(cq, config, meta) {
     "audit:email": "email",
     "audit:https": "https",
   };
-  const key = map[action];
-  const text = formatAuditCategory(result.data || {}, key);
-  await sendMessage(config.token, chatId, text);
-
+  await sendMessage(
+    config.token,
+    chatId,
+    formatAuditCategory(result.data || {}, map[action])
+  );
   logTelegram({
     event: "telegram_callback",
     correlation_id: correlationId,

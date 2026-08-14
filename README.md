@@ -2,10 +2,10 @@
 
 **Site:** https://cloudengine.sautilink.com
 
-Cloudflare Pages + Pages Functions. Telegram bot is a thin API client with best-effort reliability hardening (not durable global dedup).
+Website/DNS/email/security tools on Cloudflare Pages, plus a public Telegram bot thin client.
 
 ```bash
 npm install && npm run dev
 ```
 
-Docs: `docs/TELEGRAM.md`, `docs/TESTING.md`
+Telegram: `docs/TELEGRAM.md`

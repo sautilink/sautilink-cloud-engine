@@ -1,16 +1,7 @@
 # Security
 
-## SSRF
+Telegram remains a thin client. SSRF authority is Cloud Engine.
 
-URL tools and Telegram URL commands rely on Cloud Engine `prepareUrl` + `assertUrlSafeToFetch`.
+Optional `TELEGRAM_ADMIN_IDS` is for future admin gating only — not authentication of public users.
 
-## Telegram
-
-- Webhook secret header verification
-- Callback allowlist (no arbitrary URLs in callback_data)
-- Bot is a thin client; no second SSRF path that weakens engine checks
-- Best-effort in-isolate dedup/cooldown is **not** a global control plane
-
-## Rate limiting
-
-Cloudflare dashboard/edge rate limiting is the production global control. Application code must not claim global in-memory rate limiting.
+Never log bot tokens or webhook secrets.

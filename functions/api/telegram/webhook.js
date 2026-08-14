@@ -1,6 +1,5 @@
 /**
  * POST /api/telegram/webhook
- * Telegram Bot webhook — thin client over Cloud Engine APIs.
  */
 
 import { getTelegramConfig } from "../../../src/telegram/config.js";
@@ -35,46 +34,26 @@ export async function onRequest(context) {
   const config = getTelegramConfig(env || {});
 
   if (!config.configured) {
-    // Do not reveal secret names beyond what operators already know
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: {
-          code: "BOT_NOT_CONFIGURED",
-          message: "Telegram bot is not configured on this deployment.",
-        },
-      }),
-      {
-        status: 503,
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-          "Cache-Control": "no-store",
-        },
-      }
-    );
+    return json(503, {
+      success: false,
+      error: {
+        code: "BOT_NOT_CONFIGURED",
+        message: "Telegram bot is not configured on this deployment.",
+      },
+    });
   }
 
-  // Optional secret-token verification (Telegram setWebhook secret_token)
   if (config.webhookSecret) {
     const header =
       request.headers.get("X-Telegram-Bot-Api-Secret-Token") || "";
     if (header !== config.webhookSecret) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: {
-            code: "UNAUTHORIZED",
-            message: "Invalid webhook secret.",
-          },
-        }),
-        {
-          status: 401,
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            "Cache-Control": "no-store",
-          },
-        }
-      );
+      return json(401, {
+        success: false,
+        error: {
+          code: "UNAUTHORIZED",
+          message: "Invalid webhook secret.",
+        },
+      });
     }
   }
 
@@ -99,10 +78,10 @@ export async function onRequest(context) {
     await processUpdate(update, {
       token: config.token,
       cloudEngineBaseUrl: config.cloudEngineBaseUrl,
+      env: env || {},
     });
   } catch {
-    // Always 200 to Telegram after accept to reduce retries storms;
-    // processing errors are swallowed (stateless).
+    // Acknowledge to reduce retry storms; errors logged internally by bot layer
   }
 
   return json(200, { ok: true });

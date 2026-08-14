@@ -1,8 +1,9 @@
 /**
- * Plain-text formatters for Telegram (no Markdown injection risk).
+ * Plain-text formatters and public error vocabulary.
  */
 
 import { MAX_TELEGRAM_TEXT } from "./config.js";
+import { formatHelpFromRegistry } from "./registry.js";
 
 export function truncate(text, max = MAX_TELEGRAM_TEXT) {
   const s = String(text || "");
@@ -12,85 +13,69 @@ export function truncate(text, max = MAX_TELEGRAM_TEXT) {
 
 export function formatEngineError(err) {
   const code = err && err.code ? String(err.code) : "ERROR";
-  const message =
-    err && err.message ? String(err.message) : "Something went wrong.";
-  const friendly = mapCode(code, message);
-  return truncate(`❌ I couldn't complete that request.\nReason: ${friendly}`);
+  return truncate(mapUserError(code, err && err.message));
 }
 
-function mapCode(code, message) {
+function mapUserError(code, message) {
   switch (code) {
     case "PRIVATE_ADDRESS_BLOCKED":
     case "SSRF_BLOCKED":
-      return "Private/internal address blocked.";
+      return "🛡 That address cannot be checked for security reasons.";
     case "CREDENTIALS_NOT_ALLOWED":
-      return "URLs must not contain usernames or passwords.";
+      return "❌ URLs must not contain usernames or passwords.";
     case "UNSUPPORTED_PROTOCOL":
-      return "Only http and https are supported.";
+      return "❌ Only HTTP and HTTPS URLs are supported.";
     case "INVALID_URL":
     case "MISSING_URL":
-      return "Please provide a valid public URL.";
+      return "❌ Invalid input.\n\nUse:\n/audit https://example.com";
     case "INVALID_DOMAIN":
     case "MISSING_DOMAIN":
-      return "Please provide a valid domain (e.g. example.com).";
+      return "❌ Invalid input.\n\nUse:\n/dns example.com";
     case "INVALID_SELECTOR":
-      return "Invalid DKIM selector.";
+      return "❌ Invalid DKIM selector.";
     case "ENGINE_TIMEOUT":
     case "REQUEST_TIMEOUT":
-      return "The check took too long. Please try again.";
+      return "⏱ The check took too long.\n\nPlease try again.";
     case "ENGINE_NETWORK":
-      return "Could not reach Cloud Engine.";
+    case "ENGINE_UNEXPECTED":
+    case "ENGINE_BAD_JSON":
+      return "⚠️ Cloud Engine is temporarily unavailable.\n\nPlease try again shortly.";
     case "RATE_LIMITED":
     case "TELEGRAM_RATE_LIMITED":
-      return "Service is temporarily rate-limited. Please try again shortly.";
-    default:
-      return message.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "").slice(0, 300);
+      return "⏱ You're checking too quickly.\n\nPlease wait a moment and try again.";
+    case "ENGINE_HTTP_ERROR":
+      return "⚠️ The service is temporarily busy.\n\nPlease try again shortly.";
+    default: {
+      const msg = String(message || "Something went wrong.")
+        .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "")
+        .slice(0, 200);
+      // Avoid leaking internal code names to users when possible
+      if (/BLOCKED|SSRF|PRIVATE|TIMEOUT|RATE/i.test(code)) {
+        return `❌ ${msg}`;
+      }
+      return `❌ ${msg}`;
+    }
   }
 }
 
 export function formatTimeout() {
-  return "⏱ The check took too long. Please try again.";
+  return "⏱ The check took too long.\n\nPlease try again.";
 }
 
 export function formatHelp() {
-  return [
-    "SautiLink Cloud Engine Bot",
-    "",
-    "General",
-    "/start — welcome",
-    "/help — this help",
-    "/about — what this bot does",
-    "/status — Cloud Engine health",
-    "/id — your chat id (debug)",
-    "",
-    "Website",
-    "/audit <url> — unified audit",
-    "/website <url> — on-page SEO",
-    "/mobile <url> — mobile heuristics",
-    "/robots <url> — robots.txt",
-    "/sitemap <url> — sitemap.xml",
-    "/http <url> — HTTP status",
-    "/headers <url> — security headers",
-    "/ssl <url> — HTTPS / HSTS",
-    "",
-    "Infrastructure",
-    "/dns <domain> — DNS lookup",
-    "/email <domain> — email infrastructure",
-    "",
-    "Examples",
-    "/audit example.com",
-    "/dns example.com",
-    "",
-    "Automated configuration checks — not a pentest or Lighthouse.",
-  ].join("\n");
+  return formatHelpFromRegistry();
 }
 
 export function formatStart() {
   return [
-    "Welcome to SautiLink Cloud Engine.",
+    "🚀 SautiLink Cloud Engine",
     "",
-    "I run public website, DNS, and email checks via the Cloud Engine API.",
-    "Try /audit example.com or /help.",
+    "Website, DNS, email, security, and infrastructure checks from Telegram.",
+    "",
+    "Try:",
+    "/audit example.com",
+    "",
+    "Use /help to see all available tools.",
   ].join("\n");
 }
 
@@ -98,40 +83,33 @@ export function formatAbout() {
   return [
     "About SautiLink Cloud Engine",
     "",
-    "Automated website, DNS, email, security, and SEO configuration checks.",
+    "Automated website, DNS, email, HTTPS, and SEO configuration checks.",
     "",
     "These are quality/configuration assessments — not a penetration test,",
-    "vulnerability scanner, Google ranking tool, or Lighthouse replacement.",
+    "vulnerability scanner, Lighthouse report, or Google ranking tool.",
     "",
-    "Site: https://cloudengine.sautilink.com",
+    "Web: https://cloudengine.sautilink.com",
   ].join("\n");
 }
 
 export function formatStatus(ok, data) {
   if (!ok) {
-    return ["🔴 Cloud Engine", "Status: Temporarily unavailable"].join("\n");
+    return [
+      "🔴 SautiLink Cloud Engine",
+      "",
+      "Status: Temporarily unavailable.",
+    ].join("\n");
   }
-  const service =
-    data && data.service
-      ? String(data.service).slice(0, 80)
-      : "SautiLink Cloud Engine";
-  const st = data && data.status ? String(data.status).slice(0, 40) : "ok";
-  return [
-    "🟢 Cloud Engine",
-    `Status: Operational (${st})`,
-    `Service: ${service}`,
-  ].join("\n");
+  return ["🟢 SautiLink Cloud Engine", "", "Status: Operational"].join("\n");
 }
 
 export function formatId(chat, from) {
-  const lines = [
-    "Your Telegram identifiers (diagnostic only):",
-  ];
+  const lines = ["Diagnostic identifiers only:"];
   if (chat && chat.id != null) lines.push(`chat_id: ${chat.id}`);
   if (from && from.id != null) lines.push(`user_id: ${from.id}`);
   lines.push(
     "",
-    "No server, token, or infrastructure details are disclosed here."
+    "/id is for debugging. No tokens, secrets, or server details are shown."
   );
   return lines.join("\n");
 }
@@ -144,7 +122,7 @@ export function formatAudit(data) {
     "🔎 Website Audit",
     String(domain),
     "",
-    `Overall: ${score.total ?? "—"}/${score.max ?? 100} — ${score.grade || "?"} (${score.label || ""})`.trim(),
+    `Overall: ${score.total ?? "—"}/${score.max ?? 100} — ${score.grade || "?"}${score.label ? ` (${score.label})` : ""}`,
     "",
   ];
   const labels = {
@@ -159,18 +137,15 @@ export function formatAudit(data) {
   for (const [k, label] of Object.entries(labels)) {
     const c = cats[k];
     if (!c) continue;
-    if (c.available && c.score != null) {
-      lines.push(`${label} ${c.score}`);
-    } else {
-      lines.push(`${label} n/a`);
-    }
+    if (c.available && c.score != null) lines.push(`${label} ${c.score}`);
+    else lines.push(`${label} n/a`);
   }
   const findings = data.findings || [];
   const recs = data.recommendations || [];
   lines.push("");
   lines.push(`⚠️ Findings: ${findings.length}`);
   for (const f of findings.slice(0, 5)) {
-    lines.push(`• [${f.severity || "info"}] ${f.title || f.code}`);
+    lines.push(`• ${f.title || f.code}`);
   }
   if (findings.length > 5) lines.push(`… +${findings.length - 5} more`);
   lines.push("");
@@ -179,7 +154,10 @@ export function formatAudit(data) {
     lines.push(`• ${r.title || r.code}`);
   }
   if (recs.length > 3) lines.push(`… +${recs.length - 3} more`);
-  lines.push("", "Use the buttons below or /help.");
+  lines.push(
+    "",
+    "Configuration assessment only — not a ranking or pentest score."
+  );
   return truncate(lines.join("\n"));
 }
 
@@ -221,7 +199,7 @@ export function formatEmail(data) {
   const domain = data.domain || "";
   const score = data.score || {};
   const lines = [
-    `Email infrastructure · ${domain}`,
+    `Email · ${domain}`,
     `Score: ${score.total ?? "—"}/${score.max ?? 100} — ${score.grade || ""}`,
     "",
   ];
@@ -254,7 +232,7 @@ export function formatHeaders(data) {
     "",
   ];
   for (const f of (sec.findings || []).slice(0, 6)) {
-    lines.push(`• [${f.severity || "info"}] ${f.title || f.code}`);
+    lines.push(`• ${f.title || f.code}`);
   }
   return truncate(lines.join("\n"));
 }
@@ -268,10 +246,10 @@ export function formatSsl(data) {
     "HTTPS / HSTS",
     data.url || "",
     `Score: ${score.total ?? "—"}/100 — ${score.grade || ""}`,
-    `HTTPS available: ${https.available ? "yes" : "no"}`,
+    `HTTPS: ${https.available ? "available" : "not available"}`,
     `HSTS: ${hsts.present ? `yes (max-age=${hsts.maxAge ?? "?"})` : "no"}`,
     "",
-    "Certificate fields: not observable on Pages Functions fetch.",
+    "Certificate details are not observable via Pages Functions fetch.",
   ];
   return truncate(lines.join("\n"));
 }
@@ -347,9 +325,7 @@ export function formatHttp(data) {
 export function formatAuditCategory(data, categoryKey) {
   const domain = data.domain || data.url || "";
   const cat = (data.categories || {})[categoryKey];
-  if (!cat) {
-    return truncate(`No ${categoryKey} data for ${domain}.`);
-  }
+  if (!cat) return truncate(`No ${categoryKey} data for ${domain}.`);
   const lines = [
     `${categoryKey.toUpperCase()} · ${domain}`,
     cat.available
@@ -358,7 +334,7 @@ export function formatAuditCategory(data, categoryKey) {
     "",
   ];
   for (const f of (cat.findings || []).slice(0, 8)) {
-    lines.push(`• [${f.severity || "info"}] ${f.title || f.code}`);
+    lines.push(`• ${f.title || f.code}`);
   }
   if (!(cat.findings || []).length) lines.push("(no findings)");
   const recs = cat.recommendations || [];

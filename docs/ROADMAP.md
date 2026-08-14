@@ -1,8 +1,8 @@
 # Roadmap
 
 ## Completed
-- Through Phase 7C: Telegram UX
-- Phase 7D: Telegram reliability hardening (dedup/cooldown/errors/logging)
+- Phase 7E: public Telegram UX + access-control foundation
 
-## Not started
-- Phase 7E+
+## Future
+- Optional tiers (public / registered / premium / admin) without claiming they exist today
+- Phase 7F+
