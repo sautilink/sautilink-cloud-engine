@@ -1,9 +1,8 @@
 /**
- * Central command metadata for help and routing.
- * Aliases map to a primary command name.
+ * Central command metadata for help, routing, cost, and visibility.
  */
 
-/** @type {Array<{name:string, aliases?:string[], description:string, usage:string, category:string, requiresArgument:boolean, argumentType?:string, expensive?:boolean}>} */
+/** @type {Array<{name:string, aliases?:string[], description:string, usage:string, category:string, requiresArgument:boolean, argumentType?:string, cost:'cheap'|'expensive', visibility?:'public'|'admin'}>} */
 export const COMMANDS = [
   {
     name: "start",
@@ -11,6 +10,7 @@ export const COMMANDS = [
     usage: "/start",
     category: "general",
     requiresArgument: false,
+    cost: "cheap",
   },
   {
     name: "help",
@@ -18,6 +18,7 @@ export const COMMANDS = [
     usage: "/help",
     category: "general",
     requiresArgument: false,
+    cost: "cheap",
   },
   {
     name: "about",
@@ -25,6 +26,7 @@ export const COMMANDS = [
     usage: "/about",
     category: "general",
     requiresArgument: false,
+    cost: "cheap",
   },
   {
     name: "status",
@@ -32,6 +34,7 @@ export const COMMANDS = [
     usage: "/status",
     category: "general",
     requiresArgument: false,
+    cost: "cheap",
   },
   {
     name: "id",
@@ -39,6 +42,16 @@ export const COMMANDS = [
     usage: "/id",
     category: "general",
     requiresArgument: false,
+    cost: "cheap",
+  },
+  {
+    name: "admin",
+    description: "Admin operational status",
+    usage: "/admin",
+    category: "admin",
+    requiresArgument: false,
+    cost: "cheap",
+    visibility: "admin",
   },
   {
     name: "audit",
@@ -48,7 +61,7 @@ export const COMMANDS = [
     category: "website",
     requiresArgument: true,
     argumentType: "url",
-    expensive: true,
+    cost: "expensive",
   },
   {
     name: "website",
@@ -58,7 +71,7 @@ export const COMMANDS = [
     category: "website",
     requiresArgument: true,
     argumentType: "url",
-    expensive: true,
+    cost: "expensive",
   },
   {
     name: "mobile",
@@ -67,7 +80,7 @@ export const COMMANDS = [
     category: "website",
     requiresArgument: true,
     argumentType: "url",
-    expensive: true,
+    cost: "expensive",
   },
   {
     name: "robots",
@@ -76,7 +89,7 @@ export const COMMANDS = [
     category: "website",
     requiresArgument: true,
     argumentType: "url",
-    expensive: true,
+    cost: "expensive",
   },
   {
     name: "sitemap",
@@ -85,7 +98,7 @@ export const COMMANDS = [
     category: "website",
     requiresArgument: true,
     argumentType: "url",
-    expensive: true,
+    cost: "expensive",
   },
   {
     name: "headers",
@@ -94,7 +107,7 @@ export const COMMANDS = [
     category: "website",
     requiresArgument: true,
     argumentType: "url",
-    expensive: true,
+    cost: "expensive",
   },
   {
     name: "ssl",
@@ -103,7 +116,7 @@ export const COMMANDS = [
     category: "website",
     requiresArgument: true,
     argumentType: "url",
-    expensive: true,
+    cost: "expensive",
   },
   {
     name: "dns",
@@ -112,7 +125,7 @@ export const COMMANDS = [
     category: "infrastructure",
     requiresArgument: true,
     argumentType: "domain",
-    expensive: true,
+    cost: "expensive",
   },
   {
     name: "email",
@@ -121,7 +134,7 @@ export const COMMANDS = [
     category: "infrastructure",
     requiresArgument: true,
     argumentType: "domain",
-    expensive: true,
+    cost: "expensive",
   },
   {
     name: "http",
@@ -130,7 +143,7 @@ export const COMMANDS = [
     category: "infrastructure",
     requiresArgument: true,
     argumentType: "url",
-    expensive: true,
+    cost: "expensive",
   },
 ];
 
@@ -145,7 +158,6 @@ for (const c of COMMANDS) {
   }
 }
 
-/** Resolve alias or primary name → primary command name. */
 export function resolveCommandName(name) {
   if (!name) return null;
   return aliasToPrimary.get(String(name).toLowerCase()) || null;
@@ -160,6 +172,7 @@ export function knownCommandNames() {
   return new Set(aliasToPrimary.keys());
 }
 
+/** Public help — omits admin-only commands. */
 export function formatHelpFromRegistry() {
   const groups = [
     { id: "general", title: "General" },
@@ -169,7 +182,9 @@ export function formatHelpFromRegistry() {
   const lines = ["SautiLink Cloud Engine", "", "Commands"];
   for (const g of groups) {
     lines.push("", g.title);
-    for (const c of COMMANDS.filter((x) => x.category === g.id)) {
+    for (const c of COMMANDS.filter(
+      (x) => x.category === g.id && x.visibility !== "admin"
+    )) {
       const alias =
         c.aliases && c.aliases.length
           ? ` (alias: ${c.aliases.map((a) => "/" + a).join(", ")})`

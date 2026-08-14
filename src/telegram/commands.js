@@ -8,6 +8,7 @@ import {
   formatAbout,
   formatStatus,
   formatId,
+  formatAdmin,
   formatAudit,
   formatDns,
   formatEmail,
@@ -26,6 +27,8 @@ import {
   helpMenuKeyboard,
   statusKeyboard,
 } from "./menu.js";
+import { isAdmin } from "./authz.js";
+import { getUsageStats, getUsageConfig } from "./usage.js";
 
 function requireArg(arg, usage) {
   if (!arg) return { errorText: `Usage: ${usage}` };
@@ -35,6 +38,7 @@ function requireArg(arg, usage) {
 export async function handleCommand(ctx, config) {
   const { command, arg, chat, from } = ctx;
   const base = config.cloudEngineBaseUrl;
+  const env = config.env || {};
 
   switch (command) {
     case "start":
@@ -52,11 +56,29 @@ export async function handleCommand(ctx, config) {
         reply_markup: statusKeyboard(),
       };
     }
+    case "admin": {
+      if (!isAdmin(from && from.id, env)) {
+        return { text: "⛔ Admin access required." };
+      }
+      const health = await callCloudEngine(base, "/api/health", {});
+      const stats = getUsageStats();
+      const cfg = getUsageConfig(env);
+      return {
+        text: formatAdmin({
+          engineOk: health.ok,
+          trackedChats: stats.trackedChats,
+          maxTracked: stats.maxTracked,
+          windowSeconds: cfg.windowSeconds,
+          expensiveLimit: cfg.expensiveLimit,
+          cheapLimit: cfg.cheapLimit,
+        }),
+      };
+    }
     case "audit": {
       const r = requireArg(arg, "/audit <url>");
       if (r.errorText) return { text: r.errorText };
       const n = normalizeUrlArg(r.arg);
-      if (!n.ok) return { text: `❌ ${n.message}\nUsage: /audit <url>` };
+      if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /audit <url>` };
       return run(base, "/api/audit", { url: n.url }, formatAudit, true, {
         reply_markup: auditKeyboard(),
       });
@@ -65,63 +87,63 @@ export async function handleCommand(ctx, config) {
       const r = requireArg(arg, "/dns <domain>");
       if (r.errorText) return { text: r.errorText };
       const n = normalizeDomainArg(r.arg);
-      if (!n.ok) return { text: `❌ ${n.message}\nUsage: /dns <domain>` };
+      if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /dns <domain>` };
       return run(base, "/api/dns", { domain: n.domain }, formatDns, true);
     }
     case "email": {
       const r = requireArg(arg, "/email <domain>");
       if (r.errorText) return { text: r.errorText };
       const n = normalizeDomainArg(r.arg);
-      if (!n.ok) return { text: `❌ ${n.message}\nUsage: /email <domain>` };
+      if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /email <domain>` };
       return run(base, "/api/email", { domain: n.domain }, formatEmail, true);
     }
     case "headers": {
       const r = requireArg(arg, "/headers <url>");
       if (r.errorText) return { text: r.errorText };
       const n = normalizeUrlArg(r.arg);
-      if (!n.ok) return { text: `❌ ${n.message}\nUsage: /headers <url>` };
+      if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /headers <url>` };
       return run(base, "/api/headers", { url: n.url }, formatHeaders, true);
     }
     case "ssl": {
       const r = requireArg(arg, "/ssl <url>");
       if (r.errorText) return { text: r.errorText };
       const n = normalizeUrlArg(r.arg);
-      if (!n.ok) return { text: `❌ ${n.message}\nUsage: /ssl <url>` };
+      if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /ssl <url>` };
       return run(base, "/api/ssl", { url: n.url }, formatSsl, true);
     }
     case "website": {
       const r = requireArg(arg, "/website <url>");
       if (r.errorText) return { text: r.errorText };
       const n = normalizeUrlArg(r.arg);
-      if (!n.ok) return { text: `❌ ${n.message}\nUsage: /website <url>` };
+      if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /website <url>` };
       return run(base, "/api/website", { url: n.url }, formatWebsite, true);
     }
     case "mobile": {
       const r = requireArg(arg, "/mobile <url>");
       if (r.errorText) return { text: r.errorText };
       const n = normalizeUrlArg(r.arg);
-      if (!n.ok) return { text: `❌ ${n.message}\nUsage: /mobile <url>` };
+      if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /mobile <url>` };
       return run(base, "/api/mobile", { url: n.url }, formatMobile, true);
     }
     case "robots": {
       const r = requireArg(arg, "/robots <url>");
       if (r.errorText) return { text: r.errorText };
       const n = normalizeUrlArg(r.arg);
-      if (!n.ok) return { text: `❌ ${n.message}\nUsage: /robots <url>` };
+      if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /robots <url>` };
       return run(base, "/api/robots", { url: n.url }, formatRobots, true);
     }
     case "sitemap": {
       const r = requireArg(arg, "/sitemap <url>");
       if (r.errorText) return { text: r.errorText };
       const n = normalizeUrlArg(r.arg);
-      if (!n.ok) return { text: `❌ ${n.message}\nUsage: /sitemap <url>` };
+      if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /sitemap <url>` };
       return run(base, "/api/sitemap", { url: n.url }, formatSitemap, true);
     }
     case "http": {
       const r = requireArg(arg, "/http <url>");
       if (r.errorText) return { text: r.errorText };
       const n = normalizeUrlArg(r.arg);
-      if (!n.ok) return { text: `❌ ${n.message}\nUsage: /http <url>` };
+      if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /http <url>` };
       return run(base, "/api/http-status", { url: n.url }, formatHttp, true);
     }
     default:
@@ -141,6 +163,6 @@ async function run(base, path, query, formatter, slow, extra = {}) {
       reply_markup: extra.reply_markup,
     };
   } catch {
-    return { text: "❌ Received data but failed to format the reply.", slow };
+    return { text: "⚠️ Received data but failed to format the reply.", slow };
   }
 }
