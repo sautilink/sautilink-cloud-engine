@@ -2,11 +2,27 @@
 
 import { MAX_TELEGRAM_TEXT } from "./config.js";
 import { formatHelpFromRegistry } from "./registry.js";
+import {
+  formatAuditReport,
+  formatAuditSummary,
+  formatAuditPriorities,
+  formatCategoryDetail,
+  auditReportKeyboard,
+  auditBackKeyboard,
+} from "./audit_report.js";
 
 export function truncate(text, max = MAX_TELEGRAM_TEXT) {
   const s = String(text || "");
   if (s.length <= max) return s;
-  return s.slice(0, max - 20) + "\n… (truncated)";
+  let cut = s.slice(0, max - 20);
+  if (
+    cut.length &&
+    cut.charCodeAt(cut.length - 1) >= 0xd800 &&
+    cut.charCodeAt(cut.length - 1) <= 0xdbff
+  ) {
+    cut = cut.slice(0, -1);
+  }
+  return cut + "\n… (truncated)";
 }
 
 export function formatEngineError(err) {
@@ -103,61 +119,29 @@ export function formatId(chat, from) {
   return lines.join("\n");
 }
 
+/** Main audit result — enhanced report. */
 export function formatAudit(data) {
-  const domain = data.domain || data.url || "";
-  const score = data.score || {};
-  const cats = data.categories || {};
-  const lines = [
-    "🔎 Website Audit",
-    String(domain),
-    "",
-    `Overall: ${score.total ?? "—"}/${score.max ?? 100} — ${score.grade || "?"}${score.label ? ` (${score.label})` : ""}`,
-    "",
-  ];
-  const labels = {
-    security: "🛡 Security",
-    seo: "🔍 SEO",
-    mobile: "📱 Mobile",
-    infrastructure: "🌐 Infrastructure",
-    email: "✉️ Email",
-    https: "🔐 HTTPS",
-    technical: "⚙️ Technical",
-  };
-  for (const [k, label] of Object.entries(labels)) {
-    const c = cats[k];
-    if (!c) continue;
-    if (c.available && c.score != null) lines.push(`${label} ${c.score}`);
-    else lines.push(`${label} n/a`);
-  }
-  const findings = data.findings || [];
-  const recs = data.recommendations || [];
-  lines.push("");
-  lines.push(`⚠️ Findings: ${findings.length}`);
-  for (const f of findings.slice(0, 5)) lines.push(`• ${f.title || f.code}`);
-  if (findings.length > 5) lines.push(`… +${findings.length - 5} more`);
-  lines.push("");
-  lines.push(`💡 Recommendations: ${recs.length}`);
-  for (const r of recs.slice(0, 3)) lines.push(`• ${r.title || r.code}`);
-  if (recs.length > 3) lines.push(`… +${recs.length - 3} more`);
-  lines.push("", "Configuration assessment only — not a ranking or pentest score.");
-  return truncate(lines.join("\n"));
+  return formatAuditReport(data || {});
+}
+
+export function formatAuditSummaryView(data) {
+  return formatAuditSummary(data || {});
+}
+
+export function formatAuditPrioritiesView(data) {
+  return formatAuditPriorities(data || {});
+}
+
+export function formatAuditCategory(data, categoryKey) {
+  return formatCategoryDetail(data || {}, categoryKey);
 }
 
 export function auditKeyboard() {
-  return {
-    inline_keyboard: [
-      [{ text: "🔍 Re-run Audit", callback_data: "audit:rerun" }],
-      [
-        { text: "🛡 Security", callback_data: "audit:security" },
-        { text: "🔎 SEO", callback_data: "audit:seo" },
-      ],
-      [
-        { text: "📱 Mobile", callback_data: "audit:mobile" },
-        { text: "✉️ Email", callback_data: "audit:email" },
-      ],
-      [{ text: "🔐 HTTPS", callback_data: "audit:https" }],
-    ],
-  };
+  return auditReportKeyboard();
+}
+
+export function auditDetailKeyboard() {
+  return auditBackKeyboard();
 }
 
 export function formatDns(data) {
@@ -286,26 +270,5 @@ export function formatHttp(data) {
     `Redirects: ${data.redirectCount ?? 0}`,
     `Time: ${data.responseTimeMs ?? "—"} ms`,
   ];
-  return truncate(lines.join("\n"));
-}
-
-export function formatAuditCategory(data, categoryKey) {
-  const domain = data.domain || data.url || "";
-  const cat = (data.categories || {})[categoryKey];
-  if (!cat) return truncate(`No ${categoryKey} data for ${domain}.`);
-  const lines = [
-    `${categoryKey.toUpperCase()} · ${domain}`,
-    cat.available
-      ? `Score: ${cat.score ?? "—"}/100 — ${cat.grade || ""}`
-      : `Status: ${cat.status || "unavailable"}`,
-    "",
-  ];
-  for (const f of (cat.findings || []).slice(0, 8)) lines.push(`• ${f.title || f.code}`);
-  if (!(cat.findings || []).length) lines.push("(no findings)");
-  const recs = cat.recommendations || [];
-  if (recs.length) {
-    lines.push("", "Recommendations:");
-    for (const r of recs.slice(0, 5)) lines.push(`• ${r.title || r.code}`);
-  }
   return truncate(lines.join("\n"));
 }

@@ -48,11 +48,16 @@ export function normalizeDomainArg(input) {
 export function recoverAuditTargetFromMessage(text) {
   if (typeof text !== "string" || !text.trim()) return null;
   const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-  for (let i = 0; i < Math.min(lines.length, 5); i++) {
+  for (let i = 0; i < Math.min(lines.length, 8); i++) {
     const line = lines[i];
-    if (line.startsWith("🔎") || line.toLowerCase().startsWith("website audit"))
+    if (line.startsWith("🔎") || line.toUpperCase().includes("WEBSITE AUDIT"))
       continue;
-    if (line.startsWith("Overall:")) continue;
+    if (line.startsWith("⭐") || line.startsWith("Overall:")) continue;
+    if (line.startsWith("🌐 ")) {
+      const host = line.slice(2).trim();
+      const n = normalizeUrlArg(host);
+      return n.ok ? n.url : null;
+    }
     if (/^https?:\/\//i.test(line)) {
       const n = normalizeUrlArg(line);
       return n.ok ? n.url : null;
@@ -90,6 +95,9 @@ export const ALLOWED_CALLBACKS = new Set([
   "audit:mobile",
   "audit:email",
   "audit:https",
+  "audit:summary",
+  "audit:priorities",
+  "audit:back",
 ]);
 
 export const AUDIT_CALLBACKS = new Set([
@@ -99,6 +107,9 @@ export const AUDIT_CALLBACKS = new Set([
   "audit:mobile",
   "audit:email",
   "audit:https",
+  "audit:summary",
+  "audit:priorities",
+  "audit:back",
 ]);
 
 export function parseCallbackAction(data) {
