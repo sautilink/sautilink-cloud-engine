@@ -14,7 +14,6 @@ export function formatEngineError(err) {
   const code = err && err.code ? String(err.code) : "ERROR";
   const message =
     err && err.message ? String(err.message) : "Something went wrong.";
-  // Never include stacks or secrets
   const friendly = mapCode(code, message);
   return truncate(`❌ I couldn't complete that request.\nReason: ${friendly}`);
 }
@@ -41,8 +40,9 @@ function mapCode(code, message) {
       return "The check timed out. Try again shortly.";
     case "ENGINE_NETWORK":
       return "Could not reach Cloud Engine.";
+    case "RATE_LIMITED":
+      return "Service is temporarily rate-limited. Please try again shortly.";
     default:
-      // Keep engine message but strip control chars
       return message.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "").slice(0, 300);
   }
 }

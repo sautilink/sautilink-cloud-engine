@@ -46,6 +46,16 @@ export async function callCloudEngine(baseUrl, path, query = {}, opts = {}) {
     try {
       body = text ? JSON.parse(text) : null;
     } catch {
+      if (res.status === 429) {
+        return {
+          ok: false,
+          status: 429,
+          error: {
+            code: "RATE_LIMITED",
+            message: "Service is temporarily rate-limited. Please try again shortly.",
+          },
+        };
+      }
       return {
         ok: false,
         status: res.status,
@@ -53,6 +63,18 @@ export async function callCloudEngine(baseUrl, path, query = {}, opts = {}) {
           code: "ENGINE_BAD_JSON",
           message: "Cloud Engine returned an unreadable response.",
         },
+      };
+    }
+
+    if (res.status === 429) {
+      return {
+        ok: false,
+        status: 429,
+        error: {
+          code: "RATE_LIMITED",
+          message: "Service is temporarily rate-limited. Please try again shortly.",
+        },
+        raw: body,
       };
     }
 
@@ -75,7 +97,6 @@ export async function callCloudEngine(baseUrl, path, query = {}, opts = {}) {
       };
     }
 
-    // health uses legacy schema without success
     if (path.includes("/api/health")) {
       return { ok: true, status: res.status, data: body };
     }
