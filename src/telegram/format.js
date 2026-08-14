@@ -103,10 +103,34 @@ export function formatStatus(ok) {
 
 export function formatId(chat, from) {
   const lines = ["Diagnostic identifiers only:"];
-  if (chat && chat.id != null) lines.push(`chat_id: ${chat.id}`);
-  if (from && from.id != null) lines.push(`user_id: ${from.id}`);
+  if (chat && chat.id != null) lines.push(`Your Telegram chat ID:\n${chat.id}`);
+  else if (from && from.id != null) lines.push(`Your Telegram user ID:\n${from.id}`);
   lines.push("", "/id is for debugging. No tokens or server details are shown.");
   return lines.join("\n");
+}
+
+/** Admin-only operational snapshot — no secrets. */
+export function formatAdmin(info) {
+  const engine = info.engineOk ? "🟢 Engine: Operational" : "🔴 Engine: Unavailable";
+  return [
+    "🛠 Cloud Engine Admin",
+    "",
+    engine,
+    "",
+    "Bot:",
+    "• Webhook: Active (secret required)",
+    "• Usage protection: Active (isolate-local)",
+    "• Deduplication: Active (isolate-local)",
+    "• Cooldown: Active (isolate-local)",
+    "",
+    "Runtime:",
+    `• Local tracked chats: ${info.trackedChats ?? 0}/${info.maxTracked ?? "?"}`,
+    `• Window: ${info.windowSeconds ?? "?"}s`,
+    `• Expensive limit: ${info.expensiveLimit ?? "?"}`,
+    `• Cheap limit: ${info.cheapLimit ?? "?"}`,
+    "",
+    "Cloudflare edge rate limiting remains the global control.",
+  ].join("\n");
 }
 
 export function formatAudit(data) {

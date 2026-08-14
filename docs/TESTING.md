@@ -1,13 +1,11 @@
 # Testing
 
-## Score bars
+## Usage (offline)
 
-0→10 empty, 50→5 filled, 100→10 filled. Never more than 10 cells.
-
-## Labels
-
-"Infrastructure" must appear in full (two-line category layout).
+- cost registry: every public command has cost cheap|expensive
+- under limit → allowed; at limit → rejected; admin → bypass
+- max tracked chats bounded
 
 ## Production
 
-Tool APIs HTTP 200. Webhook GET 405; invalid secret 401 when configured.
+Tool APIs HTTP 200. Webhook GET 405; bad secret 401.

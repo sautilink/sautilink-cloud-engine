@@ -2,17 +2,22 @@
 
 Thin client over Cloud Engine APIs.
 
-## UX (Phase 7H)
+## Public usage protection (Phase 7I)
 
-- Audit categories use full labels on their own line (no truncated “Infrastructure”).
-- Score bars are always 10 cells (0–100).
-- Shared Unicode-safe truncation helper.
-- Consistent user-facing errors (no internal code names as primary text).
+Isolate-local quotas (not global):
 
-## Menus
+| Setting | Env | Default |
+|---------|-----|--------|
+| Window | `TELEGRAM_PUBLIC_RATE_WINDOW_SECONDS` | 60 |
+| Expensive cmds | `TELEGRAM_PUBLIC_EXPENSIVE_LIMIT` | 5 |
+| Cheap cmds | `TELEGRAM_PUBLIC_CHEAP_LIMIT` | 20 |
+| Max tracked chats | (code) | 500 |
 
-Fixed `menu:*` / `tool:*` / `audit:*` callbacks only.
+**Cloudflare edge rate limiting remains the global control.**
 
-## Security
+Admins listed in `TELEGRAM_ADMIN_IDS` (comma-separated user ids) bypass public quotas only — not Cloudflare edge limits.
 
-Webhook secret, POST-only, SSRF in Cloud Engine, no secrets in callback data.
+Admin command: `/admin` (not listed in public `/help`).
+
+Expensive: analyzer commands + audit detail callbacks.  
+Cheap: start/help/about/status/id/admin, menus, tool prompts.

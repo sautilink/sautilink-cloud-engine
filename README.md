@@ -2,7 +2,7 @@
 
 **Site:** https://cloudengine.sautilink.com
 
-Cloudflare Pages tools + Telegram bot.
+Cloudflare Pages tools + Telegram bot with isolate-local usage protection.
 
 ```bash
 npm install && npm run dev

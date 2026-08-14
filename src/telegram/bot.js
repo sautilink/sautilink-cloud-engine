@@ -1,4 +1,4 @@
-/** Process a single Telegram Update (stateless menus + audit report UX). */
+/** Process Telegram updates with usage protection (isolate-local). */
 
 import { parseCommand, KNOWN_COMMANDS } from "./router.js";
 import { handleCommand } from "./commands.js";
@@ -41,7 +41,11 @@ import {
 import { isDuplicateUpdate } from "./dedup.js";
 import { checkCooldown, tryBeginAudit, endAudit } from "./cooldown.js";
 import { newCorrelationId, logTelegram } from "./log.js";
-import { authorizeUser } from "./authz.js";
+import { authorizeUser, isAdmin } from "./authz.js";
+import {
+  checkUsage,
+  formatUsageLimitMessage,
+} from "./usage.js";
 
 export async function processUpdate(update, config) {
   const started = Date.now();
@@ -103,12 +107,35 @@ export async function processUpdate(update, config) {
     return { handled: true, command: parsed.command };
   }
 
+  const adminUser = isAdmin(from && from.id, config.env);
+  const usage = checkUsage({
+    chatId: chat.id,
+    commandOrAction: parsed.command,
+    isAdminUser: adminUser,
+    env: config.env,
+  });
+  if (!usage.allowed) {
+    await sendMessage(config.token, chat.id, formatUsageLimitMessage());
+    logTelegram({
+      event: "telegram_usage_limited",
+      correlation_id: correlationId,
+      update_id: updateId,
+      command: parsed.command,
+      cost_class: usage.cost,
+      usage_allowed: false,
+      chat_id: chat.id,
+      status: "limited",
+      duration_ms: Date.now() - started,
+    });
+    return { handled: true, command: parsed.command, reason: "usage_limited" };
+  }
+
   const cool = checkCooldown(chat.id, parsed.command);
   if (cool.blocked) {
     await sendMessage(
       config.token,
       chat.id,
-      "⏱ You're checking too quickly.\n\nPlease wait a moment and try again."
+      "🚦 Temporarily rate-limited. Please try again shortly."
     );
     return { handled: true, command: parsed.command, reason: "cooldown" };
   }
@@ -174,6 +201,8 @@ export async function processUpdate(update, config) {
     correlation_id: correlationId,
     update_id: updateId,
     command: parsed.command,
+    cost_class: usage.cost,
+    usage_allowed: true,
     chat_id: chat.id,
     status: "ok",
     duration_ms: Date.now() - started,
@@ -203,6 +232,18 @@ async function processCallback(cq, config, meta) {
   const chatId = msg && msg.chat && msg.chat.id;
   const messageId = msg && msg.message_id;
   if (chatId == null) return { handled: true, reason: "no_chat" };
+
+  const adminUser = isAdmin(cq.from && cq.from.id, config.env);
+  const usage = checkUsage({
+    chatId,
+    commandOrAction: action,
+    isAdminUser: adminUser,
+    env: config.env,
+  });
+  if (!usage.allowed) {
+    await sendMessage(config.token, chatId, formatUsageLimitMessage());
+    return logCb(meta, action, chatId, "limited");
+  }
 
   if (action === "menu:main" || action === "nav:back") {
     await safeEditOrSend(config.token, chatId, messageId, mainMenuText(), mainMenuKeyboard());
@@ -258,7 +299,6 @@ async function processCallback(cq, config, meta) {
     return { handled: true, action };
   }
 
-  // Shared: bounded single /api/audit fetch for report views
   async function fetchAudit() {
     return callCloudEngine(config.cloudEngineBaseUrl, "/api/audit", { url: target });
   }
@@ -335,14 +375,7 @@ async function processCallback(cq, config, meta) {
     text = formatAuditCategory(data, key);
   }
 
-  // Prefer edit so domain stays recoverable in the same message for later Back
-  await safeEditOrSend(
-    config.token,
-    chatId,
-    messageId,
-    text,
-    auditDetailKeyboard()
-  );
+  await safeEditOrSend(config.token, chatId, messageId, text, auditDetailKeyboard());
   return logCb(meta, action, chatId);
 }
 
@@ -355,14 +388,14 @@ async function safeEditOrSend(token, chatId, messageId, text, reply_markup) {
   await sendMessage(token, chatId, text, extra);
 }
 
-function logCb(meta, action, chatId) {
+function logCb(meta, action, chatId, status = "ok") {
   logTelegram({
     event: "telegram_callback",
     correlation_id: meta.correlationId,
     update_id: meta.updateId,
     callback_action: action,
     chat_id: chatId,
-    status: "ok",
+    status,
     duration_ms: Date.now() - meta.started,
   });
   return { handled: true, action };

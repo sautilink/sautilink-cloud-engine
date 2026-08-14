@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Completed
-- Phase 7H: Telegram production polish
+- Phase 7I: Telegram usage control & public bot protection
 
 ## Future
-- Phase 7I+
+- Phase 7J+
