@@ -1,11 +1,13 @@
 # Testing
 
-## Audit report offline
+## Score bars
 
-- scoreBar: 0 → empty, 50 → half, 100 → full
-- Allow: `audit:summary`, `audit:priorities`, `audit:back`
-- Reject: `audit:https://evil`
+0→10 empty, 50→5 filled, 100→10 filled. Never more than 10 cells.
+
+## Labels
+
+"Infrastructure" must appear in full (two-line category layout).
 
 ## Production
 
-`/api/audit` and other tools remain HTTP 200 for valid public targets.
+Tool APIs HTTP 200. Webhook GET 405; invalid secret 401 when configured.

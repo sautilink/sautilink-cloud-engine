@@ -9,20 +9,11 @@ import {
   formatCategoryDetail,
   auditReportKeyboard,
   auditBackKeyboard,
+  truncateSafe,
 } from "./audit_report.js";
 
 export function truncate(text, max = MAX_TELEGRAM_TEXT) {
-  const s = String(text || "");
-  if (s.length <= max) return s;
-  let cut = s.slice(0, max - 20);
-  if (
-    cut.length &&
-    cut.charCodeAt(cut.length - 1) >= 0xd800 &&
-    cut.charCodeAt(cut.length - 1) <= 0xdbff
-  ) {
-    cut = cut.slice(0, -1);
-  }
-  return cut + "\n… (truncated)";
+  return truncateSafe(text, max);
 }
 
 export function formatEngineError(err) {
@@ -34,42 +25,41 @@ function mapUserError(code, message) {
   switch (code) {
     case "PRIVATE_ADDRESS_BLOCKED":
     case "SSRF_BLOCKED":
-      return "🛡 That address cannot be checked for security reasons.";
+      return "🔒 Private or local addresses are not allowed.";
     case "CREDENTIALS_NOT_ALLOWED":
-      return "❌ URLs must not contain usernames or passwords.";
+      return "⚠️ Invalid URL.\n\nURLs must not contain usernames or passwords.";
     case "UNSUPPORTED_PROTOCOL":
-      return "❌ Only HTTP and HTTPS URLs are supported.";
+      return "⚠️ Only HTTP and HTTPS URLs are supported.";
     case "INVALID_URL":
     case "MISSING_URL":
-      return "❌ Invalid input.\n\nUse:\n/audit https://example.com";
+      return "⚠️ Invalid URL.\n\nUse:\n/audit https://example.com";
     case "INVALID_DOMAIN":
     case "MISSING_DOMAIN":
-      return "❌ Invalid input.\n\nUse:\n/dns example.com";
+      return "⚠️ Invalid input.\n\nUse:\n/dns example.com";
     case "INVALID_SELECTOR":
-      return "❌ Invalid DKIM selector.";
+      return "⚠️ Invalid DKIM selector.";
     case "ENGINE_TIMEOUT":
     case "REQUEST_TIMEOUT":
-      return "⏱ The check took too long.\n\nPlease try again.";
+      return "⏳ The check took too long. Please try again.";
     case "ENGINE_NETWORK":
     case "ENGINE_UNEXPECTED":
     case "ENGINE_BAD_JSON":
-      return "⚠️ Cloud Engine is temporarily unavailable.\n\nPlease try again shortly.";
+    case "ENGINE_HTTP_ERROR":
+      return "🔴 Cloud Engine is temporarily unavailable.";
     case "RATE_LIMITED":
     case "TELEGRAM_RATE_LIMITED":
-      return "⏱ You're checking too quickly.\n\nPlease wait a moment and try again.";
-    case "ENGINE_HTTP_ERROR":
-      return "⚠️ The service is temporarily busy.\n\nPlease try again shortly.";
+      return "🚦 Temporarily rate-limited. Please try again shortly.";
     default: {
       const msg = String(message || "Something went wrong.")
         .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "")
         .slice(0, 200);
-      return `❌ ${msg}`;
+      return `⚠️ ${msg}`;
     }
   }
 }
 
 export function formatTimeout() {
-  return "⏱ The check took too long.\n\nPlease try again.";
+  return "⏳ The check took too long. Please try again.";
 }
 
 export function formatHelp() {
@@ -97,8 +87,8 @@ export function formatAbout() {
     "",
     "Automated website, DNS, email, HTTPS, and SEO configuration checks.",
     "",
-    "These are quality/configuration assessments — not a penetration test,",
-    "vulnerability scanner, Lighthouse report, or Google ranking tool.",
+    "Not a pentest, vulnerability scanner, Lighthouse report,",
+    "Google ranking tool, or certification authority.",
     "",
     "Web: https://cloudengine.sautilink.com",
   ].join("\n");
@@ -106,7 +96,7 @@ export function formatAbout() {
 
 export function formatStatus(ok) {
   if (!ok) {
-    return ["🔴 SautiLink Cloud Engine", "", "Status: Temporarily unavailable."].join("\n");
+    return ["🔴 SautiLink Cloud Engine", "", "Status: Unavailable"].join("\n");
   }
   return ["🟢 SautiLink Cloud Engine", "", "Status: Operational"].join("\n");
 }
@@ -115,11 +105,10 @@ export function formatId(chat, from) {
   const lines = ["Diagnostic identifiers only:"];
   if (chat && chat.id != null) lines.push(`chat_id: ${chat.id}`);
   if (from && from.id != null) lines.push(`user_id: ${from.id}`);
-  lines.push("", "/id is for debugging. No tokens, secrets, or server details are shown.");
+  lines.push("", "/id is for debugging. No tokens or server details are shown.");
   return lines.join("\n");
 }
 
-/** Main audit result — enhanced report. */
 export function formatAudit(data) {
   return formatAuditReport(data || {});
 }
@@ -207,8 +196,6 @@ export function formatSsl(data) {
     `Score: ${score.total ?? "—"}/100 — ${score.grade || ""}`,
     `HTTPS: ${https.available ? "available" : "not available"}`,
     `HSTS: ${hsts.present ? `yes (max-age=${hsts.maxAge ?? "?"})` : "no"}`,
-    "",
-    "Certificate details are not observable via Pages Functions fetch.",
   ];
   return truncate(lines.join("\n"));
 }

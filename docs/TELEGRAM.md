@@ -1,19 +1,18 @@
 # Telegram Bot
 
-Thin client over Cloud Engine APIs with menus and enhanced audit reports.
+Thin client over Cloud Engine APIs.
 
-## Audit report UX
+## UX (Phase 7H)
 
-`/audit` shows overall score, Unicode score bars, top findings/recommendations, and buttons:
-
-- `audit:rerun` `audit:summary` `audit:priorities`
-- category: `audit:security|seo|mobile|email|https`
-- `audit:back` restores the full audit view
-
-Target is recovered from the message text (e.g. `🌐 example.com`). Callback data never contains URLs.
-
-Views may re-fetch a single `/api/audit` — they do not fan out individual analyzers.
+- Audit categories use full labels on their own line (no truncated “Infrastructure”).
+- Score bars are always 10 cells (0–100).
+- Shared Unicode-safe truncation helper.
+- Consistent user-facing errors (no internal code names as primary text).
 
 ## Menus
 
-Fixed `menu:*` / `tool:*` callbacks. Tool buttons only show usage prompts.
+Fixed `menu:*` / `tool:*` / `audit:*` callbacks only.
+
+## Security
+
+Webhook secret, POST-only, SSRF in Cloud Engine, no secrets in callback data.

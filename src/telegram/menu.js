@@ -3,14 +3,14 @@
 export function mainMenuKeyboard() {
   return {
     inline_keyboard: [
-      [{ text: "🔎 Website Audit", callback_data: "tool:audit" }],
+      [{ text: "🔎 Audit", callback_data: "tool:audit" }],
       [
         { text: "🌐 Website Tools", callback_data: "menu:website" },
         { text: "📡 Infrastructure", callback_data: "menu:infrastructure" },
       ],
       [
         { text: "ℹ️ About", callback_data: "menu:about" },
-        { text: "📊 Status", callback_data: "menu:status" },
+        { text: "🟢 Status", callback_data: "menu:status" },
       ],
       [{ text: "❓ Help", callback_data: "menu:help" }],
     ],
@@ -22,16 +22,16 @@ export function websiteMenuKeyboard() {
     inline_keyboard: [
       [{ text: "🔎 Full Audit", callback_data: "tool:audit" }],
       [
-        { text: "🌐 SEO", callback_data: "tool:website" },
+        { text: "🔍 SEO", callback_data: "tool:website" },
         { text: "📱 Mobile", callback_data: "tool:mobile" },
       ],
       [
-        { text: "🛡 Security Headers", callback_data: "tool:headers" },
-        { text: "🔐 SSL / HTTPS", callback_data: "tool:ssl" },
+        { text: "🛡 Headers", callback_data: "tool:headers" },
+        { text: "🔐 SSL", callback_data: "tool:ssl" },
       ],
       [
-        { text: "🤖 Robots.txt", callback_data: "tool:robots" },
-        { text: "🗺 Sitemap.xml", callback_data: "tool:sitemap" },
+        { text: "🤖 Robots", callback_data: "tool:robots" },
+        { text: "🗺 Sitemap", callback_data: "tool:sitemap" },
       ],
       [{ text: "⬅️ Back", callback_data: "menu:main" }],
     ],
@@ -45,7 +45,7 @@ export function infrastructureMenuKeyboard() {
         { text: "🌐 DNS", callback_data: "tool:dns" },
         { text: "✉️ Email", callback_data: "tool:email" },
       ],
-      [{ text: "↪️ HTTP Status", callback_data: "tool:http" }],
+      [{ text: "📡 HTTP Status", callback_data: "tool:http" }],
       [{ text: "⬅️ Back", callback_data: "menu:main" }],
     ],
   };
@@ -118,7 +118,7 @@ export function toolPrompt(tool) {
       parent: "website",
       text: "🔎 Website Audit\n\nSend:\n/audit example.com\n\nExample:\n/audit sautilink.com",
     },
-    website: { parent: "website", text: "🌐 Website SEO\n\nSend:\n/website example.com" },
+    website: { parent: "website", text: "🔍 Website SEO\n\nSend:\n/website example.com" },
     mobile: { parent: "website", text: "📱 Mobile heuristics\n\nSend:\n/mobile example.com" },
     headers: { parent: "website", text: "🛡 Security Headers\n\nSend:\n/headers example.com" },
     ssl: { parent: "website", text: "🔐 SSL / HTTPS\n\nSend:\n/ssl example.com" },
@@ -129,7 +129,7 @@ export function toolPrompt(tool) {
     },
     dns: { parent: "infrastructure", text: "🌐 DNS Lookup\n\nSend:\n/dns example.com" },
     email: { parent: "infrastructure", text: "✉️ Email infrastructure\n\nSend:\n/email example.com" },
-    http: { parent: "infrastructure", text: "↪️ HTTP Status\n\nSend:\n/http example.com" },
+    http: { parent: "infrastructure", text: "📡 HTTP Status\n\nSend:\n/http example.com" },
   };
   return map[tool] || null;
 }

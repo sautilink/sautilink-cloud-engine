@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Completed
-- Phase 7G: Telegram audit report UX (bars, summary, priorities)
+- Phase 7H: Telegram production polish
 
 ## Future
-- Phase 7H+
+- Phase 7I+

@@ -23,12 +23,14 @@ const GRADE_LABEL = {
   F: "Critical configuration gaps",
 };
 
+/** Exactly 10 cells; deterministic; clamps 0–100. */
 export function scoreBar(score, width = 10) {
   const n = Number(score);
   if (!Number.isFinite(n)) return "░".repeat(width);
   const clamped = Math.max(0, Math.min(100, n));
   const filled = Math.round((clamped / 100) * width);
-  return "█".repeat(filled) + "░".repeat(width - filled);
+  const f = Math.max(0, Math.min(width, filled));
+  return "█".repeat(f) + "░".repeat(width - f);
 }
 
 export function gradeExplanation(grade) {
@@ -55,10 +57,13 @@ function recLine(r) {
   return `• ${String(title).slice(0, 120)}`;
 }
 
-function padLabel(label, width = 16) {
-  const s = String(label);
-  if (s.length >= width) return s.slice(0, width);
-  return s + " ".repeat(width - s.length);
+/** Full label on its own line; bar + score indented — no truncation of names. */
+function categoryBlock(label, scoreOrNull) {
+  if (scoreOrNull == null || !Number.isFinite(Number(scoreOrNull))) {
+    return `${label}\n   n/a`;
+  }
+  const s = Number(scoreOrNull);
+  return `${label}\n   ${scoreBar(s)} ${s}`;
 }
 
 function displayDomain(data) {
@@ -77,7 +82,6 @@ export function formatAuditReport(data) {
 
   const lines = [
     "🔎 WEBSITE AUDIT",
-    "",
     `🌐 ${domain}`,
     "",
     `⭐ Overall: ${total ?? "—"}/${max} — ${grade}`,
@@ -89,9 +93,9 @@ export function formatAuditReport(data) {
     const c = cats[meta.key];
     if (!c) continue;
     if (c.available && c.score != null) {
-      lines.push(`${padLabel(meta.label)} ${scoreBar(c.score)} ${c.score}`);
+      lines.push(categoryBlock(meta.label, c.score));
     } else {
-      lines.push(`${padLabel(meta.label)} n/a`);
+      lines.push(categoryBlock(meta.label, null));
     }
   }
 
@@ -112,8 +116,7 @@ export function formatAuditReport(data) {
 
   lines.push(
     "",
-    "Configuration assessment only —",
-    "not a ranking or pentest score."
+    "Configuration assessment only — not a ranking or pentest score."
   );
 
   return truncateSafe(lines.join("\n"));
@@ -128,7 +131,6 @@ export function formatAuditSummary(data) {
 
   const lines = [
     "🔎 Audit Summary",
-    "",
     `🌐 ${domain}`,
     `${score.total ?? score.score ?? "—"}/${score.max ?? 100} — ${score.grade || "?"}`,
     "",
@@ -140,8 +142,7 @@ export function formatAuditSummary(data) {
     else lines.push(`${meta.label} n/a`);
   }
   lines.push("");
-  lines.push(`${findings.length} findings`);
-  lines.push(`${recs.length} recommendations`);
+  lines.push(`${findings.length} findings · ${recs.length} recommendations`);
   return truncateSafe(lines.join("\n"));
 }
 
@@ -152,7 +153,7 @@ export function formatAuditPriorities(data) {
   const ranked = [...findings].sort((a, b) => severityRank(a) - severityRank(b));
   const source = ranked.length ? ranked : recs;
 
-  const lines = ["🚨 Priority Fixes", "", `🌐 ${domain}`, ""];
+  const lines = ["🚨 Priority Fixes", `🌐 ${domain}`, ""];
   if (!source.length) {
     lines.push("No findings or recommendations reported.");
   } else {
@@ -166,8 +167,7 @@ export function formatAuditPriorities(data) {
   }
   lines.push(
     "",
-    "These are configuration recommendations,",
-    "not a penetration-test result."
+    "These are configuration recommendations, not a penetration-test result."
   );
   return truncateSafe(lines.join("\n"));
 }
@@ -186,16 +186,15 @@ export function formatCategoryDetail(data, categoryKey) {
   const domain = displayDomain(data);
   const cat = (data.categories || {})[categoryKey];
   if (!cat) {
-    return truncateSafe(`${meta.label}\n\n🌐 ${domain}\n\nNo ${categoryKey} data.`);
+    return truncateSafe(`${meta.label}\n🌐 ${domain}\n\nNo ${categoryKey} data.`);
   }
 
-  const lines = [meta.label, "", `🌐 ${domain}`, ""];
+  const lines = [meta.label, `🌐 ${domain}`, ""];
   if (cat.available && cat.score != null) {
     lines.push(
       `Score: ${cat.score}/100 — ${cat.grade || "?"}`,
       `   ${gradeExplanation(cat.grade)}`,
-      "",
-      scoreBar(cat.score),
+      `   ${scoreBar(cat.score)}`,
       ""
     );
   } else {
@@ -268,7 +267,7 @@ export function auditBackKeyboard() {
   };
 }
 
-function truncateSafe(text, max = MAX_TELEGRAM_TEXT) {
+export function truncateSafe(text, max = MAX_TELEGRAM_TEXT) {
   const s = String(text || "");
   if (s.length <= max) return s;
   let cut = s.slice(0, max - 20);
