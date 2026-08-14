@@ -7,22 +7,21 @@ Thin client over Cloud Engine HTTP APIs. **Does not** reimplement DNS, SSRF, sco
 `POST /api/telegram/webhook`
 
 - GET/others → **405** `Allow: POST`
-- Optional header: `X-Telegram-Bot-Api-Secret-Token` when `TELEGRAM_WEBHOOK_SECRET` is set
+- Header `X-Telegram-Bot-Api-Secret-Token` required when `TELEGRAM_WEBHOOK_SECRET` is set
 - Without `TELEGRAM_BOT_TOKEN` → **503** `BOT_NOT_CONFIGURED`
 
 ## Production activation (operator)
 
-Code is deployed. Live bot operation requires Cloudflare Pages **encrypted secrets**:
-
-1. Cloudflare Dashboard → Workers & Pages → `sautilink-cloud-engine` → **Settings** → **Variables and Secrets**
-2. Add (Encrypt):
-   - `TELEGRAM_BOT_TOKEN` — from @BotFather (never commit)
-   - `TELEGRAM_WEBHOOK_SECRET` — strong random string (never commit)
-   - `CLOUD_ENGINE_BASE_URL` — optional; defaults to `https://cloudengine.sautilink.com`
-3. **Redeploy** the Pages project so Functions pick up secrets
-4. Register webhook (replace placeholders; do not log the token):
+1. Cloudflare Dashboard → Workers & Pages → project → **Settings** → **Variables and Secrets**
+2. Add **encrypted** secrets for the **Production** environment:
+   - `TELEGRAM_BOT_TOKEN`
+   - `TELEGRAM_WEBHOOK_SECRET` (strong random)
+   - `CLOUD_ENGINE_BASE_URL` (optional; defaults to `https://cloudengine.sautilink.com`)
+3. **Redeploy production** after saving secrets (required for Functions to see them)
+4. Register webhook using the token **only on your machine** (never paste into Git/chat logs):
 
 ```bash
+# Token and secret must come from your local shell env — do not commit them
 curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
   -H "Content-Type: application/json" \
   -d "{\"url\":\"https://cloudengine.sautilink.com/api/telegram/webhook\",\"secret_token\":\"${TELEGRAM_WEBHOOK_SECRET}\",\"allowed_updates\":[\"message\"]}"
@@ -33,18 +32,22 @@ curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getMe"
 
 5. Smoke-test in Telegram: `/start`, `/help`, `/audit https://example.com`
 
+### Important
+
+Secrets set in the dashboard do **not** apply to already-running deployments until a **new production deployment** completes.
+
 ## Commands
 
 `/start` `/help` `/id` `/audit` `/dns` `/email` `/headers` `/ssl` `/website` `/mobile` `/robots` `/sitemap` `/http`
 
 ## Rate limits
 
-Cloudflare edge rate limiting is the global control. HTTP **429** from Cloud Engine is mapped to a plain-text “temporarily rate-limited” Telegram reply. No in-memory global limiter in the bot.
+Cloudflare edge rate limiting is the global control. HTTP **429** from Cloud Engine maps to a plain-text temporary rate-limit reply.
 
 ## Stateless retries
 
 No update deduplication store. Telegram may retry; users may rarely see duplicate replies.
 
-## Live status (Phase 7B check)
+## Live status
 
-As of the last automated verification, production returned **503 BOT_NOT_CONFIGURED** because secrets were not present in the Pages environment. Until secrets + setWebhook + getWebhookInfo succeed, the bot is **not operational**.
+Automated checks treat the bot as configured only when `POST /api/telegram/webhook` no longer returns `BOT_NOT_CONFIGURED`.
