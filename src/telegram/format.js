@@ -37,14 +37,19 @@ function mapCode(code, message) {
       return "Invalid DKIM selector.";
     case "ENGINE_TIMEOUT":
     case "REQUEST_TIMEOUT":
-      return "The check timed out. Try again shortly.";
+      return "The check took too long. Please try again.";
     case "ENGINE_NETWORK":
       return "Could not reach Cloud Engine.";
     case "RATE_LIMITED":
+    case "TELEGRAM_RATE_LIMITED":
       return "Service is temporarily rate-limited. Please try again shortly.";
     default:
       return message.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "").slice(0, 300);
   }
+}
+
+export function formatTimeout() {
+  return "⏱ The check took too long. Please try again.";
 }
 
 export function formatHelp() {
@@ -107,7 +112,9 @@ export function formatStatus(ok, data) {
     return ["🔴 Cloud Engine", "Status: Temporarily unavailable"].join("\n");
   }
   const service =
-    data && data.service ? String(data.service).slice(0, 80) : "SautiLink Cloud Engine";
+    data && data.service
+      ? String(data.service).slice(0, 80)
+      : "SautiLink Cloud Engine";
   const st = data && data.status ? String(data.status).slice(0, 40) : "ok";
   return [
     "🟢 Cloud Engine",
@@ -117,10 +124,15 @@ export function formatStatus(ok, data) {
 }
 
 export function formatId(chat, from) {
-  const lines = ["Your Telegram identifiers:"];
+  const lines = [
+    "Your Telegram identifiers (diagnostic only):",
+  ];
   if (chat && chat.id != null) lines.push(`chat_id: ${chat.id}`);
   if (from && from.id != null) lines.push(`user_id: ${from.id}`);
-  lines.push("", "Use these only for debugging / future access control.");
+  lines.push(
+    "",
+    "No server, token, or infrastructure details are disclosed here."
+  );
   return lines.join("\n");
 }
 
@@ -171,7 +183,6 @@ export function formatAudit(data) {
   return truncate(lines.join("\n"));
 }
 
-/** Inline keyboard for successful audit (fixed callback_data only). */
 export function auditKeyboard() {
   return {
     inline_keyboard: [
@@ -214,10 +225,14 @@ export function formatEmail(data) {
     `Score: ${score.total ?? "—"}/${score.max ?? 100} — ${score.grade || ""}`,
     "",
   ];
-  if (data.mx) lines.push(`MX: ${data.mx.status || (data.mx.found ? "found" : "n/a")}`);
-  if (data.spf) lines.push(`SPF: ${data.spf.status || (data.spf.found ? "found" : "n/a")}`);
+  if (data.mx)
+    lines.push(`MX: ${data.mx.status || (data.mx.found ? "found" : "n/a")}`);
+  if (data.spf)
+    lines.push(`SPF: ${data.spf.status || (data.spf.found ? "found" : "n/a")}`);
   if (data.dmarc)
-    lines.push(`DMARC: ${data.dmarc.status || (data.dmarc.found ? "found" : "n/a")}`);
+    lines.push(
+      `DMARC: ${data.dmarc.status || (data.dmarc.found ? "found" : "n/a")}`
+    );
   if (data.dkim)
     lines.push(
       `DKIM: ${data.dkim.status || (data.dkim.found ? "found" : "n/a")}${data.dkim.selector ? ` (${data.dkim.selector})` : ""}`
@@ -329,7 +344,6 @@ export function formatHttp(data) {
   return truncate(lines.join("\n"));
 }
 
-/** Category detail from a full audit payload (callback views). */
 export function formatAuditCategory(data, categoryKey) {
   const domain = data.domain || data.url || "";
   const cat = (data.categories || {})[categoryKey];

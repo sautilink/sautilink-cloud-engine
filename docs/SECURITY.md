@@ -2,20 +2,15 @@
 
 ## SSRF
 
-URL tools share `prepareUrl` + `assertUrlSafeToFetch` (DoH public-IP gate, hop-by-hop redirects).
+URL tools and Telegram URL commands rely on Cloud Engine `prepareUrl` + `assertUrlSafeToFetch`.
 
-`/api/audit` applies the same gate **before** analyzer fan-out.
+## Telegram
 
-Blocked classes include localhost, private/reserved IPv4/IPv6, link-local, CGNAT, and known metadata hostnames.
+- Webhook secret header verification
+- Callback allowlist (no arbitrary URLs in callback_data)
+- Bot is a thin client; no second SSRF path that weakens engine checks
+- Best-effort in-isolate dedup/cooldown is **not** a global control plane
 
 ## Rate limiting
 
-Application code does not implement global in-memory rate limiting. Cloudflare dashboard rate limiting is the operational layer (may return 429 under load).
-
-## DNS rebinding
-
-TOCTOU remains a platform limitation between DoH check and fetch.
-
-## Phase 6H verification
-
-See `docs/TESTING.md` for the production security matrix summary.
+Cloudflare dashboard/edge rate limiting is the production global control. Application code must not claim global in-memory rate limiting.
