@@ -1,6 +1,4 @@
-/**
- * Command handlers — thin wrappers over Cloud Engine APIs.
- */
+/** Command handlers — thin wrappers over Cloud Engine APIs. */
 
 import { callCloudEngine } from "./engine.js";
 import { normalizeUrlArg, normalizeDomainArg } from "./normalize.js";
@@ -23,25 +21,26 @@ import {
   formatEngineError,
   auditKeyboard,
 } from "./format.js";
+import {
+  mainMenuKeyboard,
+  helpMenuKeyboard,
+  statusKeyboard,
+} from "./menu.js";
 
 function requireArg(arg, usage) {
   if (!arg) return { errorText: `Usage: ${usage}` };
   return { arg };
 }
 
-/**
- * @param {{ command: string, arg: string, chat: object, from: object }}
- * @param {{ cloudEngineBaseUrl: string }}
- */
 export async function handleCommand(ctx, config) {
   const { command, arg, chat, from } = ctx;
   const base = config.cloudEngineBaseUrl;
 
   switch (command) {
     case "start":
-      return { text: formatStart() };
+      return { text: formatStart(), reply_markup: mainMenuKeyboard() };
     case "help":
-      return { text: formatHelp() };
+      return { text: formatHelp(), reply_markup: helpMenuKeyboard() };
     case "about":
       return { text: formatAbout() };
     case "id":
@@ -50,9 +49,9 @@ export async function handleCommand(ctx, config) {
       const result = await callCloudEngine(base, "/api/health", {});
       return {
         text: formatStatus(result.ok, result.data),
+        reply_markup: statusKeyboard(),
       };
     }
-
     case "audit": {
       const r = requireArg(arg, "/audit <url>");
       if (r.errorText) return { text: r.errorText };
@@ -123,13 +122,7 @@ export async function handleCommand(ctx, config) {
       if (r.errorText) return { text: r.errorText };
       const n = normalizeUrlArg(r.arg);
       if (!n.ok) return { text: `❌ ${n.message}\nUsage: /http <url>` };
-      return run(
-        base,
-        "/api/http-status",
-        { url: n.url },
-        formatHttp,
-        true
-      );
+      return run(base, "/api/http-status", { url: n.url }, formatHttp, true);
     }
     default:
       return { text: "Unknown command. Try /help." };
@@ -148,9 +141,6 @@ async function run(base, path, query, formatter, slow, extra = {}) {
       reply_markup: extra.reply_markup,
     };
   } catch {
-    return {
-      text: "❌ Received data but failed to format the reply.",
-      slow,
-    };
+    return { text: "❌ Received data but failed to format the reply.", slow };
   }
 }
