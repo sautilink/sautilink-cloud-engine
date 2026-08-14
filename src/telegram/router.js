@@ -28,6 +28,8 @@ export const KNOWN_COMMANDS = new Set([
   "start",
   "help",
   "id",
+  "about",
+  "status",
   "audit",
   "dns",
   "email",

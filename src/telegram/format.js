@@ -51,26 +51,32 @@ export function formatHelp() {
   return [
     "SautiLink Cloud Engine Bot",
     "",
-    "Commands:",
+    "General",
     "/start — welcome",
     "/help — this help",
+    "/about — what this bot does",
+    "/status — Cloud Engine health",
     "/id — your chat id (debug)",
-    "/audit <url> — unified website audit",
-    "/dns <domain> — DNS lookup",
-    "/email <domain> — email infrastructure",
-    "/headers <url> — security headers",
-    "/ssl <url> — HTTPS / HSTS",
+    "",
+    "Website",
+    "/audit <url> — unified audit",
     "/website <url> — on-page SEO",
     "/mobile <url> — mobile heuristics",
     "/robots <url> — robots.txt",
     "/sitemap <url> — sitemap.xml",
     "/http <url> — HTTP status",
+    "/headers <url> — security headers",
+    "/ssl <url> — HTTPS / HSTS",
     "",
-    "Examples:",
-    "/audit https://example.com",
+    "Infrastructure",
+    "/dns <domain> — DNS lookup",
+    "/email <domain> — email infrastructure",
+    "",
+    "Examples",
+    "/audit example.com",
     "/dns example.com",
     "",
-    "Checks run via Cloud Engine APIs (not a pentest or Lighthouse).",
+    "Automated configuration checks — not a pentest or Lighthouse.",
   ].join("\n");
 }
 
@@ -78,8 +84,35 @@ export function formatStart() {
   return [
     "Welcome to SautiLink Cloud Engine.",
     "",
-    "I run public website/DNS/email checks through the Cloud Engine API.",
-    "Try /audit https://example.com or /help.",
+    "I run public website, DNS, and email checks via the Cloud Engine API.",
+    "Try /audit example.com or /help.",
+  ].join("\n");
+}
+
+export function formatAbout() {
+  return [
+    "About SautiLink Cloud Engine",
+    "",
+    "Automated website, DNS, email, security, and SEO configuration checks.",
+    "",
+    "These are quality/configuration assessments — not a penetration test,",
+    "vulnerability scanner, Google ranking tool, or Lighthouse replacement.",
+    "",
+    "Site: https://cloudengine.sautilink.com",
+  ].join("\n");
+}
+
+export function formatStatus(ok, data) {
+  if (!ok) {
+    return ["🔴 Cloud Engine", "Status: Temporarily unavailable"].join("\n");
+  }
+  const service =
+    data && data.service ? String(data.service).slice(0, 80) : "SautiLink Cloud Engine";
+  const st = data && data.status ? String(data.status).slice(0, 40) : "ok";
+  return [
+    "🟢 Cloud Engine",
+    `Status: Operational (${st})`,
+    `Service: ${service}`,
   ].join("\n");
 }
 
@@ -134,8 +167,26 @@ export function formatAudit(data) {
     lines.push(`• ${r.title || r.code}`);
   }
   if (recs.length > 3) lines.push(`… +${recs.length - 3} more`);
-  lines.push("", "Run /help for more commands.");
+  lines.push("", "Use the buttons below or /help.");
   return truncate(lines.join("\n"));
+}
+
+/** Inline keyboard for successful audit (fixed callback_data only). */
+export function auditKeyboard() {
+  return {
+    inline_keyboard: [
+      [{ text: "🔍 Re-run Audit", callback_data: "audit:rerun" }],
+      [
+        { text: "🛡 Security", callback_data: "audit:security" },
+        { text: "🔎 SEO", callback_data: "audit:seo" },
+      ],
+      [
+        { text: "📱 Mobile", callback_data: "audit:mobile" },
+        { text: "✉️ Email", callback_data: "audit:email" },
+      ],
+      [{ text: "🔐 HTTPS", callback_data: "audit:https" }],
+    ],
+  };
 }
 
 export function formatDns(data) {
@@ -275,5 +326,31 @@ export function formatHttp(data) {
     `Redirects: ${data.redirectCount ?? 0}`,
     `Time: ${data.responseTimeMs ?? "—"} ms`,
   ];
+  return truncate(lines.join("\n"));
+}
+
+/** Category detail from a full audit payload (callback views). */
+export function formatAuditCategory(data, categoryKey) {
+  const domain = data.domain || data.url || "";
+  const cat = (data.categories || {})[categoryKey];
+  if (!cat) {
+    return truncate(`No ${categoryKey} data for ${domain}.`);
+  }
+  const lines = [
+    `${categoryKey.toUpperCase()} · ${domain}`,
+    cat.available
+      ? `Score: ${cat.score ?? "—"}/100 — ${cat.grade || ""}`
+      : `Status: ${cat.status || "unavailable"}`,
+    "",
+  ];
+  for (const f of (cat.findings || []).slice(0, 8)) {
+    lines.push(`• [${f.severity || "info"}] ${f.title || f.code}`);
+  }
+  if (!(cat.findings || []).length) lines.push("(no findings)");
+  const recs = cat.recommendations || [];
+  if (recs.length) {
+    lines.push("", "Recommendations:");
+    for (const r of recs.slice(0, 5)) lines.push(`• ${r.title || r.code}`);
+  }
   return truncate(lines.join("\n"));
 }

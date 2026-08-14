@@ -15,12 +15,4 @@
 | GET | `/api/audit?url=` |
 | POST | `/api/telegram/webhook` |
 
-## Telegram webhook
-
-`POST /api/telegram/webhook` only. Other methods → 405 `Allow: POST`.
-
-Requires Cloudflare secret `TELEGRAM_BOT_TOKEN`. Optional `TELEGRAM_WEBHOOK_SECRET` (header `X-Telegram-Bot-Api-Secret-Token`). Without token → 503 `BOT_NOT_CONFIGURED`.
-
-See `docs/TELEGRAM.md`.
-
-Health uses a legacy schema without a top-level `success` field. Tool endpoints use `{ success, data | error }`.
+Telegram is a thin client; tool semantics are unchanged. See `docs/TELEGRAM.md`.

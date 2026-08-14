@@ -57,20 +57,28 @@ async function tgCall(token, method, body) {
 }
 
 export function sendMessage(token, chatId, text, extra = {}) {
-  return tgCall(token, "sendMessage", {
+  const body = {
     chat_id: chatId,
     text,
     disable_web_page_preview: true,
     ...extra,
-  });
+  };
+  return tgCall(token, "sendMessage", body);
 }
 
 export function editMessageText(token, chatId, messageId, text, extra = {}) {
-  return tgCall(token, "editMessageText", {
+  const body = {
     chat_id: chatId,
     message_id: messageId,
     text,
     disable_web_page_preview: true,
     ...extra,
-  });
+  };
+  return tgCall(token, "editMessageText", body);
+}
+
+export function answerCallbackQuery(token, callbackQueryId, text) {
+  const body = { callback_query_id: callbackQueryId };
+  if (text) body.text = String(text).slice(0, 200);
+  return tgCall(token, "answerCallbackQuery", body);
 }
