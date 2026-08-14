@@ -13,9 +13,14 @@
 | GET | `/api/mobile?url=` |
 | GET | `/api/ssl?url=` |
 | GET | `/api/audit?url=` |
+| POST | `/api/telegram/webhook` |
 
-Health uses a legacy schema without a top-level `success` field. All other listed tools use `{ success, data | error, requestId? }`.
+## Telegram webhook
 
-`/api/audit` limits: deadline 18s, analyzer timeout 9s, concurrency 3. Cache-Control: `no-store` on active-fetch tools.
+`POST /api/telegram/webhook` only. Other methods → 405 `Allow: POST`.
 
-See `docs/TESTING.md` for Phase 6H regression notes.
+Requires Cloudflare secret `TELEGRAM_BOT_TOKEN`. Optional `TELEGRAM_WEBHOOK_SECRET` (header `X-Telegram-Bot-Api-Secret-Token`). Without token → 503 `BOT_NOT_CONFIGURED`.
+
+See `docs/TELEGRAM.md`.
+
+Health uses a legacy schema without a top-level `success` field. Tool endpoints use `{ success, data | error }`.
