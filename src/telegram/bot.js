@@ -1,4 +1,4 @@
-/** Process a single Telegram Update (stateless menus + commands). */
+/** Process a single Telegram Update (stateless menus + audit report UX). */
 
 import { parseCommand, KNOWN_COMMANDS } from "./router.js";
 import { handleCommand } from "./commands.js";
@@ -15,12 +15,15 @@ import {
 import {
   formatAudit,
   formatAuditCategory,
+  formatAuditSummaryView,
+  formatAuditPrioritiesView,
   formatEngineError,
   formatTimeout,
   formatAbout,
   formatHelp,
   formatStatus,
   auditKeyboard,
+  auditDetailKeyboard,
 } from "./format.js";
 import {
   mainMenuKeyboard,
@@ -255,18 +258,28 @@ async function processCallback(cq, config, meta) {
     return { handled: true, action };
   }
 
-  if (action === "audit:rerun") {
-    if (!tryBeginAudit(chatId)) {
-      if (cqId) await answerCallbackQuery(config.token, cqId, "Audit already running");
-      return { handled: true, action, reason: "inflight" };
+  // Shared: bounded single /api/audit fetch for report views
+  async function fetchAudit() {
+    return callCloudEngine(config.cloudEngineBaseUrl, "/api/audit", { url: target });
+  }
+
+  if (action === "audit:rerun" || action === "audit:back") {
+    if (action === "audit:rerun") {
+      if (!tryBeginAudit(chatId)) {
+        if (cqId) await answerCallbackQuery(config.token, cqId, "Audit already running");
+        return { handled: true, action, reason: "inflight" };
+      }
     }
     try {
       if (messageId != null) {
-        await editMessageText(config.token, chatId, messageId, "⏳ Re-running audit…");
+        await editMessageText(
+          config.token,
+          chatId,
+          messageId,
+          action === "audit:rerun" ? "🔄 Re-running audit…" : "⏳ Loading audit…"
+        );
       }
-      const result = await callCloudEngine(
-        config.cloudEngineBaseUrl, "/api/audit", { url: target }
-      );
+      const result = await fetchAudit();
       let text;
       let extra = {};
       if (!result.ok) {
@@ -286,14 +299,12 @@ async function processCallback(cq, config, meta) {
         await sendMessage(config.token, chatId, text, extra);
       }
     } finally {
-      endAudit(chatId);
+      if (action === "audit:rerun") endAudit(chatId);
     }
     return logCb(meta, action, chatId);
   }
 
-  const result = await callCloudEngine(config.cloudEngineBaseUrl, "/api/audit", {
-    url: target,
-  });
+  const result = await fetchAudit();
   if (!result.ok) {
     await sendMessage(
       config.token,
@@ -305,17 +316,32 @@ async function processCallback(cq, config, meta) {
     return { handled: true, action };
   }
 
-  const map = {
-    "audit:security": "security",
-    "audit:seo": "seo",
-    "audit:mobile": "mobile",
-    "audit:email": "email",
-    "audit:https": "https",
-  };
-  await sendMessage(
+  const data = result.data || {};
+  let text;
+  if (action === "audit:summary") {
+    text = formatAuditSummaryView(data);
+  } else if (action === "audit:priorities") {
+    text = formatAuditPrioritiesView(data);
+  } else {
+    const map = {
+      "audit:security": "security",
+      "audit:seo": "seo",
+      "audit:mobile": "mobile",
+      "audit:email": "email",
+      "audit:https": "https",
+    };
+    const key = map[action];
+    if (!key) return { handled: true, reason: "unknown_audit_action" };
+    text = formatAuditCategory(data, key);
+  }
+
+  // Prefer edit so domain stays recoverable in the same message for later Back
+  await safeEditOrSend(
     config.token,
     chatId,
-    formatAuditCategory(result.data || {}, map[action])
+    messageId,
+    text,
+    auditDetailKeyboard()
   );
   return logCb(meta, action, chatId);
 }

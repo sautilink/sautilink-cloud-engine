@@ -1,6 +1,11 @@
 # Testing
 
-Menu callbacks allowlisted in `normalize.js`. Reject URL-like callback data.
-Tool selection must not call analyzers.
+## Audit report offline
 
-Production tool APIs should return HTTP 200 for valid public targets.
+- scoreBar: 0 → empty, 50 → half, 100 → full
+- Allow: `audit:summary`, `audit:priorities`, `audit:back`
+- Reject: `audit:https://evil`
+
+## Production
+
+`/api/audit` and other tools remain HTTP 200 for valid public targets.

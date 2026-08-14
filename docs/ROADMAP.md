@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Completed
-- Phase 7F: Telegram interactive menus & discoverability
+- Phase 7G: Telegram audit report UX (bars, summary, priorities)
 
 ## Future
-- Phase 7G+
+- Phase 7H+

@@ -1,15 +1,19 @@
 # Telegram Bot
 
-Public thin client with **stateless interactive menus**.
+Thin client over Cloud Engine APIs with menus and enhanced audit reports.
+
+## Audit report UX
+
+`/audit` shows overall score, Unicode score bars, top findings/recommendations, and buttons:
+
+- `audit:rerun` `audit:summary` `audit:priorities`
+- category: `audit:security|seo|mobile|email|https`
+- `audit:back` restores the full audit view
+
+Target is recovered from the message text (e.g. `🌐 example.com`). Callback data never contains URLs.
+
+Views may re-fetch a single `/api/audit` — they do not fan out individual analyzers.
 
 ## Menus
 
-`/start` shows the main menu. Callbacks are fixed allowlisted values only (`menu:*`, `tool:*`, `status:refresh`, `audit:*`, `nav:back`).
-
-Selecting a tool shows usage instructions — analyzers run only after the user sends a command with a target.
-
-No conversational sessions or stored menu state.
-
-## Commands
-
-Registry: `src/telegram/registry.js`. Aliases: `/check`→audit, `/site`→website.
+Fixed `menu:*` / `tool:*` callbacks. Tool buttons only show usage prompts.
