@@ -61,8 +61,12 @@ function padLabel(label, width = 16) {
   return s + " ".repeat(width - s.length);
 }
 
+function displayDomain(data) {
+  return String(data.domain || data.url || "").trim() || "(unknown)";
+}
+
 export function formatAuditReport(data) {
-  const domain = String(data.domain || data.url || "").trim() || "(unknown)";
+  const domain = displayDomain(data);
   const score = data.score || {};
   const total = score.total ?? score.score;
   const max = score.max ?? 100;
@@ -85,8 +89,7 @@ export function formatAuditReport(data) {
     const c = cats[meta.key];
     if (!c) continue;
     if (c.available && c.score != null) {
-      const bar = scoreBar(c.score);
-      lines.push(`${padLabel(meta.label)} ${bar} ${c.score}`);
+      lines.push(`${padLabel(meta.label)} ${scoreBar(c.score)} ${c.score}`);
     } else {
       lines.push(`${padLabel(meta.label)} n/a`);
     }
@@ -94,16 +97,12 @@ export function formatAuditReport(data) {
 
   lines.push("");
   lines.push(`⚠️ ${findings.length} findings`);
-  for (const f of findings.slice(0, 5)) {
-    lines.push(findingLine(f));
-  }
+  for (const f of findings.slice(0, 5)) lines.push(findingLine(f));
   if (findings.length > 5) lines.push(`… +${findings.length - 5} more`);
 
   lines.push("");
   lines.push(`💡 ${recs.length} recommendations`);
-  for (const r of recs.slice(0, 5)) {
-    lines.push(recLine(r));
-  }
+  for (const r of recs.slice(0, 5)) lines.push(recLine(r));
   if (recs.length > 5) lines.push(`… +${recs.length - 5} more`);
 
   if (data.checkedAt || data.timestamp || (score && score.checkedAt)) {
@@ -121,7 +120,7 @@ export function formatAuditReport(data) {
 }
 
 export function formatAuditSummary(data) {
-  const domain = String(data.domain || data.url || "").trim() || "(unknown)";
+  const domain = displayDomain(data);
   const score = data.score || {};
   const cats = data.categories || {};
   const findings = Array.isArray(data.findings) ? data.findings : [];
@@ -130,7 +129,7 @@ export function formatAuditSummary(data) {
   const lines = [
     "🔎 Audit Summary",
     "",
-    domain,
+    `🌐 ${domain}`,
     `${score.total ?? score.score ?? "—"}/${score.max ?? 100} — ${score.grade || "?"}`,
     "",
   ];
@@ -147,21 +146,19 @@ export function formatAuditSummary(data) {
 }
 
 export function formatAuditPriorities(data) {
+  const domain = displayDomain(data);
   const findings = Array.isArray(data.findings) ? data.findings : [];
   const recs = Array.isArray(data.recommendations) ? data.recommendations : [];
-
-  // Prefer API order; if severity exists, stable-sort critical/error first without inventing data
   const ranked = [...findings].sort((a, b) => severityRank(a) - severityRank(b));
   const source = ranked.length ? ranked : recs;
 
-  const lines = ["🚨 Priority Fixes", ""];
+  const lines = ["🚨 Priority Fixes", "", `🌐 ${domain}`, ""];
   if (!source.length) {
     lines.push("No findings or recommendations reported.");
   } else {
     let i = 1;
     for (const item of source.slice(0, 5)) {
-      const title =
-        (item && (item.title || item.message || item.code)) || "Item";
+      const title = (item && (item.title || item.message || item.code)) || "Item";
       lines.push(`${i}. ${String(title).slice(0, 120)}`);
       i += 1;
     }
@@ -186,21 +183,21 @@ function severityRank(f) {
 export function formatCategoryDetail(data, categoryKey) {
   const meta = CATEGORY_META[categoryKey];
   if (!meta) return "Unknown category.";
-  const domain = String(data.domain || data.url || "").trim();
+  const domain = displayDomain(data);
   const cat = (data.categories || {})[categoryKey];
   if (!cat) {
-    return truncateSafe(`${meta.label}\n\nNo ${categoryKey} data for ${domain}.`);
+    return truncateSafe(`${meta.label}\n\n🌐 ${domain}\n\nNo ${categoryKey} data.`);
   }
 
-  const lines = [meta.label, ""];
+  const lines = [meta.label, "", `🌐 ${domain}`, ""];
   if (cat.available && cat.score != null) {
     lines.push(
       `Score: ${cat.score}/100 — ${cat.grade || "?"}`,
       `   ${gradeExplanation(cat.grade)}`,
+      "",
+      scoreBar(cat.score),
       ""
     );
-    lines.push(scoreBar(cat.score));
-    lines.push("");
   } else {
     lines.push(`Status: ${cat.status || "unavailable"}`, "");
   }
@@ -217,9 +214,8 @@ export function formatCategoryDetail(data, categoryKey) {
       : [];
 
   lines.push("Findings:");
-  if (!findings.length) {
-    lines.push("No findings reported.");
-  } else {
+  if (!findings.length) lines.push("No findings reported.");
+  else {
     for (const f of findings.slice(0, 5)) lines.push(findingLine(f));
     if (findings.length > 5) lines.push(`… +${findings.length - 5} more`);
   }
@@ -236,9 +232,8 @@ export function formatCategoryDetail(data, categoryKey) {
       : [];
 
   lines.push("", "💡 Recommendations");
-  if (!recs.length) {
-    lines.push("No recommendations reported.");
-  } else {
+  if (!recs.length) lines.push("No recommendations reported.");
+  else {
     for (const r of recs.slice(0, 5)) lines.push(recLine(r));
     if (recs.length > 5) lines.push(`… +${recs.length - 5} more`);
   }
@@ -269,18 +264,19 @@ export function auditReportKeyboard() {
 
 export function auditBackKeyboard() {
   return {
-    inline_keyboard: [
-      [{ text: "⬅️ Back to Audit", callback_data: "audit:back" }],
-    ],
+    inline_keyboard: [[{ text: "⬅️ Back to Audit", callback_data: "audit:back" }]],
   };
 }
 
 function truncateSafe(text, max = MAX_TELEGRAM_TEXT) {
   const s = String(text || "");
   if (s.length <= max) return s;
-  // avoid cutting mid-surrogate; simple slice then ellipsis
   let cut = s.slice(0, max - 20);
-  if (cut.length && cut.charCodeAt(cut.length - 1) >= 0xd800 && cut.charCodeAt(cut.length - 1) <= 0xdbff) {
+  if (
+    cut.length &&
+    cut.charCodeAt(cut.length - 1) >= 0xd800 &&
+    cut.charCodeAt(cut.length - 1) <= 0xdbff
+  ) {
     cut = cut.slice(0, -1);
   }
   return cut + "\n… (truncated)";
