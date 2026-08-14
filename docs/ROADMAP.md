@@ -1,8 +1,7 @@
 # Roadmap
 
 ## Completed
-- Phase 7E: public Telegram UX + access-control foundation
+- Phase 7F: Telegram interactive menus & discoverability
 
 ## Future
-- Optional tiers (public / registered / premium / admin) without claiming they exist today
-- Phase 7F+
+- Phase 7G+

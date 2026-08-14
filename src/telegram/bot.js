@@ -1,6 +1,4 @@
-/**
- * Process a single Telegram Update (stateless, public product UX).
- */
+/** Process a single Telegram Update (stateless menus + commands). */
 
 import { parseCommand, KNOWN_COMMANDS } from "./router.js";
 import { handleCommand } from "./commands.js";
@@ -19,17 +17,29 @@ import {
   formatAuditCategory,
   formatEngineError,
   formatTimeout,
+  formatAbout,
+  formatHelp,
+  formatStatus,
   auditKeyboard,
 } from "./format.js";
+import {
+  mainMenuKeyboard,
+  websiteMenuKeyboard,
+  infrastructureMenuKeyboard,
+  backToMainKeyboard,
+  statusKeyboard,
+  helpMenuKeyboard,
+  toolPromptKeyboard,
+  mainMenuText,
+  websiteMenuText,
+  infrastructureMenuText,
+  toolPrompt,
+} from "./menu.js";
 import { isDuplicateUpdate } from "./dedup.js";
 import { checkCooldown, tryBeginAudit, endAudit } from "./cooldown.js";
 import { newCorrelationId, logTelegram } from "./log.js";
 import { authorizeUser } from "./authz.js";
 
-/**
- * @param {object} update
- * @param {{ token: string, cloudEngineBaseUrl: string, env?: object }}
- */
 export async function processUpdate(update, config) {
   const started = Date.now();
   const correlationId = newCorrelationId();
@@ -80,11 +90,12 @@ export async function processUpdate(update, config) {
   }
 
   const parsed = parseCommand(message.text);
-  if (!parsed) {
-    return { handled: false, reason: "not_command" };
-  }
+  if (!parsed) return { handled: false, reason: "not_command" };
 
-  if (!KNOWN_COMMANDS.has(parsed.rawCommand) && !KNOWN_COMMANDS.has(parsed.command)) {
+  if (
+    !KNOWN_COMMANDS.has(parsed.rawCommand) &&
+    !KNOWN_COMMANDS.has(parsed.command)
+  ) {
     await sendMessage(config.token, chat.id, "Unknown command. Try /help.");
     return { handled: true, command: parsed.command };
   }
@@ -100,16 +111,8 @@ export async function processUpdate(update, config) {
   }
 
   const slowCommands = new Set([
-    "audit",
-    "email",
-    "website",
-    "mobile",
-    "ssl",
-    "headers",
-    "sitemap",
-    "robots",
-    "http",
-    "dns",
+    "audit", "email", "website", "mobile", "ssl", "headers",
+    "sitemap", "robots", "http", "dns",
   ]);
 
   let pendingId = null;
@@ -146,8 +149,7 @@ export async function processUpdate(update, config) {
   if (
     result &&
     result.errorCode &&
-    (result.errorCode === "ENGINE_TIMEOUT" ||
-      result.errorCode === "REQUEST_TIMEOUT")
+    (result.errorCode === "ENGINE_TIMEOUT" || result.errorCode === "REQUEST_TIMEOUT")
   ) {
     text = formatTimeout();
   }
@@ -157,11 +159,7 @@ export async function processUpdate(update, config) {
 
   if (pendingId != null) {
     const edited = await editMessageText(
-      config.token,
-      chat.id,
-      pendingId,
-      text,
-      extra
+      config.token, chat.id, pendingId, text, extra
     );
     if (!edited.ok) await sendMessage(config.token, chat.id, text, extra);
   } else {
@@ -182,7 +180,6 @@ export async function processUpdate(update, config) {
 }
 
 async function processCallback(cq, config, meta) {
-  const { correlationId, updateId, started } = meta;
   const cqId = cq && cq.id;
   if (cqId) await answerCallbackQuery(config.token, cqId);
 
@@ -191,9 +188,7 @@ async function processCallback(cq, config, meta) {
     chat: cq.message && cq.message.chat,
     env: config.env,
   });
-  if (!auth.allowed) {
-    return { handled: true, reason: "denied" };
-  }
+  if (!auth.allowed) return { handled: true, reason: "denied" };
 
   const action = parseCallbackAction(cq && cq.data);
   if (!action) {
@@ -205,6 +200,50 @@ async function processCallback(cq, config, meta) {
   const chatId = msg && msg.chat && msg.chat.id;
   const messageId = msg && msg.message_id;
   if (chatId == null) return { handled: true, reason: "no_chat" };
+
+  if (action === "menu:main" || action === "nav:back") {
+    await safeEditOrSend(config.token, chatId, messageId, mainMenuText(), mainMenuKeyboard());
+    return logCb(meta, action, chatId);
+  }
+  if (action === "menu:website") {
+    await safeEditOrSend(config.token, chatId, messageId, websiteMenuText(), websiteMenuKeyboard());
+    return logCb(meta, action, chatId);
+  }
+  if (action === "menu:infrastructure") {
+    await safeEditOrSend(
+      config.token, chatId, messageId, infrastructureMenuText(), infrastructureMenuKeyboard()
+    );
+    return logCb(meta, action, chatId);
+  }
+  if (action === "menu:about") {
+    await safeEditOrSend(config.token, chatId, messageId, formatAbout(), backToMainKeyboard());
+    return logCb(meta, action, chatId);
+  }
+  if (action === "menu:help") {
+    await safeEditOrSend(config.token, chatId, messageId, formatHelp(), helpMenuKeyboard());
+    return logCb(meta, action, chatId);
+  }
+  if (action === "menu:status" || action === "status:refresh") {
+    const result = await callCloudEngine(config.cloudEngineBaseUrl, "/api/health", {});
+    await safeEditOrSend(
+      config.token, chatId, messageId, formatStatus(result.ok, result.data), statusKeyboard()
+    );
+    return logCb(meta, action, chatId);
+  }
+
+  if (action.startsWith("tool:")) {
+    const tool = action.slice(5);
+    const prompt = toolPrompt(tool);
+    if (!prompt) return { handled: true, reason: "unknown_tool" };
+    await safeEditOrSend(
+      config.token, chatId, messageId, prompt.text, toolPromptKeyboard(prompt.parent)
+    );
+    return logCb(meta, action, chatId);
+  }
+
+  if (!action.startsWith("audit:")) {
+    return { handled: true, reason: "unhandled_callback" };
+  }
 
   const target = recoverAuditTargetFromMessage(msg && msg.text);
   if (!target) {
@@ -218,31 +257,22 @@ async function processCallback(cq, config, meta) {
 
   if (action === "audit:rerun") {
     if (!tryBeginAudit(chatId)) {
-      if (cqId)
-        await answerCallbackQuery(config.token, cqId, "Audit already running");
+      if (cqId) await answerCallbackQuery(config.token, cqId, "Audit already running");
       return { handled: true, action, reason: "inflight" };
     }
     try {
       if (messageId != null) {
-        await editMessageText(
-          config.token,
-          chatId,
-          messageId,
-          "⏳ Re-running audit…"
-        );
+        await editMessageText(config.token, chatId, messageId, "⏳ Re-running audit…");
       }
       const result = await callCloudEngine(
-        config.cloudEngineBaseUrl,
-        "/api/audit",
-        { url: target }
+        config.cloudEngineBaseUrl, "/api/audit", { url: target }
       );
       let text;
       let extra = {};
       if (!result.ok) {
         text =
           result.error &&
-          (result.error.code === "ENGINE_TIMEOUT" ||
-            result.error.code === "REQUEST_TIMEOUT")
+          (result.error.code === "ENGINE_TIMEOUT" || result.error.code === "REQUEST_TIMEOUT")
             ? formatTimeout()
             : formatEngineError(result.error);
       } else {
@@ -250,13 +280,7 @@ async function processCallback(cq, config, meta) {
         extra = { reply_markup: auditKeyboard() };
       }
       if (messageId != null) {
-        const ed = await editMessageText(
-          config.token,
-          chatId,
-          messageId,
-          text,
-          extra
-        );
+        const ed = await editMessageText(config.token, chatId, messageId, text, extra);
         if (!ed.ok) await sendMessage(config.token, chatId, text, extra);
       } else {
         await sendMessage(config.token, chatId, text, extra);
@@ -264,16 +288,7 @@ async function processCallback(cq, config, meta) {
     } finally {
       endAudit(chatId);
     }
-    logTelegram({
-      event: "telegram_callback",
-      correlation_id: correlationId,
-      update_id: updateId,
-      callback_action: action,
-      chat_id: chatId,
-      status: "ok",
-      duration_ms: Date.now() - started,
-    });
-    return { handled: true, action };
+    return logCb(meta, action, chatId);
   }
 
   const result = await callCloudEngine(config.cloudEngineBaseUrl, "/api/audit", {
@@ -302,14 +317,27 @@ async function processCallback(cq, config, meta) {
     chatId,
     formatAuditCategory(result.data || {}, map[action])
   );
+  return logCb(meta, action, chatId);
+}
+
+async function safeEditOrSend(token, chatId, messageId, text, reply_markup) {
+  const extra = reply_markup ? { reply_markup } : {};
+  if (messageId != null) {
+    const ed = await editMessageText(token, chatId, messageId, text, extra);
+    if (ed.ok) return;
+  }
+  await sendMessage(token, chatId, text, extra);
+}
+
+function logCb(meta, action, chatId) {
   logTelegram({
     event: "telegram_callback",
-    correlation_id: correlationId,
-    update_id: updateId,
+    correlation_id: meta.correlationId,
+    update_id: meta.updateId,
     callback_action: action,
     chat_id: chatId,
     status: "ok",
-    duration_ms: Date.now() - started,
+    duration_ms: Date.now() - meta.started,
   });
   return { handled: true, action };
 }

@@ -1,6 +1,4 @@
-/**
- * Plain-text formatters and public error vocabulary.
- */
+/** Plain-text formatters and public error vocabulary. */
 
 import { MAX_TELEGRAM_TEXT } from "./config.js";
 import { formatHelpFromRegistry } from "./registry.js";
@@ -49,10 +47,6 @@ function mapUserError(code, message) {
       const msg = String(message || "Something went wrong.")
         .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "")
         .slice(0, 200);
-      // Avoid leaking internal code names to users when possible
-      if (/BLOCKED|SSRF|PRIVATE|TIMEOUT|RATE/i.test(code)) {
-        return `❌ ${msg}`;
-      }
       return `❌ ${msg}`;
     }
   }
@@ -63,19 +57,21 @@ export function formatTimeout() {
 }
 
 export function formatHelp() {
-  return formatHelpFromRegistry();
+  return [
+    formatHelpFromRegistry(),
+    "",
+    "💡 You can also use the menu below to explore tools.",
+  ].join("\n");
 }
 
 export function formatStart() {
   return [
     "🚀 SautiLink Cloud Engine",
     "",
-    "Website, DNS, email, security, and infrastructure checks from Telegram.",
+    "Website, DNS, email, security and infrastructure checks.",
     "",
-    "Try:",
-    "/audit example.com",
-    "",
-    "Use /help to see all available tools.",
+    "Choose a tool below or use /help.",
+    "Try: /audit example.com",
   ].join("\n");
 }
 
@@ -92,13 +88,9 @@ export function formatAbout() {
   ].join("\n");
 }
 
-export function formatStatus(ok, data) {
+export function formatStatus(ok) {
   if (!ok) {
-    return [
-      "🔴 SautiLink Cloud Engine",
-      "",
-      "Status: Temporarily unavailable.",
-    ].join("\n");
+    return ["🔴 SautiLink Cloud Engine", "", "Status: Temporarily unavailable."].join("\n");
   }
   return ["🟢 SautiLink Cloud Engine", "", "Status: Operational"].join("\n");
 }
@@ -107,10 +99,7 @@ export function formatId(chat, from) {
   const lines = ["Diagnostic identifiers only:"];
   if (chat && chat.id != null) lines.push(`chat_id: ${chat.id}`);
   if (from && from.id != null) lines.push(`user_id: ${from.id}`);
-  lines.push(
-    "",
-    "/id is for debugging. No tokens, secrets, or server details are shown."
-  );
+  lines.push("", "/id is for debugging. No tokens, secrets, or server details are shown.");
   return lines.join("\n");
 }
 
@@ -144,20 +133,13 @@ export function formatAudit(data) {
   const recs = data.recommendations || [];
   lines.push("");
   lines.push(`⚠️ Findings: ${findings.length}`);
-  for (const f of findings.slice(0, 5)) {
-    lines.push(`• ${f.title || f.code}`);
-  }
+  for (const f of findings.slice(0, 5)) lines.push(`• ${f.title || f.code}`);
   if (findings.length > 5) lines.push(`… +${findings.length - 5} more`);
   lines.push("");
   lines.push(`💡 Recommendations: ${recs.length}`);
-  for (const r of recs.slice(0, 3)) {
-    lines.push(`• ${r.title || r.code}`);
-  }
+  for (const r of recs.slice(0, 3)) lines.push(`• ${r.title || r.code}`);
   if (recs.length > 3) lines.push(`… +${recs.length - 3} more`);
-  lines.push(
-    "",
-    "Configuration assessment only — not a ranking or pentest score."
-  );
+  lines.push("", "Configuration assessment only — not a ranking or pentest score.");
   return truncate(lines.join("\n"));
 }
 
@@ -203,14 +185,9 @@ export function formatEmail(data) {
     `Score: ${score.total ?? "—"}/${score.max ?? 100} — ${score.grade || ""}`,
     "",
   ];
-  if (data.mx)
-    lines.push(`MX: ${data.mx.status || (data.mx.found ? "found" : "n/a")}`);
-  if (data.spf)
-    lines.push(`SPF: ${data.spf.status || (data.spf.found ? "found" : "n/a")}`);
-  if (data.dmarc)
-    lines.push(
-      `DMARC: ${data.dmarc.status || (data.dmarc.found ? "found" : "n/a")}`
-    );
+  if (data.mx) lines.push(`MX: ${data.mx.status || (data.mx.found ? "found" : "n/a")}`);
+  if (data.spf) lines.push(`SPF: ${data.spf.status || (data.spf.found ? "found" : "n/a")}`);
+  if (data.dmarc) lines.push(`DMARC: ${data.dmarc.status || (data.dmarc.found ? "found" : "n/a")}`);
   if (data.dkim)
     lines.push(
       `DKIM: ${data.dkim.status || (data.dkim.found ? "found" : "n/a")}${data.dkim.selector ? ` (${data.dkim.selector})` : ""}`
@@ -231,9 +208,7 @@ export function formatHeaders(data) {
     `Security score: ${sec.score ?? sec.total ?? "—"}/100 — ${sec.grade || ""}`,
     "",
   ];
-  for (const f of (sec.findings || []).slice(0, 6)) {
-    lines.push(`• ${f.title || f.code}`);
-  }
+  for (const f of (sec.findings || []).slice(0, 6)) lines.push(`• ${f.title || f.code}`);
   return truncate(lines.join("\n"));
 }
 
@@ -264,9 +239,7 @@ export function formatWebsite(data) {
     `Title: ${(seo.title || "").slice(0, 80) || "—"}`,
     `Status: ${data.status ?? "—"}`,
   ];
-  for (const f of (score.findings || []).slice(0, 5)) {
-    lines.push(`• ${f.title || f.code}`);
-  }
+  for (const f of (score.findings || []).slice(0, 5)) lines.push(`• ${f.title || f.code}`);
   return truncate(lines.join("\n"));
 }
 
@@ -277,9 +250,7 @@ export function formatMobile(data) {
     data.finalUrl || data.url || "",
     `Score: ${score.total ?? "—"}/100 — ${score.grade || ""}`,
   ];
-  for (const f of (score.findings || []).slice(0, 5)) {
-    lines.push(`• ${f.title || f.code}`);
-  }
+  for (const f of (score.findings || []).slice(0, 5)) lines.push(`• ${f.title || f.code}`);
   return truncate(lines.join("\n"));
 }
 
@@ -291,9 +262,7 @@ export function formatRobots(data) {
     `Status: ${data.status ?? "—"}`,
     `Score: ${score.total ?? "—"}/100`,
   ];
-  for (const f of (score.findings || []).slice(0, 5)) {
-    lines.push(`• ${f.title || f.code}`);
-  }
+  for (const f of (score.findings || []).slice(0, 5)) lines.push(`• ${f.title || f.code}`);
   return truncate(lines.join("\n"));
 }
 
@@ -304,9 +273,7 @@ export function formatSitemap(data) {
     data.url || "",
     `Score: ${score.total ?? "—"}/100 — ${score.grade || ""}`,
   ];
-  for (const f of (score.findings || []).slice(0, 5)) {
-    lines.push(`• ${f.title || f.code}`);
-  }
+  for (const f of (score.findings || []).slice(0, 5)) lines.push(`• ${f.title || f.code}`);
   return truncate(lines.join("\n"));
 }
 
@@ -333,9 +300,7 @@ export function formatAuditCategory(data, categoryKey) {
       : `Status: ${cat.status || "unavailable"}`,
     "",
   ];
-  for (const f of (cat.findings || []).slice(0, 8)) {
-    lines.push(`• ${f.title || f.code}`);
-  }
+  for (const f of (cat.findings || []).slice(0, 8)) lines.push(`• ${f.title || f.code}`);
   if (!(cat.findings || []).length) lines.push("(no findings)");
   const recs = cat.recommendations || [];
   if (recs.length) {

@@ -1,7 +1,6 @@
 # Testing
 
-Telegram registry aliases: `/check`→audit, `/site`→website.  
-`authorizeUser` returns allowed:true for public.  
-Missing args must not call Cloud Engine.
+Menu callbacks allowlisted in `normalize.js`. Reject URL-like callback data.
+Tool selection must not call analyzers.
 
-Production API probes should remain HTTP 200 for valid public targets.
+Production tool APIs should return HTTP 200 for valid public targets.

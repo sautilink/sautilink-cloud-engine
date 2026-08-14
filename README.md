@@ -2,7 +2,7 @@
 
 **Site:** https://cloudengine.sautilink.com
 
-Website/DNS/email/security tools on Cloudflare Pages, plus a public Telegram bot thin client.
+Cloudflare Pages tools + Telegram bot (commands and interactive menus).
 
 ```bash
 npm install && npm run dev

@@ -1,20 +1,15 @@
 # Telegram Bot
 
-Public thin client for Cloud Engine APIs.
+Public thin client with **stateless interactive menus**.
+
+## Menus
+
+`/start` shows the main menu. Callbacks are fixed allowlisted values only (`menu:*`, `tool:*`, `status:refresh`, `audit:*`, `nav:back`).
+
+Selecting a tool shows usage instructions — analyzers run only after the user sends a command with a target.
+
+No conversational sessions or stored menu state.
 
 ## Commands
 
-Generated from `src/telegram/registry.js`.
-
-**Aliases:** `/check` → `/audit`, `/site` → `/website`
-
-## Access control foundation
-
-`authorizeUser()` currently allows everyone (`role: public`).  
-Optional secret `TELEGRAM_ADMIN_IDS` (comma-separated user ids) enables `isAdmin()` for **future** admin tools — no admin commands in this phase.
-
-No user database. No subscriptions or payments yet.
-
-## Reliability
-
-Best-effort isolate-local dedup/cooldowns only. Cloudflare edge rate limiting is authoritative.
+Registry: `src/telegram/registry.js`. Aliases: `/check`→audit, `/site`→website.
