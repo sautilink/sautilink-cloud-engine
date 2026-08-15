@@ -49,10 +49,11 @@ import {
 } from "./usage.js";
 import {
   setPendingAudit,
-  takePending,
+  peekPending,
   clearPending,
   parseGuidedAuditTarget,
   guidedAuditPromptText,
+  looksLikeWebsiteAttempt,
 } from "./guided.js";
 
 export async function processUpdate(update, config) {
@@ -134,8 +135,9 @@ export async function processUpdate(update, config) {
     });
   }
 
-  // Guided free-text target (no command prefix)
-  const pending = takePending(chat.id);
+  // Guided free-text: peek first so invalid input never leaves the user with no pending
+  // and no reply (take-then-fail could race with isolate loss).
+  const pending = peekPending(chat.id);
   if (pending === "audit") {
     return runGuidedAudit({
       text: message.text,
@@ -150,6 +152,23 @@ export async function processUpdate(update, config) {
     });
   }
 
+  // Pending lost (isolate recycle / TTL) but user still sent a target-like message:
+  // never silently drop — tell them how to continue.
+  if (looksLikeWebsiteAttempt(message.text)) {
+    await sendMessage(
+      config.token,
+      chat.id,
+      [
+        "To check a website, tap 🔎 Check a Website first, then send the address.",
+        "",
+        "Or use a command:",
+        "/audit example.com",
+      ].join("\n"),
+      { reply_markup: mainMenuKeyboard() }
+    );
+    return { handled: true, reason: "guided_hint" };
+  }
+
   return { handled: false, reason: "not_command" };
 }
 
@@ -159,13 +178,16 @@ async function runGuidedAudit(ctx) {
 
   const target = parseGuidedAuditTarget(text);
   if (!target.ok) {
-    // Keep waiting for a valid address
+    // Keep guided mode active so the user can retry.
     setPendingAudit(chat.id);
-    await sendMessage(config.token, chat.id, `⚠️ ${target.message}`, {
+    await sendMessage(config.token, chat.id, target.message, {
       reply_markup: guidedAuditKeyboard(),
     });
     return { handled: true, reason: "guided_invalid" };
   }
+
+  // Valid target only: clear pending, then apply usage / cooldown / inflight.
+  clearPending(chat.id);
 
   const usage = checkUsage({
     chatId: chat.id,
@@ -416,7 +438,6 @@ async function processCallback(cq, config, meta) {
   const adminUser =
     auth.role === "admin" || isAdmin(cq.from && cq.from.id, env);
 
-  // Leaving guided flow on menu navigation
   if (action.startsWith("menu:") || action === "nav:back") {
     clearPending(chatId);
   }
@@ -499,7 +520,6 @@ async function processCallback(cq, config, meta) {
     return logCb(meta, action, chatId);
   }
 
-  // Guided audit entry — set pending, ask for address (no URL in callback)
   if (action === "tool:audit") {
     setPendingAudit(chatId);
     await safeEditOrSend(
