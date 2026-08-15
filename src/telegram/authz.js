@@ -1,8 +1,5 @@
 /**
- * Access-control foundation (Phase 7E).
- *
- * Currently public: everyone allowed. No user storage.
- * Future: allowlists, tiers (public / registered / premium / admin).
+ * Access-control foundation.
  *
  * Optional env:
  *   TELEGRAM_ADMIN_IDS — comma-separated Telegram user ids (no hard-coded ids)
@@ -16,8 +13,23 @@ export function authorizeUser(context = {}) {
   const role = isAdmin(context.from && context.from.id, context.env)
     ? "admin"
     : "public";
-  // Public product: all roles allowed for existing commands
   return { allowed: true, role };
+}
+
+/**
+ * Normalize a single id token from env or Telegram payload.
+ * Handles whitespace, surrounding quotes, and numeric strings.
+ */
+function normalizeIdToken(value) {
+  if (value == null || value === "") return "";
+  let s = String(value).trim();
+  if (
+    (s.startsWith('"') && s.endsWith('"')) ||
+    (s.startsWith("'") && s.endsWith("'"))
+  ) {
+    s = s.slice(1, -1).trim();
+  }
+  return s;
 }
 
 /**
@@ -26,14 +38,19 @@ export function authorizeUser(context = {}) {
  */
 export function isAdmin(telegramUserId, env = {}) {
   if (telegramUserId == null || telegramUserId === "") return false;
+  const id = normalizeIdToken(telegramUserId);
+  if (!id) return false;
+
   const raw =
-    typeof env.TELEGRAM_ADMIN_IDS === "string" ? env.TELEGRAM_ADMIN_IDS : "";
-  if (!raw.trim()) return false;
-  const id = String(telegramUserId);
+    env && typeof env.TELEGRAM_ADMIN_IDS === "string"
+      ? env.TELEGRAM_ADMIN_IDS
+      : "";
+  if (!raw || !String(raw).trim()) return false;
+
   const set = new Set(
-    raw
-      .split(",")
-      .map((s) => s.trim())
+    String(raw)
+      .split(/[,\s]+/)
+      .map((s) => normalizeIdToken(s))
       .filter(Boolean)
   );
   return set.has(id);

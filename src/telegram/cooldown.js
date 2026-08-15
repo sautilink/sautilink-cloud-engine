@@ -1,6 +1,9 @@
 /**
  * Best-effort per-chat cooldown for expensive commands within one isolate.
  * Not a global rate limiter — Cloudflare edge remains authoritative.
+ *
+ * Admins (caller must pass isAdminUser) bypass this public isolate-local cooldown.
+ * Dedup, audit in-flight, Telegram API limits, and Cloudflare edge still apply.
  */
 
 const last = new Map();
@@ -27,9 +30,11 @@ export function isExpensiveCommand(cmd) {
 /**
  * @param {string|number} chatId
  * @param {string} command
+ * @param {{ isAdminUser?: boolean }} [opts]
  * @returns {{ blocked: boolean, retryAfterSec?: number }}
  */
-export function checkCooldown(chatId, command) {
+export function checkCooldown(chatId, command, opts = {}) {
+  if (opts && opts.isAdminUser) return { blocked: false };
   if (!isExpensiveCommand(command)) return { blocked: false };
   if (chatId == null) return { blocked: false };
 
@@ -67,4 +72,10 @@ export function tryBeginAudit(chatId) {
 export function endAudit(chatId) {
   if (chatId == null) return;
   inflight.delete(String(chatId));
+}
+
+/** Test helper */
+export function _resetCooldownForTests() {
+  last.clear();
+  inflight.clear();
 }

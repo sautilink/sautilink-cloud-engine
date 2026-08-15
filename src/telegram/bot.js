@@ -86,7 +86,8 @@ export async function processUpdate(update, config) {
     return { handled: false, reason: "no_chat" };
   }
 
-  const auth = authorizeUser({ from, chat, env: config.env });
+  const env = config.env || {};
+  const auth = authorizeUser({ from, chat, env });
   if (!auth.allowed) {
     await sendMessage(
       config.token,
@@ -107,12 +108,16 @@ export async function processUpdate(update, config) {
     return { handled: true, command: parsed.command };
   }
 
-  const adminUser = isAdmin(from && from.id, config.env);
+  // Single admin decision for this update (usage + cooldown).
+  const adminUser =
+    auth.role === "admin" || isAdmin(from && from.id, env);
+
   const usage = checkUsage({
     chatId: chat.id,
+    userId: from && from.id,
     commandOrAction: parsed.command,
     isAdminUser: adminUser,
-    env: config.env,
+    env,
   });
   if (!usage.allowed) {
     await sendMessage(config.token, chat.id, formatUsageLimitMessage());
@@ -130,7 +135,10 @@ export async function processUpdate(update, config) {
     return { handled: true, command: parsed.command, reason: "usage_limited" };
   }
 
-  const cool = checkCooldown(chat.id, parsed.command);
+  // Public isolate-local cooldown; admins bypass (edge limits still apply).
+  const cool = checkCooldown(chat.id, parsed.command, {
+    isAdminUser: adminUser,
+  });
   if (cool.blocked) {
     await sendMessage(
       config.token,
@@ -141,8 +149,16 @@ export async function processUpdate(update, config) {
   }
 
   const slowCommands = new Set([
-    "audit", "email", "website", "mobile", "ssl", "headers",
-    "sitemap", "robots", "http", "dns",
+    "audit",
+    "email",
+    "website",
+    "mobile",
+    "ssl",
+    "headers",
+    "sitemap",
+    "robots",
+    "http",
+    "dns",
   ]);
 
   let pendingId = null;
@@ -179,7 +195,8 @@ export async function processUpdate(update, config) {
   if (
     result &&
     result.errorCode &&
-    (result.errorCode === "ENGINE_TIMEOUT" || result.errorCode === "REQUEST_TIMEOUT")
+    (result.errorCode === "ENGINE_TIMEOUT" ||
+      result.errorCode === "REQUEST_TIMEOUT")
   ) {
     text = formatTimeout();
   }
@@ -189,7 +206,11 @@ export async function processUpdate(update, config) {
 
   if (pendingId != null) {
     const edited = await editMessageText(
-      config.token, chat.id, pendingId, text, extra
+      config.token,
+      chat.id,
+      pendingId,
+      text,
+      extra
     );
     if (!edited.ok) await sendMessage(config.token, chat.id, text, extra);
   } else {
@@ -215,10 +236,11 @@ async function processCallback(cq, config, meta) {
   const cqId = cq && cq.id;
   if (cqId) await answerCallbackQuery(config.token, cqId);
 
+  const env = config.env || {};
   const auth = authorizeUser({
     from: cq.from,
     chat: cq.message && cq.message.chat,
-    env: config.env,
+    env,
   });
   if (!auth.allowed) return { handled: true, reason: "denied" };
 
@@ -233,12 +255,15 @@ async function processCallback(cq, config, meta) {
   const messageId = msg && msg.message_id;
   if (chatId == null) return { handled: true, reason: "no_chat" };
 
-  const adminUser = isAdmin(cq.from && cq.from.id, config.env);
+  const adminUser =
+    auth.role === "admin" || isAdmin(cq.from && cq.from.id, env);
+
   const usage = checkUsage({
     chatId,
+    userId: cq.from && cq.from.id,
     commandOrAction: action,
     isAdminUser: adminUser,
-    env: config.env,
+    env,
   });
   if (!usage.allowed) {
     await sendMessage(config.token, chatId, formatUsageLimitMessage());
@@ -246,31 +271,67 @@ async function processCallback(cq, config, meta) {
   }
 
   if (action === "menu:main" || action === "nav:back") {
-    await safeEditOrSend(config.token, chatId, messageId, mainMenuText(), mainMenuKeyboard());
+    await safeEditOrSend(
+      config.token,
+      chatId,
+      messageId,
+      mainMenuText(),
+      mainMenuKeyboard()
+    );
     return logCb(meta, action, chatId);
   }
   if (action === "menu:website") {
-    await safeEditOrSend(config.token, chatId, messageId, websiteMenuText(), websiteMenuKeyboard());
+    await safeEditOrSend(
+      config.token,
+      chatId,
+      messageId,
+      websiteMenuText(),
+      websiteMenuKeyboard()
+    );
     return logCb(meta, action, chatId);
   }
   if (action === "menu:infrastructure") {
     await safeEditOrSend(
-      config.token, chatId, messageId, infrastructureMenuText(), infrastructureMenuKeyboard()
+      config.token,
+      chatId,
+      messageId,
+      infrastructureMenuText(),
+      infrastructureMenuKeyboard()
     );
     return logCb(meta, action, chatId);
   }
   if (action === "menu:about") {
-    await safeEditOrSend(config.token, chatId, messageId, formatAbout(), backToMainKeyboard());
+    await safeEditOrSend(
+      config.token,
+      chatId,
+      messageId,
+      formatAbout(),
+      backToMainKeyboard()
+    );
     return logCb(meta, action, chatId);
   }
   if (action === "menu:help") {
-    await safeEditOrSend(config.token, chatId, messageId, formatHelp(), helpMenuKeyboard());
+    await safeEditOrSend(
+      config.token,
+      chatId,
+      messageId,
+      formatHelp(),
+      helpMenuKeyboard()
+    );
     return logCb(meta, action, chatId);
   }
   if (action === "menu:status" || action === "status:refresh") {
-    const result = await callCloudEngine(config.cloudEngineBaseUrl, "/api/health", {});
+    const result = await callCloudEngine(
+      config.cloudEngineBaseUrl,
+      "/api/health",
+      {}
+    );
     await safeEditOrSend(
-      config.token, chatId, messageId, formatStatus(result.ok, result.data), statusKeyboard()
+      config.token,
+      chatId,
+      messageId,
+      formatStatus(result.ok, result.data),
+      statusKeyboard()
     );
     return logCb(meta, action, chatId);
   }
@@ -280,7 +341,11 @@ async function processCallback(cq, config, meta) {
     const prompt = toolPrompt(tool);
     if (!prompt) return { handled: true, reason: "unknown_tool" };
     await safeEditOrSend(
-      config.token, chatId, messageId, prompt.text, toolPromptKeyboard(prompt.parent)
+      config.token,
+      chatId,
+      messageId,
+      prompt.text,
+      toolPromptKeyboard(prompt.parent)
     );
     return logCb(meta, action, chatId);
   }
@@ -300,13 +365,16 @@ async function processCallback(cq, config, meta) {
   }
 
   async function fetchAudit() {
-    return callCloudEngine(config.cloudEngineBaseUrl, "/api/audit", { url: target });
+    return callCloudEngine(config.cloudEngineBaseUrl, "/api/audit", {
+      url: target,
+    });
   }
 
   if (action === "audit:rerun" || action === "audit:back") {
     if (action === "audit:rerun") {
       if (!tryBeginAudit(chatId)) {
-        if (cqId) await answerCallbackQuery(config.token, cqId, "Audit already running");
+        if (cqId)
+          await answerCallbackQuery(config.token, cqId, "Audit already running");
         return { handled: true, action, reason: "inflight" };
       }
     }
@@ -316,7 +384,9 @@ async function processCallback(cq, config, meta) {
           config.token,
           chatId,
           messageId,
-          action === "audit:rerun" ? "🔄 Re-running audit…" : "⏳ Loading audit…"
+          action === "audit:rerun"
+            ? "🔄 Re-running audit…"
+            : "⏳ Loading audit…"
         );
       }
       const result = await fetchAudit();
@@ -325,7 +395,8 @@ async function processCallback(cq, config, meta) {
       if (!result.ok) {
         text =
           result.error &&
-          (result.error.code === "ENGINE_TIMEOUT" || result.error.code === "REQUEST_TIMEOUT")
+          (result.error.code === "ENGINE_TIMEOUT" ||
+            result.error.code === "REQUEST_TIMEOUT")
             ? formatTimeout()
             : formatEngineError(result.error);
       } else {
@@ -333,7 +404,13 @@ async function processCallback(cq, config, meta) {
         extra = { reply_markup: auditKeyboard() };
       }
       if (messageId != null) {
-        const ed = await editMessageText(config.token, chatId, messageId, text, extra);
+        const ed = await editMessageText(
+          config.token,
+          chatId,
+          messageId,
+          text,
+          extra
+        );
         if (!ed.ok) await sendMessage(config.token, chatId, text, extra);
       } else {
         await sendMessage(config.token, chatId, text, extra);
@@ -375,7 +452,13 @@ async function processCallback(cq, config, meta) {
     text = formatAuditCategory(data, key);
   }
 
-  await safeEditOrSend(config.token, chatId, messageId, text, auditDetailKeyboard());
+  await safeEditOrSend(
+    config.token,
+    chatId,
+    messageId,
+    text,
+    auditDetailKeyboard()
+  );
   return logCb(meta, action, chatId);
 }
 

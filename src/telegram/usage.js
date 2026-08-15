@@ -3,9 +3,12 @@
  *
  * NOT a global rate limiter. Cloudflare edge rate limiting remains authoritative.
  * State is ephemeral and bounded to a single isolate.
+ *
+ * Admins (TELEGRAM_ADMIN_IDS) bypass these public quotas only.
  */
 
 import { getCommandMeta } from "./registry.js";
+import { isAdmin } from "./authz.js";
 
 /** Defaults when env vars are absent. */
 export const DEFAULT_WINDOW_SECONDS = 60;
@@ -53,7 +56,6 @@ export function commandCost(commandOrAction) {
   if (!commandOrAction) return null;
   const s = String(commandOrAction);
 
-  // Expensive audit callbacks (re-fetch /api/audit)
   if (
     s === "audit:rerun" ||
     s === "audit:security" ||
@@ -68,12 +70,10 @@ export function commandCost(commandOrAction) {
     return "expensive";
   }
 
-  // Navigation / menus — cheap (or free of quota)
   if (s.startsWith("menu:") || s === "nav:back" || s === "status:refresh") {
     return "cheap";
   }
   if (s.startsWith("tool:")) {
-    // Usage prompts only — treat as cheap
     return "cheap";
   }
 
@@ -95,13 +95,29 @@ function prune(now, windowMs) {
 }
 
 /**
+ * @param {{
+ *   chatId?: string|number|null,
+ *   userId?: string|number|null,
+ *   commandOrAction: string,
+ *   isAdminUser?: boolean,
+ *   env?: Record<string,string|undefined>
+ * }}
  * @returns {{ allowed: boolean, cost: string|null, reason?: string, counts?: object }}
  */
-export function checkUsage({ chatId, commandOrAction, isAdminUser, env }) {
+export function checkUsage({
+  chatId,
+  userId,
+  commandOrAction,
+  isAdminUser,
+  env,
+}) {
   const cost = commandCost(commandOrAction);
   if (!cost) return { allowed: true, cost: null };
 
-  if (isAdminUser) {
+  // Re-check isAdmin from env so bypass cannot depend on a stale boolean alone.
+  const admin =
+    Boolean(isAdminUser) || isAdmin(userId, env || {});
+  if (admin) {
     return { allowed: true, cost, reason: "admin_bypass" };
   }
 
