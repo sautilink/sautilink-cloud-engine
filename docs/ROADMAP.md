@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Completed
-- Phase 7I: Telegram usage control & public bot protection
+- Phase 7J: Guided Telegram website checks
 
 ## Future
-- Phase 7J+
+- Phase 7K+

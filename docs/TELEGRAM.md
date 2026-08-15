@@ -2,22 +2,12 @@
 
 Thin client over Cloud Engine APIs.
 
+## Guided check (Phase 7J)
+
+Main menu → **Check a Website** (`tool:audit`) → bot asks for an address → user sends `example.com` or `https://example.com` → same `/api/audit` report + keyboard.
+
+Pending state is **isolate-local**, TTL **3 minutes**, max **200** chats. No URLs in `callback_data`. Commands cancel pending. SSRF remains in Cloud Engine.
+
 ## Public usage protection (Phase 7I)
 
-Isolate-local quotas (not global):
-
-| Setting | Env | Default |
-|---------|-----|--------|
-| Window | `TELEGRAM_PUBLIC_RATE_WINDOW_SECONDS` | 60 |
-| Expensive cmds | `TELEGRAM_PUBLIC_EXPENSIVE_LIMIT` | 5 |
-| Cheap cmds | `TELEGRAM_PUBLIC_CHEAP_LIMIT` | 20 |
-| Max tracked chats | (code) | 500 |
-
-**Cloudflare edge rate limiting remains the global control.**
-
-Admins listed in `TELEGRAM_ADMIN_IDS` (comma-separated user ids) bypass public quotas only — not Cloudflare edge limits.
-
-Admin command: `/admin` (not listed in public `/help`).
-
-Expensive: analyzer commands + audit detail callbacks.  
-Cheap: start/help/about/status/id/admin, menus, tool prompts.
+Isolate-local quotas; Cloudflare edge remains global. Admins (`TELEGRAM_ADMIN_IDS`) bypass public quotas/cooldown only.

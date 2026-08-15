@@ -3,7 +3,7 @@
 export function mainMenuKeyboard() {
   return {
     inline_keyboard: [
-      [{ text: "🔎 Audit", callback_data: "tool:audit" }],
+      [{ text: "🔎 Check a Website", callback_data: "tool:audit" }],
       [
         { text: "🌐 Website Tools", callback_data: "menu:website" },
         { text: "📡 Infrastructure", callback_data: "menu:infrastructure" },
@@ -20,7 +20,7 @@ export function mainMenuKeyboard() {
 export function websiteMenuKeyboard() {
   return {
     inline_keyboard: [
-      [{ text: "🔎 Full Audit", callback_data: "tool:audit" }],
+      [{ text: "🔎 Check a Website", callback_data: "tool:audit" }],
       [
         { text: "🔍 SEO", callback_data: "tool:website" },
         { text: "📱 Mobile", callback_data: "tool:mobile" },
@@ -85,6 +85,12 @@ export function toolPromptKeyboard(parentMenu) {
   return { inline_keyboard: [[{ text: "⬅️ Back", callback_data: back }]] };
 }
 
+export function guidedAuditKeyboard() {
+  return {
+    inline_keyboard: [[{ text: "⬅️ Back", callback_data: "menu:main" }]],
+  };
+}
+
 export function mainMenuText() {
   return [
     "🚀 SautiLink Cloud Engine",
@@ -92,7 +98,7 @@ export function mainMenuText() {
     "Website, DNS, email, security and infrastructure checks.",
     "",
     "Choose a tool below or use /help.",
-    "Try: /audit example.com",
+    "Try: Check a Website, then send example.com",
   ].join("\n");
 }
 
@@ -100,7 +106,7 @@ export function websiteMenuText() {
   return [
     "🌐 Website Tools",
     "",
-    "Pick a tool. Nothing runs until you send a command with a target.",
+    "Pick a tool. For a full check, use Check a Website and send the address.",
   ].join("\n");
 }
 
@@ -114,9 +120,17 @@ export function infrastructureMenuText() {
 
 export function toolPrompt(tool) {
   const map = {
+    // audit is handled as guided flow in bot.js — keep fallback text aligned
     audit: {
       parent: "website",
-      text: "🔎 Website Audit\n\nSend:\n/audit example.com\n\nExample:\n/audit sautilink.com",
+      text: [
+        "🔎 Check a Website",
+        "",
+        "Send the website address you want to check.",
+        "",
+        "Example: example.com",
+        "Or: https://example.com",
+      ].join("\n"),
     },
     website: { parent: "website", text: "🔍 Website SEO\n\nSend:\n/website example.com" },
     mobile: { parent: "website", text: "📱 Mobile heuristics\n\nSend:\n/mobile example.com" },

@@ -33,6 +33,7 @@ import {
   statusKeyboard,
   helpMenuKeyboard,
   toolPromptKeyboard,
+  guidedAuditKeyboard,
   mainMenuText,
   websiteMenuText,
   infrastructureMenuText,
@@ -46,6 +47,13 @@ import {
   checkUsage,
   formatUsageLimitMessage,
 } from "./usage.js";
+import {
+  setPendingAudit,
+  takePending,
+  clearPending,
+  parseGuidedAuditTarget,
+  guidedAuditPromptText,
+} from "./guided.js";
 
 export async function processUpdate(update, config) {
   const started = Date.now();
@@ -97,21 +105,172 @@ export async function processUpdate(update, config) {
     return { handled: true, reason: "denied" };
   }
 
-  const parsed = parseCommand(message.text);
-  if (!parsed) return { handled: false, reason: "not_command" };
-
-  if (
-    !KNOWN_COMMANDS.has(parsed.rawCommand) &&
-    !KNOWN_COMMANDS.has(parsed.command)
-  ) {
-    await sendMessage(config.token, chat.id, "Unknown command. Try /help.");
-    return { handled: true, command: parsed.command };
-  }
-
-  // Single admin decision for this update (usage + cooldown).
   const adminUser =
     auth.role === "admin" || isAdmin(from && from.id, env);
 
+  // Commands take priority; clear guided pending so /help etc. work mid-flow.
+  const parsed = parseCommand(message.text);
+  if (parsed) {
+    clearPending(chat.id);
+
+    if (
+      !KNOWN_COMMANDS.has(parsed.rawCommand) &&
+      !KNOWN_COMMANDS.has(parsed.command)
+    ) {
+      await sendMessage(config.token, chat.id, "Unknown command. Try /help.");
+      return { handled: true, command: parsed.command };
+    }
+
+    return runCommandPath({
+      parsed,
+      chat,
+      from,
+      config,
+      env,
+      adminUser,
+      correlationId,
+      updateId,
+      started,
+    });
+  }
+
+  // Guided free-text target (no command prefix)
+  const pending = takePending(chat.id);
+  if (pending === "audit") {
+    return runGuidedAudit({
+      text: message.text,
+      chat,
+      from,
+      config,
+      env,
+      adminUser,
+      correlationId,
+      updateId,
+      started,
+    });
+  }
+
+  return { handled: false, reason: "not_command" };
+}
+
+async function runGuidedAudit(ctx) {
+  const { text, chat, config, env, adminUser, correlationId, updateId, started } =
+    ctx;
+
+  const target = parseGuidedAuditTarget(text);
+  if (!target.ok) {
+    // Keep waiting for a valid address
+    setPendingAudit(chat.id);
+    await sendMessage(config.token, chat.id, `⚠️ ${target.message}`, {
+      reply_markup: guidedAuditKeyboard(),
+    });
+    return { handled: true, reason: "guided_invalid" };
+  }
+
+  const usage = checkUsage({
+    chatId: chat.id,
+    userId: ctx.from && ctx.from.id,
+    commandOrAction: "audit",
+    isAdminUser: adminUser,
+    env,
+  });
+  if (!usage.allowed) {
+    await sendMessage(config.token, chat.id, formatUsageLimitMessage());
+    return { handled: true, command: "audit", reason: "usage_limited" };
+  }
+
+  const cool = checkCooldown(chat.id, "audit", { isAdminUser: adminUser });
+  if (cool.blocked) {
+    await sendMessage(
+      config.token,
+      chat.id,
+      "🚦 Temporarily rate-limited. Please try again shortly."
+    );
+    return { handled: true, command: "audit", reason: "cooldown" };
+  }
+
+  if (!tryBeginAudit(chat.id)) {
+    await sendMessage(
+      config.token,
+      chat.id,
+      "⏳ An audit is already running. Please wait for the current result."
+    );
+    return { handled: true, command: "audit", reason: "inflight" };
+  }
+
+  const pendingMsg = await sendMessage(
+    config.token,
+    chat.id,
+    `⏳ Checking ${target.display}…`
+  );
+  const pendingId =
+    pendingMsg.ok && pendingMsg.result && pendingMsg.result.message_id != null
+      ? pendingMsg.result.message_id
+      : null;
+
+  try {
+    const result = await callCloudEngine(
+      config.cloudEngineBaseUrl,
+      "/api/audit",
+      { url: target.url }
+    );
+
+    let reply;
+    let extra = {};
+    if (!result.ok) {
+      reply =
+        result.error &&
+        (result.error.code === "ENGINE_TIMEOUT" ||
+          result.error.code === "REQUEST_TIMEOUT")
+          ? formatTimeout()
+          : formatEngineError(result.error);
+    } else {
+      reply = formatAudit(result.data || {});
+      extra = { reply_markup: auditKeyboard() };
+    }
+
+    if (pendingId != null) {
+      const ed = await editMessageText(
+        config.token,
+        chat.id,
+        pendingId,
+        reply,
+        extra
+      );
+      if (!ed.ok) await sendMessage(config.token, chat.id, reply, extra);
+    } else {
+      await sendMessage(config.token, chat.id, reply, extra);
+    }
+  } finally {
+    endAudit(chat.id);
+  }
+
+  logTelegram({
+    event: "telegram_guided_audit",
+    correlation_id: correlationId,
+    update_id: updateId,
+    command: "audit",
+    cost_class: "expensive",
+    usage_allowed: true,
+    chat_id: chat.id,
+    status: "ok",
+    duration_ms: Date.now() - started,
+  });
+
+  return { handled: true, command: "audit", reason: "guided" };
+}
+
+async function runCommandPath({
+  parsed,
+  chat,
+  from,
+  config,
+  env,
+  adminUser,
+  correlationId,
+  updateId,
+  started,
+}) {
   const usage = checkUsage({
     chatId: chat.id,
     userId: from && from.id,
@@ -135,7 +294,6 @@ export async function processUpdate(update, config) {
     return { handled: true, command: parsed.command, reason: "usage_limited" };
   }
 
-  // Public isolate-local cooldown; admins bypass (edge limits still apply).
   const cool = checkCooldown(chat.id, parsed.command, {
     isAdminUser: adminUser,
   });
@@ -258,6 +416,11 @@ async function processCallback(cq, config, meta) {
   const adminUser =
     auth.role === "admin" || isAdmin(cq.from && cq.from.id, env);
 
+  // Leaving guided flow on menu navigation
+  if (action.startsWith("menu:") || action === "nav:back") {
+    clearPending(chatId);
+  }
+
   const usage = checkUsage({
     chatId,
     userId: cq.from && cq.from.id,
@@ -336,10 +499,24 @@ async function processCallback(cq, config, meta) {
     return logCb(meta, action, chatId);
   }
 
+  // Guided audit entry — set pending, ask for address (no URL in callback)
+  if (action === "tool:audit") {
+    setPendingAudit(chatId);
+    await safeEditOrSend(
+      config.token,
+      chatId,
+      messageId,
+      guidedAuditPromptText(),
+      guidedAuditKeyboard()
+    );
+    return logCb(meta, action, chatId);
+  }
+
   if (action.startsWith("tool:")) {
     const tool = action.slice(5);
     const prompt = toolPrompt(tool);
     if (!prompt) return { handled: true, reason: "unknown_tool" };
+    clearPending(chatId);
     await safeEditOrSend(
       config.token,
       chatId,
