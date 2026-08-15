@@ -5,16 +5,14 @@
 import { sendMessage } from "./telegram.js";
 import {
   setAwaitTarget,
-  getDiagTarget,
   refreshDiagTarget,
   checkAnotherPromptText,
   diagnosticMenuText,
   diagnosticMenuKeyboard,
-  guidedAuditKeyboard,
   expiredGuidedMessage,
   DIAG_ACTIONS,
 } from "./guided.js";
-import { mainMenuKeyboard } from "./menu.js";
+import { mainMenuKeyboard, guidedAuditKeyboard } from "./menu.js";
 
 /**
  * @returns {Promise<{ handled: boolean, action?: string, reason?: string }|null>}
