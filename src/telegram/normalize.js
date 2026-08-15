@@ -98,6 +98,17 @@ export const ALLOWED_CALLBACKS = new Set([
   "audit:summary",
   "audit:priorities",
   "audit:back",
+  "diag:security",
+  "diag:seo",
+  "diag:mobile",
+  "diag:email",
+  "diag:https",
+  "diag:dns",
+  "diag:robots",
+  "diag:sitemap",
+  "diag:audit",
+  "diag:back",
+  "diag:menu",
 ]);
 
 export const AUDIT_CALLBACKS = new Set([
