@@ -70,6 +70,7 @@ import {
   diagnosticMenuText,
   diagnosticMenuKeyboard,
   diagnosticResultKeyboard,
+  diagnosticFailKeyboard,
   expiredGuidedMessage,
   looksLikeWebsiteAttempt,
   recoverDiagDisplayFromMessage,
@@ -257,22 +258,59 @@ async function runDiagnosticAction({ action, chatId, messageId, messageText, fro
     await sendMessage(config.token, chatId, `⏳ ${toolMeta.label} · ${target.display}…`);
   }
   try {
-    const result = await callCloudEngine(config.cloudEngineBaseUrl, toolMeta.path, buildQuery(toolMeta, target));
+    const result = await callCloudEngine(
+      config.cloudEngineBaseUrl,
+      toolMeta.path,
+      buildQuery(toolMeta, target)
+    );
     let text;
     let extra = { reply_markup: diagnosticResultKeyboard() };
     if (!result.ok) {
-      text =
-        result.error && (result.error.code === "ENGINE_TIMEOUT" || result.error.code === "REQUEST_TIMEOUT")
-          ? formatTimeout()
-          : formatEngineError(result.error);
+      const code = result.error && result.error.code;
+      const timedOut =
+        code === "ENGINE_TIMEOUT" || code === "REQUEST_TIMEOUT";
+      text = timedOut
+        ? `⚠️ ${toolMeta.label} check timed out or failed.\nPlease try again.`
+        : formatEngineError(result.error);
+      extra = { reply_markup: diagnosticFailKeyboard() };
     } else {
-      text = formatDiagResult(action, result.data || {});
-      if (action === "diag:audit") extra = { reply_markup: auditKeyboard() };
+      try {
+        text = formatDiagResult(action, result.data || {});
+      } catch {
+        text = `⚠️ ${toolMeta.label} check timed out or failed.\nPlease try again.`;
+        extra = { reply_markup: diagnosticFailKeyboard() };
+      }
+      if (action === "diag:audit" && result.ok) {
+        extra = { reply_markup: auditKeyboard() };
+      }
     }
     setLastDiagAction(chatId, action);
     refreshDiagTarget(chatId);
     if (messageId != null) {
-      const ed = await editMessageText(config.token, chatId, messageId, text, extra);
+      const ed = await editMessageText(
+        config.token,
+        chatId,
+        messageId,
+        text,
+        extra
+      );
+      if (!ed.ok) await sendMessage(config.token, chatId, text, extra);
+    } else {
+      await sendMessage(config.token, chatId, text, extra);
+    }
+  } catch {
+    const text = `⚠️ ${toolMeta.label} check timed out or failed.\nPlease try again.`;
+    const extra = { reply_markup: diagnosticFailKeyboard() };
+    setLastDiagAction(chatId, action);
+    refreshDiagTarget(chatId);
+    if (messageId != null) {
+      const ed = await editMessageText(
+        config.token,
+        chatId,
+        messageId,
+        text,
+        extra
+      );
       if (!ed.ok) await sendMessage(config.token, chatId, text, extra);
     } else {
       await sendMessage(config.token, chatId, text, extra);
