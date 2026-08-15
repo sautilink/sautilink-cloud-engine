@@ -70,9 +70,13 @@ export function commandCost(commandOrAction) {
     return "expensive";
   }
 
-  // Diagnostic tool runs (network) are expensive; menu navigation is cheap.
   if (s.startsWith("diag:")) {
     if (s === "diag:back" || s === "diag:menu") return "cheap";
+    return "expensive";
+  }
+
+  if (s.startsWith("result:")) {
+    if (s === "result:another" || s === "result:back") return "cheap";
     return "expensive";
   }
 
@@ -100,9 +104,6 @@ function prune(now, windowMs) {
   }
 }
 
-/**
- * @returns {{ allowed: boolean, cost: string|null, reason?: string, counts?: object }}
- */
 export function checkUsage({
   chatId,
   userId,
