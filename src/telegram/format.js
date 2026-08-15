@@ -28,33 +28,23 @@ function mapUserError(code, message) {
       return "🔒 Private or local addresses are not allowed.";
     case "CREDENTIALS_NOT_ALLOWED":
       return "⚠️ Invalid URL.\n\nURLs must not contain usernames or passwords.";
-    case "UNSUPPORTED_PROTOCOL":
-      return "⚠️ Only HTTP and HTTPS URLs are supported.";
     case "INVALID_URL":
-    case "MISSING_URL":
-      return "⚠️ Invalid URL.\n\nUse:\n/audit https://example.com";
     case "INVALID_DOMAIN":
-    case "MISSING_DOMAIN":
-      return "⚠️ Invalid input.\n\nUse:\n/dns example.com";
-    case "INVALID_SELECTOR":
-      return "⚠️ Invalid DKIM selector.";
+      return "⚠️ Please provide a valid public domain or URL.";
+    case "RATE_LIMITED":
+      return "🚦 Temporarily rate-limited. Please try again shortly.";
     case "ENGINE_TIMEOUT":
     case "REQUEST_TIMEOUT":
       return "⏳ The check took too long. Please try again.";
     case "ENGINE_NETWORK":
-    case "ENGINE_UNEXPECTED":
-    case "ENGINE_BAD_JSON":
-    case "ENGINE_HTTP_ERROR":
-      return "🔴 Cloud Engine is temporarily unavailable.";
-    case "RATE_LIMITED":
-    case "TELEGRAM_RATE_LIMITED":
-      return "🚦 Temporarily rate-limited. Please try again shortly.";
-    default: {
-      const msg = String(message || "Something went wrong.")
-        .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "")
-        .slice(0, 200);
-      return `⚠️ ${msg}`;
-    }
+      return "⚠️ Could not reach Cloud Engine. Please try again.";
+    case "BOT_NOT_CONFIGURED":
+      return "⚠️ This bot is not fully configured yet.";
+    default:
+      return (
+        "⚠️ Something went wrong.\n" +
+        (message ? String(message).slice(0, 180) : "Please try again.")
+      );
   }
 }
 
@@ -62,119 +52,38 @@ export function formatTimeout() {
   return "⏳ The check took too long. Please try again.";
 }
 
-export function formatHelp() {
-  return [
-    formatHelpFromRegistry(),
-    "",
-    "💡 You can also use the menu below to explore tools.",
-  ].join("\n");
-}
-
-export function formatStart() {
-  return [
-    "🚀 SautiLink Cloud Engine",
-    "",
-    "Website, DNS, email, security and infrastructure checks.",
-    "",
-    "Choose a tool below or use /help.",
-    "Try: /audit example.com",
-  ].join("\n");
-}
-
 export function formatAbout() {
   return [
-    "About SautiLink Cloud Engine",
+    "ℹ️ SautiLink Cloud Engine",
     "",
     "Automated website, DNS, email, HTTPS, and SEO configuration checks.",
     "",
-    "Not a pentest, vulnerability scanner, Lighthouse report,",
-    "Google ranking tool, or certification authority.",
+    "This is a configuration assessment — not a ranking score or penetration test.",
     "",
-    "Web: https://cloudengine.sautilink.com",
+    "https://cloudengine.sautilink.com",
   ].join("\n");
 }
 
-export function formatStatus(ok) {
-  if (!ok) {
-    return ["🔴 SautiLink Cloud Engine", "", "Status: Unavailable"].join("\n");
-  }
-  return ["🟢 SautiLink Cloud Engine", "", "Status: Operational"].join("\n");
+export function formatHelp() {
+  return formatHelpFromRegistry();
 }
 
-export function formatId(chat, from) {
-  const lines = ["Diagnostic identifiers only:"];
-  if (chat && chat.id != null) lines.push(`Your Telegram chat ID:\n${chat.id}`);
-  else if (from && from.id != null) lines.push(`Your Telegram user ID:\n${from.id}`);
-  lines.push("", "/id is for debugging. No tokens or server details are shown.");
-  return lines.join("\n");
-}
-
-/**
- * Admin-only operational snapshot — no secrets.
- * Exported for commands.js (/admin). Required by Pages Functions bundle.
- */
-export function formatAdmin(info) {
-  const engine = info.engineOk
-    ? "🟢 Engine: Operational"
-    : "🔴 Engine: Unavailable";
-  return [
-    "🛠 Cloud Engine Admin",
-    "",
-    engine,
-    "",
-    "Bot:",
-    "• Webhook: Active (secret required)",
-    "• Usage protection: Active (isolate-local)",
-    "• Deduplication: Active (isolate-local)",
-    "• Cooldown: Active (isolate-local)",
-    "",
-    "Runtime:",
-    `• Local tracked chats: ${info.trackedChats ?? 0}/${info.maxTracked ?? "?"}`,
-    `• Window: ${info.windowSeconds ?? "?"}s`,
-    `• Expensive limit: ${info.expensiveLimit ?? "?"}`,
-    `• Cheap limit: ${info.cheapLimit ?? "?"}`,
-    "",
-    "Cloudflare edge rate limiting remains the global control.",
-  ].join("\n");
-}
-
-export function formatAudit(data) {
-  return formatAuditReport(data || {});
-}
-
-export function formatAuditSummaryView(data) {
-  return formatAuditSummary(data || {});
-}
-
-export function formatAuditPrioritiesView(data) {
-  return formatAuditPriorities(data || {});
-}
-
-export function formatAuditCategory(data, categoryKey) {
-  return formatCategoryDetail(data || {}, categoryKey);
-}
-
-export function auditKeyboard() {
-  return auditReportKeyboard();
-}
-
-export function auditDetailKeyboard() {
-  return auditBackKeyboard();
+export function formatStatus(ok, data) {
+  if (!ok) return "Status: unavailable";
+  const s = data && data.status ? data.status : "ok";
+  const v = data && data.version ? data.version : "";
+  return [`🟢 Cloud Engine status: ${s}`, v ? `Version: ${v}` : ""].filter(Boolean).join("\n");
 }
 
 export function formatDns(data) {
   const domain = data.domain || "";
-  const records = data.records || {};
-  const lines = [`DNS · ${domain}`, ""];
-  for (const [type, vals] of Object.entries(records)) {
-    const list = Array.isArray(vals) ? vals : [];
-    if (!list.length) {
-      lines.push(`${type}: (none)`);
-      continue;
-    }
+  const lines = [`DNS · ${domain}`];
+  const records = data.records || data;
+  for (const [type, list] of Object.entries(records)) {
+    if (!Array.isArray(list) || !list.length) continue;
+    if (["domain", "normalized", "query", "resolver"].includes(type)) continue;
     lines.push(`${type}:`);
     for (const v of list.slice(0, 8)) lines.push(`  ${v}`);
-    if (list.length > 8) lines.push(`  … +${list.length - 8} more`);
   }
   return truncate(lines.join("\n"));
 }
@@ -229,17 +138,31 @@ export function formatSsl(data) {
   return truncate(lines.join("\n"));
 }
 
+/** Extract display text from SEO field that may be a string or { value }. */
+function seoFieldText(field) {
+  if (field == null) return "";
+  if (typeof field === "string") return field;
+  if (typeof field === "object") {
+    if (field.value != null) return String(field.value);
+    if (field.content != null) return String(field.content);
+  }
+  return "";
+}
+
 export function formatWebsite(data) {
   const score = data.score || {};
   const seo = data.seo || {};
+  const title = seoFieldText(seo.title).slice(0, 80);
   const lines = [
     "Website SEO",
     data.finalUrl || data.url || "",
     `Score: ${score.total ?? "—"}/100 — ${score.grade || ""}`,
-    `Title: ${(seo.title || "").slice(0, 80) || "—"}`,
+    `Title: ${title || "—"}`,
     `Status: ${data.status ?? "—"}`,
   ];
-  for (const f of (score.findings || []).slice(0, 5)) lines.push(`• ${f.title || f.code}`);
+  for (const f of (score.findings || []).slice(0, 5)) {
+    lines.push(`• ${f.title || f.code || "finding"}`);
+  }
   return truncate(lines.join("\n"));
 }
 
@@ -287,4 +210,28 @@ export function formatHttp(data) {
     `Time: ${data.responseTimeMs ?? "—"} ms`,
   ];
   return truncate(lines.join("\n"));
+}
+
+export function formatAudit(data) {
+  return formatAuditReport(data);
+}
+
+export function formatAuditCategory(data, key) {
+  return formatCategoryDetail(data, key);
+}
+
+export function formatAuditSummaryView(data) {
+  return formatAuditSummary(data);
+}
+
+export function formatAuditPrioritiesView(data) {
+  return formatAuditPriorities(data);
+}
+
+export function auditKeyboard() {
+  return auditReportKeyboard();
+}
+
+export function auditDetailKeyboard() {
+  return auditBackKeyboard();
 }
