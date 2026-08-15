@@ -1,1 +1,1 @@
-/** SEE_ARTIFACT **/
+@/tmp/bot_final.js
