@@ -33,7 +33,6 @@ function touch(entry) {
 export function setAwaitTarget(chatId) {
   if (chatId == null) return;
   prune();
-  // Explicitly replaces any previous diag target.
   pendingByChat.set(String(chatId), {
     mode: "await_target",
     expiresAt: nowMs() + PENDING_TTL_MS,
@@ -179,7 +178,6 @@ export function diagnosticMenuKeyboard() {
   };
 }
 
-/** Compact actions after a non-audit diagnostic result. */
 export function diagnosticResultKeyboard() {
   return {
     inline_keyboard: [
@@ -189,6 +187,18 @@ export function diagnosticResultKeyboard() {
       ],
       [{ text: "🌐 Check Another", callback_data: "result:another" }],
       [{ text: "⬅️ Back", callback_data: "result:back" }],
+    ],
+  };
+}
+
+/** Compact fail actions — Retry + Back only. */
+export function diagnosticFailKeyboard() {
+  return {
+    inline_keyboard: [
+      [
+        { text: "🔄 Retry", callback_data: "result:rerun" },
+        { text: "⬅️ Back", callback_data: "result:back" },
+      ],
     ],
   };
 }
