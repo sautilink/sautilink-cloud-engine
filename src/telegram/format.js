@@ -109,9 +109,14 @@ export function formatId(chat, from) {
   return lines.join("\n");
 }
 
-/** Admin-only operational snapshot — no secrets. */
+/**
+ * Admin-only operational snapshot — no secrets.
+ * Exported for commands.js (/admin). Required by Pages Functions bundle.
+ */
 export function formatAdmin(info) {
-  const engine = info.engineOk ? "🟢 Engine: Operational" : "🔴 Engine: Unavailable";
+  const engine = info.engineOk
+    ? "🟢 Engine: Operational"
+    : "🔴 Engine: Unavailable";
   return [
     "🛠 Cloud Engine Admin",
     "",
