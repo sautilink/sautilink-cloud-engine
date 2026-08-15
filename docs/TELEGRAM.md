@@ -2,12 +2,22 @@
 
 Thin client over Cloud Engine APIs.
 
-## Guided check (Phase 7J)
+## Guided diagnostics (Phase 7K)
 
-Main menu → **Check a Website** (`tool:audit`) → bot asks for an address → user sends `example.com` or `https://example.com` → same `/api/audit` report + keyboard.
+1. **Check a Website** → send `example.com`
+2. Diagnostic menu (fixed `diag:*` callbacks only)
+3. One selected tool → one existing API
 
-Pending state is **isolate-local**, TTL **3 minutes**, max **200** chats. No URLs in `callback_data`. Commands cancel pending. SSRF remains in Cloud Engine.
+Target stored isolate-local (TTL 5 min, max 200 chats). No URLs in callback data.
 
-## Public usage protection (Phase 7I)
-
-Isolate-local quotas; Cloudflare edge remains global. Admins (`TELEGRAM_ADMIN_IDS`) bypass public quotas/cooldown only.
+| Button | Endpoint |
+|--------|----------|
+| Security | `/api/headers` |
+| SEO | `/api/website` |
+| Mobile | `/api/mobile` |
+| Email | `/api/email` |
+| HTTPS | `/api/ssl` |
+| DNS | `/api/dns` |
+| Robots | `/api/robots` |
+| Sitemap | `/api/sitemap` |
+| Full Audit | `/api/audit` |

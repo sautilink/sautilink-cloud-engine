@@ -11,6 +11,7 @@ import { callCloudEngine } from "./engine.js";
 import {
   parseCallbackAction,
   recoverAuditTargetFromMessage,
+  normalizeUrlArg,
 } from "./normalize.js";
 import {
   formatAudit,
@@ -22,6 +23,14 @@ import {
   formatAbout,
   formatHelp,
   formatStatus,
+  formatDns,
+  formatEmail,
+  formatHeaders,
+  formatSsl,
+  formatWebsite,
+  formatMobile,
+  formatRobots,
+  formatSitemap,
   auditKeyboard,
   auditDetailKeyboard,
 } from "./format.js";
@@ -48,12 +57,22 @@ import {
   formatUsageLimitMessage,
 } from "./usage.js";
 import {
+  setAwaitTarget,
   setPendingAudit,
+  setDiagTarget,
+  getDiagTarget,
+  refreshDiagTarget,
   peekPending,
   clearPending,
   parseGuidedAuditTarget,
   guidedAuditPromptText,
+  diagnosticMenuText,
+  diagnosticMenuKeyboard,
+  diagnosticResultKeyboard,
+  expiredGuidedMessage,
   looksLikeWebsiteAttempt,
+  recoverDiagDisplayFromMessage,
+  DIAG_ACTIONS,
 } from "./guided.js";
 
 export async function processUpdate(update, config) {
@@ -109,7 +128,6 @@ export async function processUpdate(update, config) {
   const adminUser =
     auth.role === "admin" || isAdmin(from && from.id, env);
 
-  // Commands take priority; clear guided pending so /help etc. work mid-flow.
   const parsed = parseCommand(message.text);
   if (parsed) {
     clearPending(chat.id);
@@ -135,11 +153,10 @@ export async function processUpdate(update, config) {
     });
   }
 
-  // Guided free-text: peek first so invalid input never leaves the user with no pending
-  // and no reply (take-then-fail could race with isolate loss).
+  // Guided: waiting for website address
   const pending = peekPending(chat.id);
   if (pending === "audit") {
-    return runGuidedAudit({
+    return runGuidedTargetCapture({
       text: message.text,
       chat,
       from,
@@ -152,8 +169,6 @@ export async function processUpdate(update, config) {
     });
   }
 
-  // Pending lost (isolate recycle / TTL) but user still sent a target-like message:
-  // never silently drop — tell them how to continue.
   if (looksLikeWebsiteAttempt(message.text)) {
     await sendMessage(
       config.token,
@@ -172,114 +187,29 @@ export async function processUpdate(update, config) {
   return { handled: false, reason: "not_command" };
 }
 
-async function runGuidedAudit(ctx) {
-  const { text, chat, config, env, adminUser, correlationId, updateId, started } =
-    ctx;
+/** Validate target → show diagnostic menu (does not run analyzers yet). */
+async function runGuidedTargetCapture(ctx) {
+  const { text, chat, config } = ctx;
 
   const target = parseGuidedAuditTarget(text);
   if (!target.ok) {
-    // Keep guided mode active so the user can retry.
-    setPendingAudit(chat.id);
+    setAwaitTarget(chat.id);
     await sendMessage(config.token, chat.id, target.message, {
       reply_markup: guidedAuditKeyboard(),
     });
     return { handled: true, reason: "guided_invalid" };
   }
 
-  // Valid target only: clear pending, then apply usage / cooldown / inflight.
-  clearPending(chat.id);
+  setDiagTarget(chat.id, target.url, target.display);
 
-  const usage = checkUsage({
-    chatId: chat.id,
-    userId: ctx.from && ctx.from.id,
-    commandOrAction: "audit",
-    isAdminUser: adminUser,
-    env,
-  });
-  if (!usage.allowed) {
-    await sendMessage(config.token, chat.id, formatUsageLimitMessage());
-    return { handled: true, command: "audit", reason: "usage_limited" };
-  }
-
-  const cool = checkCooldown(chat.id, "audit", { isAdminUser: adminUser });
-  if (cool.blocked) {
-    await sendMessage(
-      config.token,
-      chat.id,
-      "🚦 Temporarily rate-limited. Please try again shortly."
-    );
-    return { handled: true, command: "audit", reason: "cooldown" };
-  }
-
-  if (!tryBeginAudit(chat.id)) {
-    await sendMessage(
-      config.token,
-      chat.id,
-      "⏳ An audit is already running. Please wait for the current result."
-    );
-    return { handled: true, command: "audit", reason: "inflight" };
-  }
-
-  const pendingMsg = await sendMessage(
+  await sendMessage(
     config.token,
     chat.id,
-    `⏳ Checking ${target.display}…`
+    diagnosticMenuText(target.display),
+    { reply_markup: diagnosticMenuKeyboard() }
   );
-  const pendingId =
-    pendingMsg.ok && pendingMsg.result && pendingMsg.result.message_id != null
-      ? pendingMsg.result.message_id
-      : null;
 
-  try {
-    const result = await callCloudEngine(
-      config.cloudEngineBaseUrl,
-      "/api/audit",
-      { url: target.url }
-    );
-
-    let reply;
-    let extra = {};
-    if (!result.ok) {
-      reply =
-        result.error &&
-        (result.error.code === "ENGINE_TIMEOUT" ||
-          result.error.code === "REQUEST_TIMEOUT")
-          ? formatTimeout()
-          : formatEngineError(result.error);
-    } else {
-      reply = formatAudit(result.data || {});
-      extra = { reply_markup: auditKeyboard() };
-    }
-
-    if (pendingId != null) {
-      const ed = await editMessageText(
-        config.token,
-        chat.id,
-        pendingId,
-        reply,
-        extra
-      );
-      if (!ed.ok) await sendMessage(config.token, chat.id, reply, extra);
-    } else {
-      await sendMessage(config.token, chat.id, reply, extra);
-    }
-  } finally {
-    endAudit(chat.id);
-  }
-
-  logTelegram({
-    event: "telegram_guided_audit",
-    correlation_id: correlationId,
-    update_id: updateId,
-    command: "audit",
-    cost_class: "expensive",
-    usage_allowed: true,
-    chat_id: chat.id,
-    status: "ok",
-    duration_ms: Date.now() - started,
-  });
-
-  return { handled: true, command: "audit", reason: "guided" };
+  return { handled: true, reason: "diag_menu" };
 }
 
 async function runCommandPath({
@@ -302,17 +232,6 @@ async function runCommandPath({
   });
   if (!usage.allowed) {
     await sendMessage(config.token, chat.id, formatUsageLimitMessage());
-    logTelegram({
-      event: "telegram_usage_limited",
-      correlation_id: correlationId,
-      update_id: updateId,
-      command: parsed.command,
-      cost_class: usage.cost,
-      usage_allowed: false,
-      chat_id: chat.id,
-      status: "limited",
-      duration_ms: Date.now() - started,
-    });
     return { handled: true, command: parsed.command, reason: "usage_limited" };
   }
 
@@ -372,15 +291,6 @@ async function runCommandPath({
   }
 
   let text = result.text || "No response.";
-  if (
-    result &&
-    result.errorCode &&
-    (result.errorCode === "ENGINE_TIMEOUT" ||
-      result.errorCode === "REQUEST_TIMEOUT")
-  ) {
-    text = formatTimeout();
-  }
-
   const extra = {};
   if (result.reply_markup) extra.reply_markup = result.reply_markup;
 
@@ -410,6 +320,185 @@ async function runCommandPath({
   });
 
   return { handled: true, command: parsed.command };
+}
+
+function resolveDiagTarget(chatId, messageText) {
+  let t = getDiagTarget(chatId);
+  if (t) return t;
+
+  const display = recoverDiagDisplayFromMessage(messageText);
+  if (display) {
+    const n = normalizeUrlArg(display);
+    if (n.ok) {
+      setDiagTarget(chatId, n.url, display);
+      return { url: n.url, display };
+    }
+  }
+
+  const recovered = recoverAuditTargetFromMessage(messageText);
+  if (recovered) {
+    try {
+      const host = new URL(recovered).hostname || recovered;
+      setDiagTarget(chatId, recovered, host);
+      return { url: recovered, display: host };
+    } catch {
+      /* fall through */
+    }
+  }
+  return null;
+}
+
+function buildQuery(meta, target) {
+  if (meta.arg === "domain") {
+    return { domain: target.display };
+  }
+  if (meta.arg === "sitemap") {
+    // Prefer standard path when only origin is known
+    let sitemapUrl = target.url;
+    try {
+      const u = new URL(target.url);
+      if (!/sitemap/i.test(u.pathname)) {
+        u.pathname = "/sitemap.xml";
+        u.search = "";
+        u.hash = "";
+        sitemapUrl = u.toString();
+      }
+    } catch {
+      /* keep */
+    }
+    return { url: sitemapUrl };
+  }
+  return { url: target.url };
+}
+
+function formatDiagResult(action, data) {
+  switch (action) {
+    case "diag:security":
+      return formatHeaders(data);
+    case "diag:seo":
+      return formatWebsite(data);
+    case "diag:mobile":
+      return formatMobile(data);
+    case "diag:email":
+      return formatEmail(data);
+    case "diag:https":
+      return formatSsl(data);
+    case "diag:dns":
+      return formatDns(data);
+    case "diag:robots":
+      return formatRobots(data);
+    case "diag:sitemap":
+      return formatSitemap(data);
+    case "diag:audit":
+      return formatAudit(data);
+    default:
+      return "Result received.";
+  }
+}
+
+async function runDiagnosticAction({
+  action,
+  chatId,
+  messageId,
+  messageText,
+  from,
+  config,
+  env,
+  adminUser,
+  meta,
+}) {
+  const target = resolveDiagTarget(chatId, messageText);
+  if (!target) {
+    await sendMessage(config.token, chatId, expiredGuidedMessage(), {
+      reply_markup: mainMenuKeyboard(),
+    });
+    return logCb(meta, action, chatId, "expired");
+  }
+
+  const toolMeta = DIAG_ACTIONS[action];
+  if (!toolMeta) {
+    return logCb(meta, action, chatId, "unknown");
+  }
+
+  const cool = checkCooldown(chatId, toolMeta.command, {
+    isAdminUser: adminUser,
+  });
+  if (cool.blocked) {
+    await sendMessage(
+      config.token,
+      chatId,
+      "🚦 Temporarily rate-limited. Please try again shortly."
+    );
+    return logCb(meta, action, chatId, "cooldown");
+  }
+
+  if (action === "diag:audit" && !tryBeginAudit(chatId)) {
+    await sendMessage(
+      config.token,
+      chatId,
+      "⏳ An audit is already running. Please wait for the current result."
+    );
+    return logCb(meta, action, chatId, "inflight");
+  }
+
+  if (messageId != null) {
+    await editMessageText(
+      config.token,
+      chatId,
+      messageId,
+      `⏳ ${toolMeta.label} · ${target.display}…`
+    );
+  } else {
+    await sendMessage(
+      config.token,
+      chatId,
+      `⏳ ${toolMeta.label} · ${target.display}…`
+    );
+  }
+
+  try {
+    const query = buildQuery(toolMeta, target);
+    const result = await callCloudEngine(
+      config.cloudEngineBaseUrl,
+      toolMeta.path,
+      query
+    );
+
+    let text;
+    let extra = { reply_markup: diagnosticResultKeyboard() };
+    if (!result.ok) {
+      text =
+        result.error &&
+        (result.error.code === "ENGINE_TIMEOUT" ||
+          result.error.code === "REQUEST_TIMEOUT")
+          ? formatTimeout()
+          : formatEngineError(result.error);
+    } else {
+      text = formatDiagResult(action, result.data || {});
+      if (action === "diag:audit") {
+        extra = { reply_markup: auditKeyboard() };
+      }
+    }
+
+    refreshDiagTarget(chatId);
+
+    if (messageId != null) {
+      const ed = await editMessageText(
+        config.token,
+        chatId,
+        messageId,
+        text,
+        extra
+      );
+      if (!ed.ok) await sendMessage(config.token, chatId, text, extra);
+    } else {
+      await sendMessage(config.token, chatId, text, extra);
+    }
+  } finally {
+    if (action === "diag:audit") endAudit(chatId);
+  }
+
+  return logCb(meta, action, chatId);
 }
 
 async function processCallback(cq, config, meta) {
@@ -521,7 +610,7 @@ async function processCallback(cq, config, meta) {
   }
 
   if (action === "tool:audit") {
-    setPendingAudit(chatId);
+    setAwaitTarget(chatId);
     await safeEditOrSend(
       config.token,
       chatId,
@@ -530,6 +619,52 @@ async function processCallback(cq, config, meta) {
       guidedAuditKeyboard()
     );
     return logCb(meta, action, chatId);
+  }
+
+  // Diagnostic navigation (cheap)
+  if (action === "diag:back") {
+    clearPending(chatId);
+    await safeEditOrSend(
+      config.token,
+      chatId,
+      messageId,
+      mainMenuText(),
+      mainMenuKeyboard()
+    );
+    return logCb(meta, action, chatId);
+  }
+
+  if (action === "diag:menu") {
+    const target = resolveDiagTarget(chatId, msg && msg.text);
+    if (!target) {
+      await sendMessage(config.token, chatId, expiredGuidedMessage(), {
+        reply_markup: mainMenuKeyboard(),
+      });
+      return logCb(meta, action, chatId, "expired");
+    }
+    refreshDiagTarget(chatId);
+    await safeEditOrSend(
+      config.token,
+      chatId,
+      messageId,
+      diagnosticMenuText(target.display),
+      diagnosticMenuKeyboard()
+    );
+    return logCb(meta, action, chatId);
+  }
+
+  if (action.startsWith("diag:") && DIAG_ACTIONS[action]) {
+    return runDiagnosticAction({
+      action,
+      chatId,
+      messageId,
+      messageText: msg && msg.text,
+      from: cq.from,
+      config,
+      env,
+      adminUser,
+      meta,
+    });
   }
 
   if (action.startsWith("tool:")) {

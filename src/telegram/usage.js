@@ -70,6 +70,12 @@ export function commandCost(commandOrAction) {
     return "expensive";
   }
 
+  // Diagnostic tool runs (network) are expensive; menu navigation is cheap.
+  if (s.startsWith("diag:")) {
+    if (s === "diag:back" || s === "diag:menu") return "cheap";
+    return "expensive";
+  }
+
   if (s.startsWith("menu:") || s === "nav:back" || s === "status:refresh") {
     return "cheap";
   }
@@ -95,13 +101,6 @@ function prune(now, windowMs) {
 }
 
 /**
- * @param {{
- *   chatId?: string|number|null,
- *   userId?: string|number|null,
- *   commandOrAction: string,
- *   isAdminUser?: boolean,
- *   env?: Record<string,string|undefined>
- * }}
  * @returns {{ allowed: boolean, cost: string|null, reason?: string, counts?: object }}
  */
 export function checkUsage({
@@ -114,7 +113,6 @@ export function checkUsage({
   const cost = commandCost(commandOrAction);
   if (!cost) return { allowed: true, cost: null };
 
-  // Re-check isAdmin from env so bypass cannot depend on a stale boolean alone.
   const admin =
     Boolean(isAdminUser) || isAdmin(userId, env || {});
   if (admin) {
@@ -182,7 +180,6 @@ export function formatUsageLimitMessage() {
   ].join("\n");
 }
 
-/** Safe metrics for admin status (no secrets). */
 export function getUsageStats() {
   return {
     trackedChats: usageByChat.size,
@@ -190,7 +187,6 @@ export function getUsageStats() {
   };
 }
 
-/** Test helper — clear isolate state. */
 export function _resetUsageForTests() {
   usageByChat.clear();
 }
