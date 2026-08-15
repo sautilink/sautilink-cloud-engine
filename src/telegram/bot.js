@@ -1,2 +1,3 @@
-/** Restored entry — implementation lives in bot_core.js */
+/** Telegram bot entry — processUpdate implementation. */
+
 export { processUpdate } from "./bot_core.js";
