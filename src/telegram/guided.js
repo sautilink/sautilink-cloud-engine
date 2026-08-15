@@ -5,16 +5,10 @@
 
 import { normalizeUrlArg } from "./normalize.js";
 
-const PENDING_TTL_MS = 5 * 60 * 1000; // 5 minutes for target+menu
+const PENDING_TTL_MS = 5 * 60 * 1000;
 const MAX_PENDING = 200;
 
-/**
- * @typedef {{ mode: 'await_target', expiresAt: number }}
- * @typedef {{ mode: 'diag', url: string, display: string, expiresAt: number }}
- * @typedef {await_target | diag} GuidedState
- */
-
-/** @type {Map<string, GuidedState>} */
+/** @type {Map<string, object>} */
 const pendingByChat = new Map();
 
 function nowMs() {
@@ -36,31 +30,42 @@ function touch(entry) {
   return entry;
 }
 
-/** Wait for user to send a website address. */
 export function setAwaitTarget(chatId) {
   if (chatId == null) return;
   prune();
+  // Explicitly replaces any previous diag target.
   pendingByChat.set(String(chatId), {
     mode: "await_target",
     expiresAt: nowMs() + PENDING_TTL_MS,
   });
 }
 
-/** @deprecated use setAwaitTarget */
 export function setPendingAudit(chatId) {
   setAwaitTarget(chatId);
 }
 
-/** Store validated target for diagnostic menu actions. */
-export function setDiagTarget(chatId, url, display) {
+export function setDiagTarget(chatId, url, display, lastAction = null) {
   if (chatId == null || !url) return;
   prune();
+  const prev = pendingByChat.get(String(chatId));
   pendingByChat.set(String(chatId), {
     mode: "diag",
     url: String(url),
     display: String(display || url),
+    lastAction:
+      lastAction ||
+      (prev && prev.mode === "diag" ? prev.lastAction : null) ||
+      null,
     expiresAt: nowMs() + PENDING_TTL_MS,
   });
+}
+
+export function setLastDiagAction(chatId, action) {
+  const e = getGuidedState(chatId);
+  if (!e || e.mode !== "diag") return;
+  e.lastAction = action;
+  touch(e);
+  pendingByChat.set(String(chatId), e);
 }
 
 export function getGuidedState(chatId) {
@@ -75,27 +80,33 @@ export function getGuidedState(chatId) {
   return e;
 }
 
-/** @returns {'await_target'|null} */
 export function peekPending(chatId) {
   const e = getGuidedState(chatId);
   if (!e) return null;
-  if (e.mode === "await_target") return "audit"; // legacy alias for bot path
+  if (e.mode === "await_target") return "audit";
   return null;
 }
 
 export function getDiagTarget(chatId) {
   const e = getGuidedState(chatId);
   if (!e || e.mode !== "diag") return null;
-  return { url: e.url, display: e.display };
+  return {
+    url: e.url,
+    display: e.display,
+    lastAction: e.lastAction || null,
+  };
 }
 
-/** Refresh TTL after a successful diag action so user can run more tools. */
 export function refreshDiagTarget(chatId) {
   const e = getGuidedState(chatId);
   if (!e || e.mode !== "diag") return null;
   touch(e);
   pendingByChat.set(String(chatId), e);
-  return { url: e.url, display: e.display };
+  return {
+    url: e.url,
+    display: e.display,
+    lastAction: e.lastAction || null,
+  };
 }
 
 export function clearPending(chatId) {
@@ -118,6 +129,16 @@ export function guidedAuditPromptText() {
     "",
     "Example: example.com",
     "Or: https://example.com",
+  ].join("\n");
+}
+
+export function checkAnotherPromptText() {
+  return [
+    "🌐 Check Another Website",
+    "",
+    "Send a domain or URL:",
+    "• example.com",
+    "• https://example.com",
   ].join("\n");
 }
 
@@ -151,21 +172,23 @@ export function diagnosticMenuKeyboard() {
       ],
       [{ text: "📊 Full Audit", callback_data: "diag:audit" }],
       [
-        { text: "🔄 Another site", callback_data: "tool:audit" },
+        { text: "🌐 Check Another", callback_data: "result:another" },
         { text: "⬅️ Back", callback_data: "diag:back" },
       ],
     ],
   };
 }
 
+/** Compact actions after a non-audit diagnostic result. */
 export function diagnosticResultKeyboard() {
   return {
     inline_keyboard: [
-      [{ text: "📋 Diagnostics menu", callback_data: "diag:menu" }],
       [
-        { text: "📊 Full Audit", callback_data: "diag:audit" },
-        { text: "⬅️ Main menu", callback_data: "menu:main" },
+        { text: "🔄 Re-run", callback_data: "result:rerun" },
+        { text: "🔎 Full Audit", callback_data: "result:fullaudit" },
       ],
+      [{ text: "🌐 Check Another", callback_data: "result:another" }],
+      [{ text: "⬅️ Back", callback_data: "result:back" }],
     ],
   };
 }
@@ -187,14 +210,10 @@ export function expiredGuidedMessage() {
   return [
     "⏳ That check session expired.",
     "",
-    "Tap 🔎 Check a Website and send the address again.",
+    "Tap 🌐 Check Another or 🔎 Check a Website and send the address again.",
   ].join("\n");
 }
 
-/**
- * Validate free-text target for guided flow.
- * Structural only — no DNS existence check.
- */
 export function parseGuidedAuditTarget(input) {
   if (input == null || typeof input !== "string") {
     return { ok: false, message: guidedInvalidMessage("Please send a website address.") };
@@ -277,7 +296,6 @@ export function looksLikeWebsiteAttempt(input) {
   return false;
 }
 
-/** Recover display host from diagnostic menu message text. */
 export function recoverDiagDisplayFromMessage(text) {
   if (typeof text !== "string") return null;
   for (const line of text.split(/\r?\n/)) {
@@ -302,7 +320,6 @@ export function _resetGuidedForTests() {
 export const GUIDED_PENDING_TTL_MS = PENDING_TTL_MS;
 export const GUIDED_MAX_PENDING = MAX_PENDING;
 
-/** Fixed diagnostic actions → Cloud Engine path + arg kind. */
 export const DIAG_ACTIONS = {
   "diag:security": {
     label: "Security",

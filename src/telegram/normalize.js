@@ -109,6 +109,10 @@ export const ALLOWED_CALLBACKS = new Set([
   "diag:audit",
   "diag:back",
   "diag:menu",
+  "result:rerun",
+  "result:fullaudit",
+  "result:another",
+  "result:back",
 ]);
 
 export const AUDIT_CALLBACKS = new Set([
