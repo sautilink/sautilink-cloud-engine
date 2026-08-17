@@ -1,0 +1,53 @@
+/* SautiLink Corporation typography system — self-hosted. */
+@font-face {
+  font-family: "Lora";
+  src: url("/assets/fonts/lora/Lora-Variable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Lora";
+  src: url("/assets/fonts/lora/Lora-VariableItalic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Zalando Sans SemiExpanded";
+  src: url("/assets/fonts/zalando-sans-semiexpanded/ZalandoSansSemiExpanded-Variable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Zalando Sans SemiExpanded";
+  src: url("/assets/fonts/zalando-sans-semiexpanded/ZalandoSansSemiExpanded-VariableItalic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 200 900;
+  font-display: swap;
+}
+
+:root {
+  --font-primary: "Lora", Georgia, "Times New Roman", serif;
+  --font-brand: "Zalando Sans SemiExpanded", Arial, sans-serif;
+  --font: var(--font-primary);
+}
+
+html,
+body,
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-primary);
+}
+
+.brand-name,
+.brand-product,
+.footer-brand,
+.footer-note,
+.footer-copy,
+[data-brand-font] {
+  font-family: var(--font-brand);
+}
