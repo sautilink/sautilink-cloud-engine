@@ -35,7 +35,8 @@
   - keep `/id` as an optional shortcut, not a requirement
   - add Account, Personalisation, and Privacy sections to Settings
   - show the active saved language under Personalisation
-  - make clear that IDs are read live from Telegram and are not added to the Supabase preference record
+  - clarify that Telegram User ID is already the durable Supabase preference key
+  - show Chat ID from the live Telegram update without persisting it to the preference record
   - make clear that checked-site history is not stored in the preference profile
   - no new Supabase tables or columns
   - no analyzer, scoring, SSRF, or `/api/*` contract changes
