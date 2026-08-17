@@ -26,20 +26,27 @@
   - `/settings` and fixed `menu:settings` action
   - direct Language/Lugha shortcut retained
   - active language visible in Settings
-  - durable-language messaging reflects verified Supabase persistence
+  - durable-language messaging reflects verified persistence
   - no new stored preference fields
+- Phase 7Q: Settings account + personalisation summary — live verified
+  - Telegram User ID and Chat ID visible directly inside Settings
+  - `/id` retained as an optional shortcut
+  - Account, Personalisation, and Privacy sections
+  - active saved language shown under Personalisation
+  - checked-site history is not stored in the preference profile
+  - no new database tables or columns
+  - no analyzer, scoring, SSRF, or `/api/*` contract changes
 
 ## In progress
-- Phase 7Q: Settings account + personalisation summary
-  - show Telegram User ID and Chat ID directly inside Settings
-  - keep `/id` as an optional shortcut, not a requirement
-  - add Account, Personalisation, and Privacy sections to Settings
-  - show the active saved language under Personalisation
-  - clarify that Telegram User ID is already the durable Supabase preference key
-  - show Chat ID from the live Telegram update without persisting it to the preference record
-  - make clear that checked-site history is not stored in the preference profile
-  - no new Supabase tables or columns
+- Phase 7R: SautiLink-first corporate branding and public architecture abstraction
+  - present SautiLink Cloud Engine as a SautiLink Corporation product
+  - remove third-party infrastructure/provider branding from normal Telegram UX
+  - replace provider-specific operational copy with SautiLink-owned wording
+  - direct architecture/integration enquiries to SautiLink Corporation
+  - add a durable branding policy for future public surfaces
+  - add automated regression checks against vendor-name leaks in start/about/settings/admin output
+  - keep open technical standards visible where useful (DNS, HTTP, HTTPS, SSL/TLS, SPF, DMARC, DKIM, etc.)
   - no analyzer, scoring, SSRF, or `/api/*` contract changes
 
 ## Future
-- Phase 7R+: define additional real personalisation preferences only when they have user-visible behavior and a clear persistence/privacy model
+- Phase 7S+: additional real personalisation preferences only when they have user-visible behavior and a clear persistence/privacy model
