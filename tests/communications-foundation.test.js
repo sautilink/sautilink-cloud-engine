@@ -5,6 +5,7 @@ import {
   COMMUNICATION_CLASSES,
   COMMUNICATION_CHANNELS,
   canUseZeptoMailApiForClass,
+  communicationStatus,
   resolveCommunicationPolicy,
   sendTransactionalEmail,
 } from "../src/communications/index.js";
@@ -34,6 +35,12 @@ test("ZeptoMail API is reserved for security and transactional app messages", ()
   assert.equal(canUseZeptoMailApiForClass(COMMUNICATION_CLASSES.TRANSACTIONAL), true);
   assert.equal(canUseZeptoMailApiForClass(COMMUNICATION_CLASSES.AUTH), false);
   assert.equal(canUseZeptoMailApiForClass(COMMUNICATION_CLASSES.PRODUCT_UPDATES), false);
+});
+
+test("public communication status does not claim hosted SMTP configuration", () => {
+  const status = communicationStatus({});
+  assert.equal(status.authEmailTransport, "supabase_auth");
+  assert.equal(status.transactionalEmailReady, false);
 });
 
 test("product updates cannot accidentally use ZeptoMail transactional API", async () => {

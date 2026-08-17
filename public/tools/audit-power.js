@@ -249,7 +249,7 @@ export function installAuditPower() {
     return response;
   };
 
-  document.addEventListener("DOMContentLoaded", () => {
+  const initAuditPower = () => {
     const comparePanel = document.getElementById("compare-panel");
     const compareForm = document.getElementById("compare-form");
     const compareInput = document.getElementById("compare-input");
@@ -323,5 +323,11 @@ export function installAuditPower() {
         }
       }
     });
-  });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAuditPower, { once: true });
+  } else {
+    initAuditPower();
+  }
 }
