@@ -125,6 +125,41 @@ This avoids making a simple MX lookup execute the full email-security suite just
 - public UI remains SautiLink-first and does not expose provider-specific infrastructure
 - DKIM remains DNS public-key inspection; it does not claim to verify a signature from a specific message
 
+## Phase 8E IP & Reverse DNS Foundation
+
+Phase 8E starts the Infrastructure web tool family without adding an external attribution or geolocation provider.
+
+### IP Lookup
+
+`/tools/ip` accepts either a public domain or public IP address.
+
+- domain input is validated with the existing domain rules and resolved using A/AAAA records only
+- direct IPv4/IPv6 input is validated against the existing private/reserved-address helpers
+- direct public IP results may include PTR/reverse-DNS context
+- the phase does not infer ASN, country, city, organization, hosting company, CDN, or reputation from the address
+
+### Reverse DNS
+
+`/tools/rdns` accepts a public IPv4 or IPv6 address and converts it into the correct reverse-DNS query name before requesting PTR records through the shared DNS engine.
+
+- IPv4 uses reversed octets under `in-addr.arpa`
+- IPv6 is expanded into 32 nibbles, reversed, and queried under `ip6.arpa`
+- private, reserved, documentation, loopback, multicast, and other blocked address ranges are rejected
+- a missing PTR record is a valid lookup result, not an infrastructure failure
+- PTR data is descriptive and is not treated as proof of ownership, reputation, geolocation, or service identity
+
+### DNS engine compatibility
+
+PTR support is added to the shared DNS record map as an explicit record type. It is intentionally excluded from `DEFAULT_TYPES`, so the existing `/api/dns` domain lookup continues to request only A, AAAA, CNAME, MX, NS, and TXT records.
+
+### Phase 8E boundaries
+
+- no third-party ASN/geolocation/hosting database or API is introduced
+- no background port scan or arbitrary network connection is performed
+- no browser or server-side target history is added for these tools
+- no database migration is required
+- Full Audit scoring and existing analyzers are unchanged
+
 ## Web ↔ Telegram bridge
 
 The signed handoff bridge remains planned, but implementation is deferred while Telegram feature work is intentionally paused. When Telegram development resumes, the bridge should use short-lived, signed handoff identifiers; an opaque representation may be used internally, but raw diagnostic state or sensitive values must never be placed in Telegram callback data.
