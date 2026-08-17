@@ -1,4 +1,4 @@
-/* SautiLink Corporation typography system — self-hosted. */
+/* SautiLink Corporation typography and color system — self-hosted. */
 @font-face {
   font-family: "Lora";
   src: url("/assets/fonts/lora/Lora-Variable.woff2") format("woff2");
@@ -29,9 +29,18 @@
 }
 
 :root {
+  --brand-primary: #2563eb;
+  --brand-primary-hover: #1d4ed8;
+  --brand-light: #60a5fa;
+  --brand-white: #ffffff;
   --font-primary: "Lora", Georgia, "Times New Roman", serif;
   --font-brand: "Zalando Sans SemiExpanded", Arial, sans-serif;
   --font: var(--font-primary);
+
+  /* Shared product aliases. Neutral surfaces remain available for contrast/accessibility. */
+  --accent: var(--brand-primary);
+  --accent-hover: var(--brand-light);
+  --accent-soft: rgba(37, 99, 235, 0.12);
 }
 
 html,
@@ -50,4 +59,9 @@ select {
 .footer-copy,
 [data-brand-font] {
   font-family: var(--font-brand);
+}
+
+::selection {
+  background: var(--brand-light);
+  color: #0f172a;
 }
