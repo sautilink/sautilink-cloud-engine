@@ -35,10 +35,11 @@ test("export reuses the captured primary audit instead of re-running it", () => 
 
 test("comparison performs one explicit fresh audit for only the second target", () => {
   const js = read("public/tools/audit-power.js");
+  const html = read("public/tools/audit.html");
   const compareFetches = js.match(/nativeFetch\(`\/api\/audit\?url=/g) || [];
   assert.equal(compareFetches.length, 1);
   assert.match(js, /renderComparison\(currentAudit, comparisonAudit\)/);
-  assert.match(js, /comparison minus primary/i);
+  assert.match(html, /comparison minus primary/i);
 });
 
 test("compare and export add no durable report-history storage", () => {
