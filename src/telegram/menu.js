@@ -46,14 +46,26 @@ export function settingsKeyboard(locale = "en") {
   };
 }
 
-export function settingsMenuText(locale = "en") {
+export function settingsMenuText(locale = "en", profile = {}) {
   const currentLanguage = t(locale, locale === "sw" ? "lang.swahili" : "lang.english");
+  const userId = profile.userId != null ? String(profile.userId) : t(locale, "report.unavailable");
+  const chatId = profile.chatId != null ? String(profile.chatId) : t(locale, "report.unavailable");
+
   return [
     t(locale, "settings.title"),
     "",
     t(locale, "settings.body"),
     "",
+    t(locale, "settings.account_title"),
+    t(locale, "settings.user_id", { id: userId }),
+    t(locale, "settings.chat_id", { id: chatId }),
+    "",
+    t(locale, "settings.personalisation_title"),
     t(locale, "settings.current_language", { language: currentLanguage }),
+    t(locale, "settings.language_saved"),
+    "",
+    t(locale, "settings.privacy_title"),
+    t(locale, "settings.privacy_summary"),
     "",
     t(locale, "settings.choose"),
   ].join("\n");
