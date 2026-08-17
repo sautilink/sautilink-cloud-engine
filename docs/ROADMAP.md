@@ -117,8 +117,6 @@
   - redirect-chain drill-down and links to the deeper Headers, HTTP Status, IP and SSL tools
   - no external infrastructure-attribution provider, no target history, no database migration, and no Telegram change
   - CI passed 81/81 tests and Pages preview deployed successfully before merge
-
-## Active Web Track
 - Phase 8G: CORS & Cookie Inspector
   - standalone `/tools/cors` workspace
   - reuses the existing SSRF-protected `/api/headers` GET probe
@@ -127,6 +125,16 @@
   - wildcard allow-origin plus credential allowance is surfaced for review
   - cookie metadata shows name, Secure, HttpOnly, SameSite and Path while not rendering cookie values
   - no target/result persistence, no database migration, no new external provider, and no Telegram change
+  - CI passed 86/86 tests and exact-head Pages preview deployed successfully before merge
+
+## Active Web Track
+- Phase 8H: Cache & Compression Inspector
+  - standalone `/tools/cache` workspace
+  - reuses the existing SSRF-protected `/api/headers` GET probe
+  - observes Cache-Control, Expires, Age, ETag, Last-Modified, Vary, Content-Encoding, Content-Length, Transfer-Encoding and Accept-Ranges
+  - parses common cache directives including no-store, private, no-cache, public, max-age, s-maxage, immutable, must-revalidate, stale-while-revalidate and stale-if-error
+  - content-encoding interpretation is observational and does not claim a compression ratio or synthetic performance score
+  - no external performance/CDN provider, no target/result persistence, no database migration, and no Telegram change
 
 ## Paused Telegram Track
 - Phase 7T: Default Experience
