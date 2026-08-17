@@ -1,4 +1,13 @@
-import { installAuditPower } from "./audit-power.js?v=2";
-import "./audit.js?v=2";
+import { installAuditPower } from "./audit-power.js?v=3";
+import { initAuditWorkspace } from "./audit.js?v=3";
 
-installAuditPower();
+function init() {
+  installAuditPower();
+  initAuditWorkspace();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init, { once: true });
+} else {
+  init();
+}
