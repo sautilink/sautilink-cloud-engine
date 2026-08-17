@@ -13,23 +13,24 @@ test("audit workspace exposes web-only compare and export controls", () => {
   assert.match(html, /id="compare-panel"/);
   assert.match(html, /id="compare-category-rows"/);
   assert.match(html, /\/tools\/audit-power\.css/);
-  assert.match(html, /\/tools\/audit-workspace\.js\?v=2/);
+  assert.match(html, /\/tools\/audit-workspace\.js\?v=3/);
   assert.doesNotMatch(html, /src="\/tools\/audit\.js"/);
 });
 
 test("workspace bootstrap statically loads the audit module before installing the power layer", () => {
   const bootstrap = read("public/tools/audit-workspace.js");
-  assert.match(bootstrap, /import "\.\/audit\.js\?v=2"/);
-  assert.match(bootstrap, /from "\.\/audit-power\.js\?v=2"/);
-  assert.match(bootstrap, /installAuditPower\(\)/);
+  assert.match(bootstrap, /initAuditWorkspace.*from "\.\/audit\.js\?v=3"/);
+  assert.match(bootstrap, /from "\.\/audit-power\.js\?v=3"/);
+  assert.match(bootstrap, /installAuditPower\(\);\s*initAuditWorkspace\(\);/);
   assert.doesNotMatch(bootstrap, /await import\(/);
 });
 
 test("audit and power controls initialise even after DOMContentLoaded", () => {
   const audit = read("public/tools/audit.js");
   const power = read("public/tools/audit-power.js");
-  assert.match(audit, /document\.readyState === "loading"/);
-  assert.match(audit, /initAuditWorkspace\(\)/);
+  const bootstrap = read("public/tools/audit-workspace.js");
+  assert.match(audit, /export function initAuditWorkspace/);
+  assert.match(bootstrap, /document\.readyState === "loading"/);
   assert.match(power, /document\.readyState === "loading"/);
   assert.match(power, /initAuditPower\(\)/);
 });
