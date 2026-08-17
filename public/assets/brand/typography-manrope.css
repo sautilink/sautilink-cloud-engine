@@ -1,3 +1,5 @@
+@import url("/assets/brand/product-shell.css?v=1");
+
 /* SautiLink Cloud Engine typography — self-hosted Manrope. */
 @font-face {
   font-family: "Manrope";
@@ -14,7 +16,6 @@
   --brand-white: #ffffff;
   --font-primary: "Manrope", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font: var(--font-primary);
-
   --accent: var(--brand-primary);
   --accent-hover: var(--brand-light);
   --accent-soft: rgba(37, 99, 235, 0.12);

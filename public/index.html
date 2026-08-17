@@ -3,25 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SautiLink Cloud Engine — Web Diagnostics Workspace</title>
-  <meta name="description" content="Run website, DNS, email, security and infrastructure diagnostics from the SautiLink Cloud Engine web workspace." />
+  <title>SautiLink Cloud Engine — Website, DNS, Email & Security Diagnostics</title>
+  <meta name="description" content="Run website, DNS, email, SSL, HTTP, security-header and infrastructure diagnostics from SautiLink Cloud Engine. Fast public checks, deeper audit reports and a Telegram companion." />
+  <meta name="application-name" content="SautiLink Cloud Engine" />
+  <meta name="author" content="SautiLink Corporation" />
   <link rel="canonical" href="https://cloudengine.sautilink.com/" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="theme-color" content="#0b0f19" />
+
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://cloudengine.sautilink.com/" />
   <meta property="og:title" content="SautiLink Cloud Engine — Web Diagnostics Workspace" />
-  <meta property="og:description" content="Deep website and infrastructure diagnostics in one SautiLink workspace." />
+  <meta property="og:description" content="Inspect websites, DNS, email security, SSL, HTTP and infrastructure from one SautiLink workspace." />
   <meta property="og:site_name" content="SautiLink Cloud Engine" />
+  <meta property="og:image" content="https://cloudengine.sautilink.com/assets/brand/cloud-engine-share.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="SautiLink Cloud Engine web diagnostics workspace" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="SautiLink Cloud Engine — Web Diagnostics Workspace" />
-  <meta name="twitter:description" content="Deep website and infrastructure diagnostics in one SautiLink workspace." />
-  <meta name="theme-color" content="#0b0f19" />
-  <meta name="robots" content="index, follow" />
+  <meta name="twitter:description" content="Website, DNS, email, SSL, HTTP and infrastructure diagnostics from SautiLink." />
+  <meta name="twitter:image" content="https://cloudengine.sautilink.com/assets/brand/cloud-engine-share.png" />
+
   <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="/favicon/apple-touch-icon.png" />
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="stylesheet" href="/styles.css" />
-  <link rel="preload" href="/assets/fonts/manrope/Manrope-Variable.woff2?v=1" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/manrope/Manrope-Variable.woff2?v=1" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="/assets/brand/typography-manrope.css?v=1" />
   <link rel="stylesheet" href="/home.css" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://sautilink.com/#organization",
+        "name": "SautiLink Corporation",
+        "url": "https://sautilink.com/",
+        "logo": "https://sautilink.com/logo.png",
+        "sameAs": [
+          "https://facebook.com/sautilink",
+          "https://linktr.ee/sautilink",
+          "https://tiktok.com/@sautilink",
+          "https://t.me/sautilinkcloud_bot"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://cloudengine.sautilink.com/#website",
+        "name": "SautiLink Cloud Engine",
+        "url": "https://cloudengine.sautilink.com/",
+        "publisher": {"@id": "https://sautilink.com/#organization"},
+        "inLanguage": "en"
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://cloudengine.sautilink.com/#application",
+        "name": "SautiLink Cloud Engine",
+        "url": "https://cloudengine.sautilink.com/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web",
+        "isAccessibleForFree": true,
+        "description": "Website, DNS, email, SSL, HTTP, security-header and infrastructure diagnostics.",
+        "publisher": {"@id": "https://sautilink.com/#organization"}
+      }
+    ]
+  }
+  </script>
 </head>
 <body class="home-shell">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -30,26 +81,19 @@
     <div class="container header-inner">
       <a href="/" class="brand" aria-label="SautiLink Cloud Engine home">
         <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-text">
-          <span class="brand-name">SautiLink</span>
-          <span class="brand-product">Cloud Engine</span>
-        </span>
+        <span class="brand-text"><span class="brand-name">SautiLink</span><span class="brand-product">Cloud Engine</span></span>
       </a>
-
       <nav class="nav" aria-label="Primary">
         <a href="#workspace" class="nav-link active">Workspace</a>
         <a href="#tools" class="nav-link">Tools</a>
         <a href="/tools/audit" class="nav-link">Full Audit</a>
-        <a href="#channel-bridge" class="nav-link">Web + Telegram</a>
+        <a href="/faq" class="nav-link">FAQ</a>
         <a href="#api" class="nav-link">API</a>
       </nav>
-
       <div class="header-actions">
         <a href="/account/login" class="btn btn-secondary">Account</a>
-        <a href="#channel-bridge" class="btn btn-secondary btn-telegram">Companion channels</a>
-        <button type="button" class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" id="nav-toggle">
-          <span></span><span></span><span></span>
-        </button>
+        <a href="https://t.me/sautilinkcloud_bot" class="btn btn-telegram" target="_blank" rel="noopener noreferrer">Open Telegram Bot</a>
+        <button type="button" class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" id="nav-toggle"><span></span><span></span><span></span></button>
       </div>
     </div>
   </header>
@@ -58,42 +102,30 @@
     <section class="workspace-hero" id="workspace">
       <div class="container hero-grid">
         <div class="hero-copy">
-          <p class="eyebrow">SautiLink Cloud Engine · Web Workspace</p>
+          <p class="eyebrow">SautiLink Cloud Engine · Web diagnostics</p>
           <h1>Inspect the web with <span>more depth.</span></h1>
-          <p class="hero-lead">Run unified audits, inspect DNS and email posture, review security signals, and move from a quick check to deeper diagnostics without leaving the workspace.</p>
-
+          <p class="hero-lead">Check websites, DNS, email posture, SSL, HTTP behavior and infrastructure signals from one focused workspace. Start anonymously, then use a SautiLink Account when you want account features.</p>
           <div class="command-card">
             <form class="command-form" id="audit-launch-form" aria-label="Run a full website audit">
               <label class="visually-hidden" for="audit-target">Website or URL to audit</label>
               <div class="command-input-wrap">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle>
-                  <path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-                </svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
                 <input id="audit-target" name="url" inputmode="url" autocomplete="url" placeholder="example.com or https://example.com" required />
               </div>
               <button type="submit" class="btn btn-primary">Run Full Audit</button>
             </form>
-            <div class="command-meta">
-              <span>No account required</span><span class="meta-dot"></span>
-              <span>Recent targets stay on this device</span><span class="meta-dot"></span>
-              <a href="#tools">Choose a specific tool</a>
-            </div>
+            <div class="command-meta"><span>No account required</span><span class="meta-dot"></span><span>Fast public diagnostics</span><span class="meta-dot"></span><a href="#tools">Choose a specific tool</a></div>
           </div>
         </div>
-
         <aside class="engine-card" aria-label="Cloud Engine status">
-          <div class="engine-card-head">
-            <h2>Engine status</h2>
-            <span class="status-pill" id="engine-status">Checking</span>
-          </div>
+          <div class="engine-card-head"><h2>Engine status</h2><span class="status-pill" id="engine-status">Checking</span></div>
           <div class="engine-metrics">
             <div class="metric"><strong id="live-tools-count">—</strong><span>live tool entries</span></div>
             <div class="metric"><strong id="category-count">—</strong><span>diagnostic groups</span></div>
             <div class="metric"><strong>1</strong><span>shared API engine</span></div>
             <div class="metric"><strong>2</strong><span>product channels</span></div>
           </div>
-          <p class="engine-note">The web workspace and Telegram companion use the same Cloud Engine APIs, so diagnostics stay consistent across channels.</p>
+          <p class="engine-note">The web workspace and Telegram companion use the same Cloud Engine analyzer contracts, so a quick check and a deep report are built on the same diagnostic core.</p>
         </aside>
       </div>
     </section>
@@ -101,42 +133,20 @@
     <section class="quick-section">
       <div class="container">
         <p class="section-kicker">Quick launch</p>
-        <div class="section-title-row">
-          <h2>Start with the check you need.</h2>
-          <p>Jump directly into the most-used diagnostics, or run a unified audit when you want the broad picture first.</p>
-        </div>
+        <div class="section-title-row"><h2>Start with the check you need.</h2><p>Open a focused diagnostic or run a unified audit when you want the broad picture first.</p></div>
         <div class="quick-grid" id="quick-tools"></div>
       </div>
     </section>
 
     <section class="web-advantage" aria-labelledby="web-advantage-title">
       <div class="container">
-        <p class="section-kicker">Web-first experience</p>
-        <div class="section-title-row">
-          <h2 id="web-advantage-title">The web is the deep-work surface.</h2>
-          <p>Telegram stays fast and conversational. The web gets the room for richer reports, more tools, visual comparison and longer workflows.</p>
-        </div>
+        <p class="section-kicker">Built for useful answers</p>
+        <div class="section-title-row"><h2 id="web-advantage-title">A diagnostic workspace, not a link collection.</h2><p>Cloud Engine keeps related checks connected so you can move from an overview to the exact record, header or signal that needs attention.</p></div>
         <div class="feature-grid">
-          <article class="feature-card">
-            <span class="feature-label">Available</span>
-            <h3>Unified diagnostics</h3>
-            <p>Run a full audit that combines multiple analyzers and then drill into dedicated tool pages.</p>
-          </article>
-          <article class="feature-card">
-            <span class="feature-label">Available</span>
-            <h3>Detailed visual reports</h3>
-            <p>Use full-width result views for scores, findings, records and recommendations without chat-length limits.</p>
-          </article>
-          <article class="feature-card">
-            <span class="feature-label">Web-only</span>
-            <h3>Local recent targets</h3>
-            <p>Keep a short, clearable list on the current device only. SautiLink does not persist this list server-side.</p>
-          </article>
-          <article class="feature-card">
-            <span class="feature-label">Available</span>
-            <h3>Compare & export</h3>
-            <p>Compare a fresh second target side by side, export the current audit as JSON or CSV, and print or save a complete report as PDF.</p>
-          </article>
+          <article class="feature-card"><span class="feature-label">Available</span><h3>Unified diagnostics</h3><p>Run a full audit across multiple analyzers, then drill into dedicated tools without changing products.</p></article>
+          <article class="feature-card"><span class="feature-label">Available</span><h3>Detailed visual reports</h3><p>Use full-width result views for scores, findings, records and recommendations without chat-length limits.</p></article>
+          <article class="feature-card"><span class="feature-label">Privacy-aware</span><h3>Clear data boundaries</h3><p>Anonymous use stays available. Account features and data handling follow SautiLink's published privacy and terms framework.</p></article>
+          <article class="feature-card"><span class="feature-label">Available</span><h3>Compare & export</h3><p>Compare a second target, export JSON or CSV, and print or save supported reports as PDF.</p></article>
         </div>
       </div>
     </section>
@@ -144,15 +154,8 @@
     <section class="tool-workspace" id="tools">
       <div class="container">
         <p class="section-kicker">Tool workspace</p>
-        <div class="section-title-row">
-          <h2>All Cloud Engine tools.</h2>
-          <p>Search the catalog by capability. Live tools open immediately; planned tools stay visible so the product roadmap is easy to understand.</p>
-        </div>
-        <div class="workspace-toolbar">
-          <label class="visually-hidden" for="tool-search">Search tools</label>
-          <input class="workspace-search" id="tool-search" type="search" placeholder="Search DNS, SSL, email, SEO, headers…" autocomplete="off" />
-          <a class="btn btn-secondary" href="/tools/audit">Open Full Audit</a>
-        </div>
+        <div class="section-title-row"><h2>All Cloud Engine tools.</h2><p>Search by capability. Live tools open immediately; planned tools remain visible so the roadmap is understandable.</p></div>
+        <div class="workspace-toolbar"><label class="visually-hidden" for="tool-search">Search tools</label><input class="workspace-search" id="tool-search" type="search" placeholder="Search DNS, SSL, email, SEO, headers…" autocomplete="off" /><a class="btn btn-secondary" href="/tools/audit">Open Full Audit</a></div>
         <div id="tool-categories" class="categories"></div>
         <div class="empty-state" id="tool-empty">No tool matched that search. Try a broader term.</div>
       </div>
@@ -160,76 +163,55 @@
 
     <section class="activity-section">
       <div class="container activity-grid">
-        <article class="workspace-card">
-          <div class="card-heading">
-            <h3>Recent on this device</h3>
-            <button type="button" class="text-button" id="clear-recents">Clear</button>
-          </div>
-          <div class="recent-list" id="recent-targets"></div>
-        </article>
-        <article class="workspace-card">
-          <div class="card-heading"><h3>Privacy model</h3></div>
-          <p class="recent-empty">The homepage recent-target list is browser-local only. Clearing site data or using the Clear button removes it. It is not the Telegram preference profile and is not sent to durable storage.</p>
-        </article>
+        <article class="workspace-card"><div class="card-heading"><h3>Recent on this device</h3><button type="button" class="text-button" id="clear-recents">Clear</button></div><div class="recent-list" id="recent-targets"></div></article>
+        <article class="workspace-card"><div class="card-heading"><h3>Privacy & data</h3></div><p class="recent-empty">The homepage recent-target list is stored locally in your browser and can be cleared here. Other Cloud Engine and SautiLink web/app data processing is subject to the SautiLink <a href="https://sautilink.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a> and <a href="https://sautilink.com/terms" target="_blank" rel="noopener noreferrer">Terms</a>.</p></article>
       </div>
     </section>
 
     <section class="bridge-section" id="channel-bridge">
       <div class="container">
         <p class="section-kicker">Web + Telegram</p>
-        <div class="section-title-row">
-          <h2>Two interfaces. One diagnostic engine.</h2>
-          <p>The goal is not to duplicate every screen. Each channel gets the experience it is best at while sharing the same analyzer contracts underneath.</p>
-        </div>
+        <div class="section-title-row"><h2>Two interfaces. One diagnostic engine.</h2><p>Use the web for deeper reports and Telegram when you need a fast conversational check.</p></div>
         <div class="bridge-grid">
-          <article class="bridge-card">
-            <h3>Web workspace</h3>
-            <p>Primary surface for deeper work and the largest feature set.</p>
-            <ul class="bridge-list">
-              <li><strong>Best for:</strong> detailed reports, visual exploration, long findings and multi-tool workflows.</li>
-              <li><strong>More than bot:</strong> side-by-side comparison, JSON/CSV exports, printable reports and richer result controls.</li>
-            </ul>
-          </article>
-          <article class="bridge-card">
-            <h3>Telegram companion</h3>
-            <p>Fast access when a full web session is unnecessary.</p>
-            <ul class="bridge-list">
-              <li><strong>Best for:</strong> quick checks, guided prompts, reruns and lightweight status.</li>
-              <li><strong>Shared truth:</strong> the same Cloud Engine analyzer APIs power both channels.</li>
-            </ul>
-          </article>
+          <article class="bridge-card"><h3>Web workspace</h3><p>Primary surface for detailed work and the largest feature set.</p><ul class="bridge-list"><li><strong>Best for:</strong> detailed reports, visual exploration and multi-tool workflows.</li><li><strong>Web strengths:</strong> comparison, exports, printable reports and richer result controls.</li></ul></article>
+          <article class="bridge-card"><h3>Telegram companion</h3><p>Fast access when opening a full browser workflow is unnecessary.</p><ul class="bridge-list"><li><strong>Best for:</strong> quick checks, guided prompts, reruns and lightweight status.</li><li><strong>Shared truth:</strong> the same Cloud Engine analyzer APIs power both channels.</li></ul><p style="margin-top:1rem"><a class="btn btn-telegram" href="https://t.me/sautilinkcloud_bot" target="_blank" rel="noopener noreferrer">Open @sautilinkcloud_bot</a></p></article>
         </div>
-        <div class="bridge-flow"><strong>Planned bridge:</strong> signed handoff IDs will let a result started in one channel continue in the other without placing raw targets, secrets or internal architecture in callback data.</div>
+        <div class="bridge-flow"><strong>Planned bridge:</strong> secure handoff IDs will allow a result started in one channel to continue in the other without exposing secrets or internal callback data.</div>
       </div>
     </section>
 
     <section class="api-strip" id="api">
       <div class="container">
         <p class="section-kicker">Shared engine</p>
-        <div class="section-title-row">
-          <h2>One API contract underneath everything.</h2>
-          <p>The website and Telegram companion remain clients of the same Cloud Engine analyzers rather than becoming separate products with conflicting results.</p>
-        </div>
-        <div class="api-card">
-          <div>
-            <div class="api-meta"><span class="method get">GET</span><code class="endpoint">/api/health</code></div>
-            <p class="api-desc">Simple service health check used by this workspace to confirm that the engine is responding.</p>
-          </div>
-          <button type="button" class="btn btn-secondary" id="try-health">Check engine</button>
-          <div id="health-result" class="api-result" hidden></div>
-        </div>
+        <div class="section-title-row"><h2>One API contract underneath everything.</h2><p>The web and Telegram experiences are clients of the same analyzers rather than separate products with conflicting results.</p></div>
+        <div class="api-card"><div><div class="api-meta"><span class="method get">GET</span><code class="endpoint">/api/health</code></div><p class="api-desc">Public service health check used by this workspace to confirm that the engine is responding.</p></div><button type="button" class="btn btn-secondary" id="try-health">Check engine</button><div id="health-result" class="api-result" hidden></div></div>
       </div>
     </section>
   </main>
 
   <footer class="site-footer home-footer">
-    <div class="container footer-inner">
-      <div class="footer-brand"><span class="brand-name">SautiLink</span> Cloud Engine</div>
-      <p class="footer-note">A SautiLink Corporation product · cloudengine.sautilink.com</p>
-      <p class="footer-copy">&copy; <span id="year"></span> SautiLink Corporation. All rights reserved.</p>
+    <div class="container product-footer">
+      <div class="product-footer-top">
+        <div class="product-footer-identity"><img class="product-footer-logo" src="https://sautilink.com/logo.png" alt="SautiLink" width="128" height="62" /><p>Cloud Engine is a SautiLink Corporation diagnostics product for the public web, email and internet infrastructure.</p></div>
+        <div class="product-footer-grid">
+          <div class="product-footer-group"><h3>Cloud Engine</h3><div class="product-footer-links"><a href="/">Workspace</a><a href="/#tools">Tools</a><a href="/tools/audit">Full Audit</a><a href="/faq">FAQ</a></div></div>
+          <div class="product-footer-group"><h3>SautiLink</h3><div class="product-footer-links"><a href="https://sautilink.com/" target="_blank" rel="noopener noreferrer">SautiLink</a><a href="https://sautilink.com/about" target="_blank" rel="noopener noreferrer">About</a><a href="https://sautilink.com/sautinote" target="_blank" rel="noopener noreferrer">Blog & SautiNote</a><a href="https://sautilink.com/contact" target="_blank" rel="noopener noreferrer">Contact</a></div></div>
+          <div class="product-footer-group"><h3>Legal</h3><div class="product-footer-links"><a href="https://sautilink.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a><a href="https://sautilink.com/terms" target="_blank" rel="noopener noreferrer">Terms</a><a href="/llms.txt">AI & crawler info</a></div></div>
+          <div class="product-footer-group"><h3>Companion</h3><div class="product-footer-links"><a href="https://t.me/sautilinkcloud_bot" target="_blank" rel="noopener noreferrer">Telegram Bot</a><a href="/account/login">SautiLink Account</a></div></div>
+        </div>
+      </div>
+      <div class="product-footer-bottom">
+        <span>&copy; <span id="year"></span> SautiLink Corporation. All rights reserved.</span>
+        <div class="social-links" aria-label="SautiLink social links">
+          <a class="social-link" href="https://facebook.com/sautilink" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073c0 6.025 4.388 11.02 10.125 11.927v-8.437H7.078v-3.49h3.047V9.414c0-3.024 1.792-4.694 4.533-4.694 1.312 0 2.686.236 2.686.236v2.97H15.83c-1.491 0-1.956.931-1.956 1.887v2.26h3.328l-.532 3.49h-2.796V24C19.612 23.093 24 18.098 24 12.073z"/></svg></a>
+          <a class="social-link" href="https://linktr.ee/sautilink" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+          <a class="social-link" href="https://linktr.ee/sautilink" target="_blank" rel="noopener noreferrer" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 2H22l-6.77 7.74L23.2 22h-6.24l-4.89-6.39L6.48 22H3.36l7.26-8.3L.8 2h6.4l4.42 5.84L18.9 2Zm-1.1 17.84h1.73L6.26 4.05H4.41L17.8 19.84Z"/></svg></a>
+          <a class="social-link" href="https://tiktok.com/@sautilink" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.59 6.69a4.79 4.79 0 0 1-3.77-4.25V2h-3.45v13.67a2.9 2.9 0 1 1-2.02-2.76V9.4a6.33 6.33 0 1 0 5.47 6.27V8.69a8.18 8.18 0 0 0 4.77 1.52V6.69h-1Z"/></svg></a>
+          <a class="social-link" href="https://t.me/sautilinkcloud_bot" target="_blank" rel="noopener noreferrer" aria-label="Telegram"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.7 3.2 18.5 20c-.24 1.18-.88 1.47-1.78.92l-4.88-3.6-2.35 2.26c-.26.26-.48.48-.98.48l.35-4.97 9.05-8.18c.39-.35-.09-.55-.61-.2L6.12 13.76l-4.82-1.5c-1.05-.33-1.07-1.05.22-1.55L20.4 3.43c.88-.32 1.65.2 1.3-.23Z"/></svg></a>
+        </div>
+      </div>
     </div>
   </footer>
-
   <script type="module" src="/app.js"></script>
 </body>
 </html>

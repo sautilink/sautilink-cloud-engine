@@ -10,43 +10,22 @@
   <meta name="robots" content="noindex, follow" />
   <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/styles.css" />
-  <link rel="preload" href="/assets/fonts/manrope/Manrope-Variable.woff2?v=1" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/manrope/Manrope-Variable.woff2?v=1" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="/assets/brand/typography-manrope.css?v=1" />
   <link rel="stylesheet" href="/account/account.css" />
+  <link rel="stylesheet" href="/account/account-polish.css" />
 </head>
 <body class="account-shell" data-account-page="login">
   <a class="skip-link" href="#main">Skip to content</a>
-  <header class="site-header"><div class="container header-inner">
-    <a href="/" class="brand" aria-label="SautiLink Cloud Engine home"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><span class="brand-name">SautiLink</span><span class="brand-product">Account</span></span></a>
-    <nav class="nav" aria-label="Primary"><a href="/" class="nav-link">Cloud Engine</a><a href="/#tools" class="nav-link">Tools</a><a href="/tools/audit" class="nav-link">Full Audit</a></nav>
-    <div class="header-actions"><a href="/account/signup" class="btn btn-primary">Create account</a><button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></div>
-  </div></header>
+  <header class="site-header"><div class="container header-inner"><a href="/" class="brand" aria-label="SautiLink Cloud Engine home"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><span class="brand-name">SautiLink</span><span class="brand-product">Account</span></span></a><nav class="nav" aria-label="Primary"><a href="/" class="nav-link">Cloud Engine</a><a href="/#tools" class="nav-link">Tools</a><a href="/faq" class="nav-link">FAQ</a></nav><div class="header-actions"><a href="/account/signup" class="btn btn-primary">Create account</a><button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></div></div></header>
 
   <main id="main" class="account-main"><div class="container account-auth-layout">
-    <section class="account-pitch">
-      <p class="eyebrow">One identity · SautiLink ecosystem</p>
-      <h1>Your tools. Your history. <span>Your account.</span></h1>
-      <p>Use one SautiLink Account across Cloud Engine and future SautiLink products. Cloud Engine remains usable without an account; signing in unlocks personal account features as they become available.</p>
-      <div class="account-benefits">
-        <article class="account-benefit"><strong>30-day scan history</strong><span>Revisit eligible scans when account history launches.</span></article>
-        <article class="account-benefit"><strong>Verified identity</strong><span>Your confirmed email is clearly marked inside your account.</span></article>
-        <article class="account-benefit"><strong>One SautiLink identity</strong><span>Your username is designed to carry into the wider ecosystem.</span></article>
-      </div>
-    </section>
+    <section class="account-pitch"><p class="eyebrow">SautiLink Account</p><h1>Your tools. Your identity. <span>Your account.</span></h1><p>Sign in with the SautiLink identity used by Cloud Engine. Public diagnostic tools remain available without an account; sign-in is for personal account features.</p><div class="account-benefits"><article class="account-benefit"><strong>Verified identity</strong><span>Your confirmed email status is visible inside your account.</span></article><article class="account-benefit"><strong>Account features</strong><span>Designed for personal preferences and future rolling scan history.</span></article><article class="account-benefit"><strong>One SautiLink identity</strong><span>Your username is designed to carry into the wider ecosystem.</span></article></div></section>
 
-    <section class="auth-card" aria-labelledby="login-title">
-      <div class="auth-card-head"><p class="panel-label">Welcome back</p><h2 id="login-title">Sign in</h2><p>Enter the email and password connected to your SautiLink Account.</p></div>
-      <form class="account-form" id="login-form" novalidate>
-        <div class="field-group"><label for="login-email">Email address</label><input id="login-email" name="email" type="email" autocomplete="email" required /></div>
-        <div class="field-group"><label for="login-password">Password</label><input id="login-password" name="password" type="password" autocomplete="current-password" required /></div>
-        <div class="form-message" id="form-message" role="alert" hidden></div>
-        <button type="submit" class="btn btn-primary auth-submit" id="login-submit">Sign in</button>
-      </form>
-      <p class="auth-foot">New to SautiLink? <a href="/account/signup">Create your account</a></p>
-    </section>
+    <section class="auth-card" aria-labelledby="login-title"><div class="auth-card-head"><p class="panel-label">Welcome back</p><h2 id="login-title">Sign in</h2><p>Enter the email and password connected to your SautiLink Account.</p></div><form class="account-form" id="login-form" novalidate><div class="field-group"><label for="login-email">Email address</label><input id="login-email" name="email" type="email" autocomplete="email" required /></div><div class="field-group"><label for="login-password">Password</label><input id="login-password" name="password" type="password" autocomplete="current-password" required /></div><div class="form-message" id="form-message" role="alert" hidden></div><button type="submit" class="btn btn-primary auth-submit" id="login-submit">Sign in</button></form><p class="legal-copy">Account access and SautiLink web/app data processing are subject to the <a href="https://sautilink.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a> and <a href="https://sautilink.com/terms" target="_blank" rel="noopener noreferrer">Terms</a>.</p><p class="auth-foot">New to SautiLink? <a href="/account/signup">Create your account</a></p></section>
   </div></main>
 
-  <footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><span class="brand-name">SautiLink</span> Account</div><p class="footer-note">A SautiLink Corporation identity service.</p><p class="footer-copy">&copy; <span id="year"></span> SautiLink Corporation.</p></div></footer>
+  <footer class="site-footer"><div class="container product-footer"><div class="product-footer-top"><div class="product-footer-identity"><img class="product-footer-logo" src="https://sautilink.com/logo.png" alt="SautiLink" width="128" /><p>SautiLink Account is the identity layer used by Cloud Engine and future SautiLink products.</p></div><div class="product-footer-grid"><div class="product-footer-group"><h3>Cloud Engine</h3><div class="product-footer-links"><a href="/">Workspace</a><a href="/#tools">Tools</a><a href="/faq">FAQ</a></div></div><div class="product-footer-group"><h3>SautiLink</h3><div class="product-footer-links"><a href="https://sautilink.com/" target="_blank" rel="noopener noreferrer">Home</a><a href="https://sautilink.com/about" target="_blank" rel="noopener noreferrer">About</a><a href="https://sautilink.com/sautinote" target="_blank" rel="noopener noreferrer">Blog & SautiNote</a></div></div><div class="product-footer-group"><h3>Legal</h3><div class="product-footer-links"><a href="https://sautilink.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a><a href="https://sautilink.com/terms" target="_blank" rel="noopener noreferrer">Terms</a></div></div><div class="product-footer-group"><h3>Companion</h3><div class="product-footer-links"><a href="https://t.me/sautilinkcloud_bot" target="_blank" rel="noopener noreferrer">Telegram Bot</a></div></div></div></div><div class="product-footer-bottom"><span>&copy; <span id="year"></span> SautiLink Corporation. All rights reserved.</span></div></div></footer>
   <script type="module" src="/account/account.js"></script>
 </body>
 </html>

@@ -17,6 +17,7 @@ const dashboard = read("public/account/index.html");
 const signup = read("public/account/signup.html");
 const verify = read("public/account/verify.html");
 const login = read("public/account/login.html");
+const usernameGuard = read("public/account/username-guard.js");
 const migration = read("supabase/migrations/20260817064949_create_sautilink_account_profiles.sql");
 const deferMigration = read("supabase/migrations/20260817065148_defer_account_profile_until_email_verification.sql");
 const template = read("supabase/templates/confirmation.html");
@@ -92,10 +93,21 @@ test("browser account code uses only same-origin account APIs and stores no auth
   assert.match(browser, /sessionStorage\.setItem\(PENDING_EMAIL_KEY, email\)/);
 });
 
+test("signup exposes live username availability and re-checks before submit", () => {
+  assert.match(signup, /Live availability/i);
+  assert.match(signup, /id="username-state"[^>]*aria-live="polite"/i);
+  assert.match(signup, /\/account\/username-guard\.js/);
+  assert.match(browser, /username\?username=/);
+  assert.match(browser, /is available\./);
+  assert.match(browser, /is already taken\./);
+  assert.match(usernameGuard, /api\/account\/username\?username=/);
+  assert.match(usernameGuard, /form\.requestSubmit\(\)/);
+});
+
 test("signup keeps ecosystem email updates optional and off by default", () => {
   assert.match(signup, /id="email-updates"[^>]*type="checkbox"/i);
   assert.doesNotMatch(signup, /id="email-updates"[^>]*checked/i);
-  assert.match(signup, /optional SautiLink ecosystem product news/i);
+  assert.match(signup, /optional SautiLink(?: ecosystem)? product news/i);
 });
 
 test("verification UI renders the configured OTP length dynamically with resend", () => {
@@ -106,11 +118,12 @@ test("verification UI renders the configured OTP length dynamically with resend"
   assert.match(browser, /code\.length !== inputs\.length/);
   assert.match(browser, /PENDING_OTP_LENGTH_KEY/);
   assert.match(verify, /id="resend-code"/);
+  assert.doesNotMatch(signup, /six[- ]digit/i);
 });
 
-test("account dashboard blue check means Email verified, not public notability", () => {
+test("account dashboard blue badge means Email verified, not public notability", () => {
   assert.match(dashboard, /id="verified-badge"[^>]*title="Email verified"[^>]*aria-label="Email verified"/i);
-  assert.match(dashboard, /id="verified-chip"[^>]*>✓ Email verified</i);
+  assert.match(dashboard, /id="verified-chip"[^>]*>Email verified</i);
   assert.match(browser, /verifiedBadge\.hidden = !me\.emailVerified/);
   assert.match(browser, /securityState\.textContent = me\.emailVerified \? "Verified" : "Unverified"/);
 });
@@ -120,6 +133,13 @@ test("account pages preserve the self-hosted Manrope product contract", () => {
     assert.match(html, /Manrope-Variable\.woff2\?v=1/);
     assert.match(html, /typography-manrope\.css\?v=1/);
     assert.doesNotMatch(html, /fonts\.googleapis|fonts\.gstatic/i);
+  }
+});
+
+test("account entry points link SautiLink privacy and terms", () => {
+  for (const html of [signup, login, verify, dashboard]) {
+    assert.match(html, /https:\/\/sautilink\.com\/privacy/i);
+    assert.match(html, /https:\/\/sautilink\.com\/terms/i);
   }
 });
 
