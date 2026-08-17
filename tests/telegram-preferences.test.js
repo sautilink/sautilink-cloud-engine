@@ -22,22 +22,13 @@ test.afterEach(() => {
 
 test("storage status requires valid URL and secret format", () => {
   assert.equal(preferenceStorageStatus({}).configured, false);
-  assert.equal(
-    preferenceStorageStatus({
-      SUPABASE_URL: "http://bad",
-      SUPABASE_SECRET_KEY: "sb_secret_x",
-    }).configured,
-    false
-  );
+  assert.equal(preferenceStorageStatus({ SUPABASE_URL: "http://bad", SUPABASE_SECRET_KEY: "sb_secret_x" }).configured, false);
   assert.equal(preferenceStorageStatus(goodEnv).configured, true);
 });
 
 test("read fails open without configuration and does not fetch", async () => {
   let called = false;
-  globalThis.fetch = async () => {
-    called = true;
-    throw new Error("should not fetch");
-  };
+  globalThis.fetch = async () => { called = true; throw new Error("should not fetch"); };
   assert.equal(await readLocalePreference(123, {}), null);
   assert.equal(await readUserPreferences(123, {}), null);
   assert.equal(called, false);
@@ -45,20 +36,19 @@ test("read fails open without configuration and does not fetch", async () => {
 
 test("invalid user id never reaches durable storage", async () => {
   let called = false;
-  globalThis.fetch = async () => {
-    called = true;
-    return new Response("[]");
-  };
+  globalThis.fetch = async () => { called = true; return new Response("[]"); };
   assert.equal(await readLocalePreference("abc", goodEnv), null);
   assert.equal(await writeLocalePreference("abc", "sw", goodEnv), false);
-  assert.equal(await writePresentationPreferences("abc", { locale: "sw", reportDetail: "compact", developerMode: false }, goodEnv), false);
+  assert.equal(await writePresentationPreferences("abc", {
+    locale: "sw", reportDetail: "compact", developerMode: false, defaultView: "main",
+  }, goodEnv), false);
   assert.equal(called, false);
 });
 
-test("read returns durable locale and personalisation profile", async () => {
+test("read returns durable locale and full presentation profile", async () => {
   globalThis.fetch = async (url, options) => {
     assert.match(String(url), /telegram_user_id=eq\.123/);
-    assert.match(String(url), /select=locale,report_detail,developer_mode/);
+    assert.match(String(url), /select=locale,report_detail,developer_mode,default_view/);
     assert.equal(options.method, "GET");
     assert.equal(options.headers.apikey, goodEnv.SUPABASE_SECRET_KEY);
     assert.equal(options.headers.Authorization, undefined);
@@ -66,36 +56,31 @@ test("read returns durable locale and personalisation profile", async () => {
       locale: "sw",
       report_detail: "detailed",
       developer_mode: true,
-    }]), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+      default_view: "tools",
+    }]), { status: 200, headers: { "Content-Type": "application/json" } });
   };
 
   assert.deepEqual(await readUserPreferences(123, goodEnv), {
     locale: "sw",
     reportDetail: "detailed",
     developerMode: true,
+    defaultView: "tools",
   });
 });
 
 test("legacy locale helper still returns allowlisted durable locale", async () => {
-  globalThis.fetch = async () =>
-    new Response(JSON.stringify([{ locale: "sw" }]), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+  globalThis.fetch = async () => new Response(JSON.stringify([{ locale: "sw" }]), {
+    status: 200, headers: { "Content-Type": "application/json" },
+  });
   assert.equal(await readLocalePreference(123, goodEnv), "sw");
 });
 
-test("read rejects unexpected stored locale while using safe presentation defaults", async () => {
-  globalThis.fetch = async () =>
-    new Response(JSON.stringify([{ locale: "fr", report_detail: "bad", developer_mode: "yes" }]), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+test("unexpected stored values use safe presentation defaults", async () => {
+  globalThis.fetch = async () => new Response(JSON.stringify([{
+    locale: "fr", report_detail: "bad", developer_mode: "yes", default_view: "admin",
+  }]), { status: 200, headers: { "Content-Type": "application/json" } });
   const profile = await readUserPreferences(123, goodEnv);
-  assert.deepEqual(profile, { locale: null, reportDetail: "compact", developerMode: false });
+  assert.deepEqual(profile, { locale: null, reportDetail: "compact", developerMode: false, defaultView: "main" });
   assert.equal(await readLocalePreference(123, goodEnv), null);
 });
 
@@ -123,37 +108,33 @@ test("personalisation write upserts strict full preference values", async () => 
     calls += 1;
     assert.match(String(url), /on_conflict=telegram_user_id/);
     const body = JSON.parse(options.body);
-    assert.deepEqual(
-      {
-        telegram_user_id: body.telegram_user_id,
-        locale: body.locale,
-        report_detail: body.report_detail,
-        developer_mode: body.developer_mode,
-      },
-      {
-        telegram_user_id: "123",
-        locale: "en",
-        report_detail: "detailed",
-        developer_mode: true,
-      }
-    );
+    assert.deepEqual({
+      telegram_user_id: body.telegram_user_id,
+      locale: body.locale,
+      report_detail: body.report_detail,
+      developer_mode: body.developer_mode,
+      default_view: body.default_view,
+    }, {
+      telegram_user_id: "123",
+      locale: "en",
+      report_detail: "detailed",
+      developer_mode: true,
+      default_view: "quick",
+    });
     return new Response(null, { status: 204 });
   };
 
   assert.equal(await writePresentationPreferences(123, {
-    locale: "en",
-    reportDetail: "detailed",
-    developerMode: true,
+    locale: "en", reportDetail: "detailed", developerMode: true, defaultView: "quick",
   }, goodEnv), true);
   assert.equal(await writePresentationPreferences(123, {
-    locale: "en",
-    reportDetail: "verbose",
-    developerMode: true,
+    locale: "en", reportDetail: "verbose", developerMode: true, defaultView: "main",
   }, goodEnv), false);
   assert.equal(await writePresentationPreferences(123, {
-    locale: "en",
-    reportDetail: "compact",
-    developerMode: "yes",
+    locale: "en", reportDetail: "compact", developerMode: "yes", defaultView: "main",
+  }, goodEnv), false);
+  assert.equal(await writePresentationPreferences(123, {
+    locale: "en", reportDetail: "compact", developerMode: false, defaultView: "admin",
   }, goodEnv), false);
   assert.equal(calls, 1);
 });
@@ -161,16 +142,12 @@ test("personalisation write upserts strict full preference values", async () => 
 test("network failure fails open without leaking secret in logs", async () => {
   const logs = [];
   console.log = (line) => logs.push(String(line));
-  globalThis.fetch = async () => {
-    throw new Error(`do not leak ${goodEnv.SUPABASE_SECRET_KEY}`);
-  };
+  globalThis.fetch = async () => { throw new Error(`do not leak ${goodEnv.SUPABASE_SECRET_KEY}`); };
 
   assert.equal(await readUserPreferences(123, goodEnv), null);
   assert.equal(await writeLocalePreference(123, "en", goodEnv), false);
   assert.equal(await writePresentationPreferences(123, {
-    locale: "en",
-    reportDetail: "compact",
-    developerMode: false,
+    locale: "en", reportDetail: "compact", developerMode: false, defaultView: "main",
   }, goodEnv), false);
 
   const joined = logs.join("\n");
