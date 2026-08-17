@@ -98,8 +98,6 @@
   - Nameserver Lookup continues to use the existing `/api/dns` contract
   - no duplicate analyzer implementation, no scoring changes, no report history, and no database migration
   - CI passed 68/68 tests and Pages preview deployed successfully before merge
-
-## Active Web Track
 - Phase 8E: IP & Reverse DNS Foundation
   - standalone IP Lookup for public domains and public IPv4/IPv6 addresses
   - standalone Reverse DNS Lookup for public IPv4/IPv6 PTR records
@@ -109,6 +107,17 @@
   - domain IP lookup uses A/AAAA only
   - no ASN, geolocation, hosting-provider, reputation, or CDN attribution in this phase
   - no browser/server target history and no database migration
+  - CI passed 76/76 tests and Pages preview deployed successfully before merge
+
+## Active Web Track
+- Phase 8F: Server Information & Edge Signals
+  - standalone `/tools/server` workspace
+  - reuses the existing SSRF-protected `/api/headers` probe; no new outbound-fetch implementation
+  - response fingerprint: protocol, status, timing, server banner, content type, cache control, redirects and cookie count
+  - observable edge/proxy response hints shown without turning headers into hosting or ownership claims
+  - security response signals summarize HSTS, CSP and related browser-facing controls
+  - redirect-chain drill-down and links to the deeper Headers, HTTP Status, IP and SSL tools
+  - no external infrastructure-attribution provider, no target history, no database migration, and no Telegram change
 
 ## Paused Telegram Track
 - Phase 7T: Default Experience
@@ -124,8 +133,9 @@
   - no analyzer, scoring, SSRF, authorization, or `/api/*` contract changes
 
 ## Next Web Phases
-- Phase 8F: Web ↔ Telegram handoff — deferred until Telegram work resumes
+- Web ↔ Telegram handoff — deferred until Telegram work resumes
   - short-lived signed handoff IDs; no raw secrets or arbitrary callback payloads
   - continue an eligible diagnostic between Telegram and the web without forking analyzer behavior
-- Phase 8G: Shareable/saved report model only if an explicit retention, access-control and privacy design is approved
-- Phase 8H+: additional infrastructure and web-only tools after their external data sources, privacy boundaries, and operational costs are deliberately chosen
+- Shareable/saved report model only if an explicit retention, access-control and privacy design is approved
+- ASN / geolocation / hosting-provider attribution only after an external data source, privacy boundary, rate limit, attribution requirement, and operational cost are deliberately chosen
+- additional web-only tools where the web format provides clear product value
