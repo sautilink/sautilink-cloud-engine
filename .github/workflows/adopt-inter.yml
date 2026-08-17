@@ -1,4 +1,4 @@
-name: Adopt Inter Single Font
+name: Adopt Inter Assets
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: inter-single-font
-      - name: Replace typography with self-hosted Inter
+      - name: Vendor Inter and update page preloads
         shell: bash
         run: |
           set -euo pipefail
@@ -27,60 +27,10 @@ jobs:
           curl -fL https://raw.githubusercontent.com/rsms/inter/master/docs/font-files/InterVariable.woff2 -o public/assets/fonts/inter/InterVariable.woff2
           curl -fL https://raw.githubusercontent.com/rsms/inter/master/docs/font-files/InterVariable-Italic.woff2 -o public/assets/fonts/inter/InterVariable-Italic.woff2
           curl -fL https://raw.githubusercontent.com/rsms/inter/master/LICENSE.txt -o public/assets/fonts/inter/OFL.txt
-          cat > public/assets/brand/typography.css <<'CSS'
-          /* SautiLink Corporation typography and color system — self-hosted. Inter is the only UI/brand font family. */
-          @font-face {
-            font-family: "Inter";
-            src: url("/assets/fonts/inter/InterVariable.woff2") format("woff2");
-            font-style: normal;
-            font-weight: 100 900;
-            font-display: swap;
-          }
-          @font-face {
-            font-family: "Inter";
-            src: url("/assets/fonts/inter/InterVariable-Italic.woff2") format("woff2");
-            font-style: italic;
-            font-weight: 100 900;
-            font-display: swap;
-          }
-
-          :root {
-            --brand-primary: #2563eb;
-            --brand-primary-hover: #1d4ed8;
-            --brand-light: #60a5fa;
-            --brand-white: #ffffff;
-            --font-primary: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            --font: var(--font-primary);
-            --accent: var(--brand-primary);
-            --accent-hover: var(--brand-light);
-            --accent-soft: rgba(37, 99, 235, 0.12);
-          }
-
-          html,
-          body,
-          button,
-          input,
-          textarea,
-          select,
-          .brand-name,
-          .brand-product,
-          .footer-brand,
-          .footer-note,
-          .footer-copy,
-          [data-brand-font] {
-            font-family: var(--font-primary);
-          }
-
-          ::selection {
-            background: var(--brand-light);
-            color: #0f172a;
-          }
-          CSS
           python3 <<'PY'
           from pathlib import Path
-          import re
 
-          def rewrite_html(path: Path):
+          for path in Path("public").rglob("*.html"):
               raw = path.read_bytes()
               newline = "\r\n" if b"\r\n" in raw else "\n"
               had_final = raw.endswith(b"\n")
@@ -93,110 +43,9 @@ jobs:
                       out.append(indent + '<link rel="preload" href="/assets/fonts/inter/InterVariable.woff2" as="font" type="font/woff2" crossorigin>')
                   out.append(line)
               path.write_bytes((newline.join(out) + (newline if had_final else "")).encode("utf-8"))
-
-          for page in Path('public').rglob('*.html'):
-              rewrite_html(page)
-
-          branding = Path('docs/BRANDING.md')
-          text = branding.read_text(encoding='utf-8')
-          replacement = '''## Corporate typography
-
-SautiLink web products use **Inter as the single font family** across the entire product experience.
-
-- **Inter**
-  - Used for normal page content, headings, navigation, buttons, forms, cards, reports, brand names, product labels, footer branding, and copyright/signature surfaces.
-  - Variable normal and italic faces are self-hosted.
-  - Supported weight range: `100–900`.
-  - Brand distinction should come from weight, scale, spacing, color, layout, and the SautiLink logo rather than a secondary typeface.
-
-Implementation tokens:
-
-- `--font-primary` → Inter
-- `--font` → `--font-primary` for compatibility with the existing shared stylesheet
-- `[data-brand-font]` remains supported for semantic brand markup but resolves to Inter like all other product text.
-
-Web font files live under `public/assets/fonts/inter/` and the shared mapping lives in `public/assets/brand/typography.css`. Pages must self-host the font assets rather than depending on a runtime request to an external font stylesheet/provider. Form controls explicitly inherit Inter so mobile browsers do not silently fall back to a different UI family. Monospace technical output may remain monospace where required for readability.
-
-Inter is distributed under the SIL Open Font License 1.1. The original license file must remain alongside the vendored font assets.
-
-This single-family typography contract is intended to be reused across SautiLink Corporation web products so desktop and mobile surfaces maintain a consistent, product-first visual identity.
-
-'''
-          text = re.sub(r'## Corporate typography\n.*?(?=## Regression protection)', replacement, text, flags=re.S)
-          branding.write_text(text, encoding='utf-8')
           PY
-          cat > tests/brand-typography.test.js <<'JS'
-          import test from "node:test";
-          import assert from "node:assert/strict";
-          import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-          import { join } from "node:path";
-
-          const typographyPath = "public/assets/brand/typography.css";
-          const interDir = "public/assets/fonts/inter";
-
-          function read(path) { return readFileSync(path, "utf8"); }
-          function htmlFiles(dir) {
-            const out = [];
-            for (const entry of readdirSync(dir, { withFileTypes: true })) {
-              const path = join(dir, entry.name);
-              if (entry.isDirectory()) out.push(...htmlFiles(path));
-              else if (entry.isFile() && entry.name.endsWith(".html")) out.push(path);
-            }
-            return out;
-          }
-
-          test("SautiLink typography uses Inter as the single UI and brand family", () => {
-            const css = read(typographyPath);
-            assert.match(css, /font-family:\s*"Inter"/);
-            assert.match(css, /font-weight:\s*100 900/);
-            assert.match(css, /--font-primary:\s*"Inter"/);
-            assert.match(css, /--font:\s*var\(--font-primary\)/);
-            assert.doesNotMatch(css, /Lora|Zalando Sans SemiExpanded|--font-brand/);
-            assert.match(css, /\.footer-copy,[\s\S]*\[data-brand-font\][\s\S]*font-family:\s*var\(--font-primary\)/);
-          });
-
-          test("SautiLink corporate color tokens remain canonical", () => {
-            const css = read(typographyPath);
-            assert.match(css, /--brand-primary:\s*#2563eb/i);
-            assert.match(css, /--brand-primary-hover:\s*#1d4ed8/i);
-            assert.match(css, /--brand-light:\s*#60a5fa/i);
-            assert.match(css, /--brand-white:\s*#ffffff/i);
-            assert.match(css, /--accent:\s*var\(--brand-primary\)/);
-            assert.match(css, /--accent-hover:\s*var\(--brand-light\)/);
-          });
-
-          test("self-hosted Inter variable normal and italic assets plus OFL are present", () => {
-            for (const path of [`${interDir}/InterVariable.woff2`, `${interDir}/InterVariable-Italic.woff2`]) {
-              assert.equal(existsSync(path), true, `${path} should exist`);
-              assert.ok(statSync(path).size > 100_000, `${path} should contain a real WOFF2 font`);
-            }
-            const license = `${interDir}/OFL.txt`;
-            assert.equal(existsSync(license), true);
-            assert.match(read(license), /SIL OPEN FONT LICENSE Version 1\.1/);
-            assert.equal(existsSync("public/assets/fonts/lora"), false);
-            assert.equal(existsSync("public/assets/fonts/zalando-sans-semiexpanded"), false);
-          });
-
-          test("every static HTML page wires self-hosted Inter", () => {
-            const pages = htmlFiles("public");
-            assert.ok(pages.length > 1);
-            for (const path of pages) {
-              const html = read(path);
-              if (!html.includes('href="/styles.css"')) continue;
-              assert.match(html, /href="\/assets\/brand\/typography\.css"/i, path);
-              assert.match(html, /href="\/assets\/fonts\/inter\/InterVariable\.woff2"[^>]*as="font"/i, path);
-              assert.doesNotMatch(html, /fonts\.googleapis\.com|fonts\.gstatic\.com|Lora-Variable|ZalandoSans/i, path);
-            }
-          });
-
-          test("typography stylesheet has no runtime external font-provider dependency", () => {
-            const css = read(typographyPath);
-            assert.doesNotMatch(css, /https?:\/\//i);
-            assert.doesNotMatch(css, /Lora|Zalando Sans SemiExpanded/);
-          });
-          JS
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public docs/BRANDING.md tests/brand-typography.test.js
-          git commit -m "Adopt Inter as the single SautiLink font"
+          git add public/assets/fonts public/*.html public/tools/*.html
+          git commit -m "Vendor Inter font assets and update preloads"
           git push origin inter-single-font
