@@ -145,6 +145,11 @@
   - same-origin `/api/account/*` facade keeps access and refresh tokens in Secure, HttpOnly, SameSite cookies
   - owner-only profile RLS and anonymous profile-table access disabled
   - optional ecosystem email updates remain separate consent and default off
+  - reviewed Supabase Auth and security-notification templates are stored under `supabase/templates/` as the source of truth
+  - authentication/security email is owned by Supabase Auth and delivered through custom SMTP; application transactional email has a separate ZeptoMail API adapter
+  - post-verification account notice is scheduled with Pages `context.waitUntil()` and never blocks successful account verification
+  - product updates cannot use the transactional ZeptoMail API and still require explicit email opt-in plus a dedicated marketing-capable provider
+  - WhatsApp communication remains disabled until the current E.164 number has server-owned verification proof and explicit opt-in
   - anonymous Cloud Engine scans continue to work without an account
   - no scan history is silently persisted in this phase
   - Telegram feature work remains paused
@@ -167,10 +172,12 @@
   - save eligible signed-in scans with owner-only access and sanitized result snapshots
   - automatic 30-day expiry and deletion
   - anonymous scanning remains unsaved server-side
-- Phase 8K: Communications Foundation
-  - production transactional email configuration and account/security templates
-  - explicit communication preferences; promotional messaging remains separate from authentication mail
-- WhatsApp preferences and verified-number flow after the email/account foundation
+- Phase 8K: Communications Activation & Delivery Operations
+  - activate and live-verify ZeptoMail custom SMTP for hosted Supabase Auth using `noreply@sautilink.com`
+  - synchronize reviewed templates into hosted Supabase Auth and enable selected security notifications
+  - configure the server-only ZeptoMail API token and live-verify the post-verification transactional notice
+  - choose a dedicated marketing-capable provider before any ecosystem campaign delivery is enabled
+- WhatsApp provider and verified-number delivery flow after the email/account foundation
 - Redirect Chain Inspector after account/history foundations are stable
 - Web ↔ Telegram handoff — deferred until Telegram work resumes
   - short-lived signed handoff IDs; no raw secrets or arbitrary callback payloads
