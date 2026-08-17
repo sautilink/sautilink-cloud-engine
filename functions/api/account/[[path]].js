@@ -14,6 +14,12 @@ import {
 } from "../../../src/account/service.js";
 import { API_SECURITY_HEADERS } from "../../../src/utils/security.js";
 import { getRequestId } from "../../../src/utils/request.js";
+import {
+  COMMUNICATION_CLASSES,
+  communicationStatus,
+  sendTransactionalEmail,
+} from "../../../src/communications/index.js";
+import { accountVerifiedEmail } from "../../../src/communications/templates.js";
 
 const ACCESS_COOKIE = "sl_ce_access";
 const REFRESH_COOKIE = "sl_ce_refresh";
@@ -128,6 +134,23 @@ async function authenticatedSession(request, env) {
   };
 }
 
+function scheduleVerifiedAccountNotice(context, user, profileResult, env) {
+  if (!user?.email || profileResult?.ok !== true || profileResult?.existing === true) return;
+  const profile = Array.isArray(profileResult?.body) ? profileResult.body[0] || null : null;
+  const message = accountVerifiedEmail({
+    fullName: profile?.full_name || user?.user_metadata?.full_name,
+    username: profile?.username || user?.user_metadata?.username,
+  });
+  context.waitUntil(
+    sendTransactionalEmail({
+      messageClass: COMMUNICATION_CLASSES.TRANSACTIONAL,
+      to: user.email,
+      toName: profile?.full_name || user?.user_metadata?.full_name || "",
+      ...message,
+    }, env).catch(() => null)
+  );
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
   const requestId = getRequestId(request);
@@ -141,7 +164,16 @@ export async function onRequest(context) {
 
   if (route === "status" && method === "GET") {
     const status = accountServiceStatus(env);
-    return ok({ available: status.publicReady && status.adminReady }, requestId);
+    const communications = communicationStatus(env);
+    return ok({
+      available: status.publicReady && status.adminReady,
+      communications: {
+        authEmailTransport: communications.authEmailTransport,
+        transactionalEmailReady: communications.transactionalEmailReady,
+        whatsappReady: communications.whatsappReady,
+        marketingProviderConfigured: communications.marketingProviderConfigured,
+      },
+    }, requestId);
   }
 
   if (route === "username" && method === "GET") {
@@ -172,6 +204,7 @@ export async function onRequest(context) {
     }
     const profileReady = result.profile?.ok === true;
     const profileIssue = result.profile?.reason || null;
+    scheduleVerifiedAccountNotice(context, result.body?.user, result.profile, env);
     return ok({
       verified: true,
       profileReady,
@@ -235,6 +268,7 @@ export async function onRequest(context) {
     if (!result.ok) {
       return fail(result.reason === "username_taken" ? "USERNAME_TAKEN" : "PROFILE_SETUP_FAILED", result.message || "Unable to finish your profile.", result.status || 400, requestId, session.cookies);
     }
+    scheduleVerifiedAccountNotice(context, session.user, result, env);
     return ok({ profileReady: true }, requestId, 201, session.cookies);
   }
 
