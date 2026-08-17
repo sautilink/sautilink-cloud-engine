@@ -5,22 +5,24 @@ import { settingsMenuText } from "../src/telegram/menu.js";
 import { handleCommand } from "../src/telegram/commands.js";
 
 test("settings shows Telegram user and chat IDs in English", () => {
-  const text = settingsMenuText("en", { userId: 12345, chatId: 67890 });
+  const text = settingsMenuText("en", { userId: 12345, chatId: 67890 }, { reportDetail: "compact", developerMode: false });
   assert.match(text, /Account/);
   assert.match(text, /User ID: 12345/);
   assert.match(text, /Chat ID: 67890/);
   assert.match(text, /Personalisation/);
-  assert.match(text, /Status: Saved/);
+  assert.match(text, /Report detail: Compact/);
+  assert.match(text, /Developer Mode: Off/);
   assert.match(text, /Privacy/);
 });
 
 test("settings shows Telegram user and chat IDs in Kiswahili", () => {
-  const text = settingsMenuText("sw", { userId: 12345, chatId: 67890 });
+  const text = settingsMenuText("sw", { userId: 12345, chatId: 67890 }, { reportDetail: "detailed", developerMode: true });
   assert.match(text, /Akaunti/);
   assert.match(text, /User ID: 12345/);
   assert.match(text, /Chat ID: 67890/);
   assert.match(text, /Ubinafsishaji/);
-  assert.match(text, /Hali: Imehifadhiwa/);
+  assert.match(text, /Muundo wa report: Kina/);
+  assert.match(text, /Developer Mode: Imewashwa/);
   assert.match(text, /Faragha/);
 });
 
@@ -38,11 +40,12 @@ test("settings command passes live Telegram IDs into the settings view", async (
 
   assert.match(result.text, /User ID: 12345/);
   assert.match(result.text, /Chat ID: 67890/);
+  assert.match(result.text, /Muundo wa report: Fupi/);
   assert.equal(result.reply_markup.inline_keyboard[0][0].callback_data, "menu:lang");
 });
 
 test("settings privacy copy accurately describes durable preference data", () => {
-  const text = settingsMenuText("en", { userId: 12345, chatId: 67890 });
-  assert.match(text, /Telegram User ID as the preference key/i);
+  const text = settingsMenuText("en", { userId: 12345, chatId: 67890 }, { reportDetail: "detailed", developerMode: true });
+  assert.match(text, /stores your Telegram User ID with the preferences you choose/i);
   assert.match(text, /Chat ID and checked-site history are not stored/i);
 });
