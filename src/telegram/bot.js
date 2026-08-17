@@ -50,7 +50,10 @@ async function handleSettingsCallback(cq, config) {
 
   clearPending(chatId);
   const locale = resolveLocale({ chatId, languageCode: cq.from && cq.from.language_code });
-  const text = settingsMenuText(locale);
+  const text = settingsMenuText(locale, {
+    chatId,
+    userId: cq.from && cq.from.id,
+  });
   const extra = { reply_markup: settingsKeyboard(locale) };
   const messageId = message && message.message_id;
 
