@@ -6,22 +6,14 @@
 const UNSUPPORTED = /^(ftp|file|javascript|data|blob|ws|wss):/i;
 
 export function normalizeUrlArg(input) {
-  if (input == null || typeof input !== "string") {
-    return { ok: false, message: "Please provide a URL." };
-  }
+  if (input == null || typeof input !== "string") return { ok: false, message: "Please provide a URL." };
   let raw = input.trim();
   if (!raw) return { ok: false, message: "Please provide a URL." };
-  if (UNSUPPORTED.test(raw)) {
-    return { ok: false, message: "Only http and https URLs are supported." };
-  }
-  if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw)) {
-    raw = "https://" + raw;
-  }
+  if (UNSUPPORTED.test(raw)) return { ok: false, message: "Only http and https URLs are supported." };
+  if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw)) raw = "https://" + raw;
   try {
     const u = new URL(raw);
-    if (u.protocol !== "http:" && u.protocol !== "https:") {
-      return { ok: false, message: "Only http and https URLs are supported." };
-    }
+    if (u.protocol !== "http:" && u.protocol !== "https:") return { ok: false, message: "Only http and https URLs are supported." };
     return { ok: true, url: u.toString() };
   } catch {
     return { ok: false, message: "Please provide a valid URL." };
@@ -29,19 +21,10 @@ export function normalizeUrlArg(input) {
 }
 
 export function normalizeDomainArg(input) {
-  if (input == null || typeof input !== "string") {
-    return { ok: false, message: "Please provide a domain (e.g. example.com)." };
-  }
+  if (input == null || typeof input !== "string") return { ok: false, message: "Please provide a domain (e.g. example.com)." };
   const raw = input.trim();
-  if (!raw) {
-    return { ok: false, message: "Please provide a domain (e.g. example.com)." };
-  }
-  if (/:\/\//.test(raw) || /[/?#@\\]/.test(raw)) {
-    return {
-      ok: false,
-      message: "Please provide a domain, not a URL (e.g. example.com).",
-    };
-  }
+  if (!raw) return { ok: false, message: "Please provide a domain (e.g. example.com)." };
+  if (/:\/\//.test(raw) || /[/?#@\\]/.test(raw)) return { ok: false, message: "Please provide a domain, not a URL (e.g. example.com)." };
   return { ok: true, domain: raw };
 }
 
@@ -50,9 +33,8 @@ export function recoverAuditTargetFromMessage(text) {
   const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   for (let i = 0; i < Math.min(lines.length, 8); i++) {
     const line = lines[i];
-    if (line.startsWith("🔎") || line.toUpperCase().includes("WEBSITE AUDIT"))
-      continue;
-    if (line.startsWith("⭐") || line.startsWith("Overall:")) continue;
+    if (line.startsWith("🔎") || line.toUpperCase().includes("WEBSITE AUDIT") || line.toUpperCase().includes("UKAGUZI WA TOVUTI")) continue;
+    if (line.startsWith("⭐") || line.startsWith("Overall:") || line.startsWith("Alama ya Jumla:")) continue;
     if (line.startsWith("🌐 ")) {
       const host = line.slice(2).trim();
       const n = normalizeUrlArg(host);
@@ -71,60 +53,16 @@ export function recoverAuditTargetFromMessage(text) {
 }
 
 export const ALLOWED_CALLBACKS = new Set([
-  "menu:main",
-  "menu:website",
-  "menu:infrastructure",
-  "menu:about",
-  "menu:help",
-  "menu:status",
-  "nav:back",
-  "status:refresh",
-  "tool:audit",
-  "tool:website",
-  "tool:mobile",
-  "tool:headers",
-  "tool:ssl",
-  "tool:robots",
-  "tool:sitemap",
-  "tool:dns",
-  "tool:email",
-  "tool:http",
-  "audit:rerun",
-  "audit:security",
-  "audit:seo",
-  "audit:mobile",
-  "audit:email",
-  "audit:https",
-  "audit:summary",
-  "audit:priorities",
-  "audit:back",
-  "diag:security",
-  "diag:seo",
-  "diag:mobile",
-  "diag:email",
-  "diag:https",
-  "diag:dns",
-  "diag:robots",
-  "diag:sitemap",
-  "diag:audit",
-  "diag:back",
-  "diag:menu",
-  "result:rerun",
-  "result:fullaudit",
-  "result:another",
-  "result:back",
+  "menu:main", "menu:website", "menu:infrastructure", "menu:about", "menu:help", "menu:status", "menu:lang",
+  "nav:back", "status:refresh", "lang:en", "lang:sw",
+  "tool:audit", "tool:website", "tool:mobile", "tool:headers", "tool:ssl", "tool:robots", "tool:sitemap", "tool:dns", "tool:email", "tool:http",
+  "audit:rerun", "audit:security", "audit:seo", "audit:mobile", "audit:email", "audit:https", "audit:summary", "audit:priorities", "audit:back",
+  "diag:security", "diag:seo", "diag:mobile", "diag:email", "diag:https", "diag:dns", "diag:robots", "diag:sitemap", "diag:audit", "diag:back", "diag:menu",
+  "result:rerun", "result:fullaudit", "result:another", "result:back",
 ]);
 
 export const AUDIT_CALLBACKS = new Set([
-  "audit:rerun",
-  "audit:security",
-  "audit:seo",
-  "audit:mobile",
-  "audit:email",
-  "audit:https",
-  "audit:summary",
-  "audit:priorities",
-  "audit:back",
+  "audit:rerun", "audit:security", "audit:seo", "audit:mobile", "audit:email", "audit:https", "audit:summary", "audit:priorities", "audit:back",
 ]);
 
 export function parseCallbackAction(data) {
