@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cache &amp; Compression Inspector — SautiLink Cloud Engine</title>
+  <meta name="description" content="Inspect observed HTTP caching, validators, variation, range, and content-encoding response signals for a public URL." />
+  <link rel="canonical" href="https://cloudengine.sautilink.com/tools/cache" />
+  <meta name="theme-color" content="#0b0f19" />
+  <meta name="robots" content="index, follow" />
+  <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="preload" href="/assets/fonts/manrope/Manrope-Variable.woff2?v=1" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/brand/typography-manrope.css?v=1" />
+  <link rel="stylesheet" href="/tools/cache.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><div class="container header-inner"><a href="/" class="brand" aria-label="SautiLink Cloud Engine home"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><span class="brand-name">SautiLink</span><span class="brand-product">Cloud Engine</span></span></a><nav class="nav" aria-label="Primary"><a href="/" class="nav-link">Workspace</a><a href="/#tools" class="nav-link">Tools</a><a href="/tools/audit" class="nav-link">Full Audit</a></nav><div class="header-actions"><a href="/tools/headers" class="btn btn-secondary">HTTP Headers</a><button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></div></div></header>
+
+  <main id="main" class="cache-page"><div class="container cache-layout">
+    <header class="cache-header"><p class="eyebrow">Performance · Delivery policy signals</p><h1>Cache &amp; Compression Inspector</h1><p class="cache-lead">Inspect caching directives, freshness metadata, validators, representation variation, range support, and content-encoding signals observed from a public endpoint. Results describe this response only—they are not a synthetic performance benchmark.</p></header>
+
+    <form class="cache-form" id="cache-form" novalidate><label class="field-label" for="cache-url">Public URL</label><div class="cache-input-row"><input type="url" id="cache-url" name="url" placeholder="https://example.com" autocomplete="off" spellcheck="false" inputmode="url" required aria-describedby="cache-hint cache-error" /><button type="submit" class="btn btn-primary" id="cache-submit">Inspect delivery</button></div><p class="field-hint" id="cache-hint">Public HTTP/HTTPS only. Cloud Engine reuses the existing safe response probe and does not request private or local targets.</p><p class="field-error" id="cache-error" role="alert" hidden></p></form>
+
+    <div class="tool-status" id="cache-status" hidden aria-live="polite"></div>
+
+    <section class="cache-results" id="cache-results" hidden>
+      <article class="cache-card summary-card"><div><p class="result-kicker">Observed endpoint</p><h2><code id="result-url">—</code></h2><p class="summary-text" id="result-summary"></p></div><span class="state-badge" id="cache-badge">—</span></article>
+
+      <div class="verdict-grid">
+        <article class="cache-card"><p class="result-kicker">Caching</p><div class="verdict" id="cache-verdict"></div></article>
+        <article class="cache-card"><p class="result-kicker">Content encoding</p><div class="verdict" id="compression-verdict"></div></article>
+      </div>
+
+      <article class="cache-card"><div class="card-heading"><div><p class="result-kicker">Observed response metadata</p><h2>Delivery signals</h2></div><span class="card-note">No performance score</span></div><dl class="signal-grid" id="cache-grid"></dl></article>
+
+      <article class="cache-card"><div class="card-heading"><div><p class="result-kicker">Parsed directives</p><h2>Cache-Control</h2></div></div><div id="directive-list"></div></article>
+
+      <article class="cache-card"><div class="card-heading"><div><p class="result-kicker">Interpretation</p><h2>Review notes</h2></div></div><ul class="notes-list" id="review-notes"></ul><p class="section-note">A missing Content-Encoding value does not prove that every client receives an uncompressed response. Delivery can vary with negotiation, intermediaries, request headers, or platform behavior.</p></article>
+
+      <article class="cache-card"><p class="result-kicker">Continue investigating</p><div class="related-tools"><a class="btn btn-secondary" href="/tools/headers">HTTP Headers</a><a class="btn btn-secondary" href="/tools/server">Server Information</a><a class="btn btn-secondary" href="/tools/http-status">HTTP Status</a><a class="btn btn-secondary" href="/tools/audit">Full Audit</a></div></article>
+    </section>
+  </div></main>
+
+  <footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><span class="brand-name">SautiLink</span> Cloud Engine</div><p class="footer-note">A SautiLink Corporation product · cloudengine.sautilink.com</p><p class="footer-copy">&copy; <span id="year"></span> SautiLink Corporation.</p></div></footer>
+  <script type="module" src="/tools/cache.js"></script>
+</body>
+</html>
