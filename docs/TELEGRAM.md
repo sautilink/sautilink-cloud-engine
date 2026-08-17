@@ -108,3 +108,23 @@ Personalisation is applied consistently to direct commands, guided diagnostic ac
 The existing durable preference record is extended rather than creating a separate profile/history store. Telegram User ID remains the durable key. Chat ID and checked-site history remain non-durable.
 
 Cloud Engine analyzers, scoring, SSRF controls, and `/api/*` contracts remain unchanged.
+
+## Default Experience (Phase 7T)
+
+Users can choose what a normal `/start` opens:
+
+- **Main Menu (`main`)** — the existing branded home experience and the safe default.
+- **Quick Check (`quick`)** — immediately opens branded guided website target capture and arms the existing short-lived guided state.
+- **Tools Hub (`tools`)** — opens a SautiLink-owned tools launcher with Quick Check, Website Tools, Infrastructure, Settings, and Back.
+
+The setting is durable and stored in the existing preference record as `default_view`. Existing users receive `main` automatically; no migration requires user action.
+
+Fixed preference callbacks:
+
+- `pref:view:main`
+- `pref:view:quick`
+- `pref:view:tools`
+
+The Help menu may open the same Tools Hub through fixed callback `menu:tools`. No URL, Telegram ID, provider name, secret, or arbitrary value is placed in callback data.
+
+`default_view` affects presentation/navigation only. It does not change analyzers, scoring, authorization, SSRF validation, API routes, usage accounting, or stored browsing data.
