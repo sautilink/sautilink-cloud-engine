@@ -95,7 +95,7 @@ Phase 8C adds web-only productivity tools to the Full Audit workspace without cr
 
 ## Web ↔ Telegram bridge
 
-The signed handoff bridge remains planned, but implementation is deferred while Telegram feature work is intentionally paused. When Telegram development resumes, the bridge should use short-lived, signed or opaque handoff identifiers rather than placing raw diagnostic state or sensitive values in Telegram callback data.
+The signed handoff bridge remains planned, but implementation is deferred while Telegram feature work is intentionally paused. When Telegram development resumes, the bridge should use short-lived, signed handoff identifiers; an opaque representation may be used internally, but raw diagnostic state or sensitive values must never be placed in Telegram callback data.
 
 Proposed flow:
 
