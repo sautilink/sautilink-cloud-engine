@@ -129,7 +129,8 @@ export function resolveCommunicationPolicy({ messageClass, channel, profile } = 
   }
 
   if (selectedChannel === COMMUNICATION_CHANNELS.WHATSAPP) {
-    const verifiedNumber = typeof profile?.whatsapp_e164 === "string" && /^\+[1-9][0-9]{7,14}$/.test(profile.whatsapp_e164);
+    const validNumber = typeof profile?.whatsapp_e164 === "string" && /^\+[1-9][0-9]{7,14}$/.test(profile.whatsapp_e164);
+    const verifiedNumber = validNumber && Boolean(profile?.whatsapp_verified_at);
     if (!verifiedNumber) return { allowed: false, consentRequired: true, reason: "whatsapp_not_verified" };
     return profile?.whatsapp_updates === true
       ? { allowed: true, consentRequired: true, reason: "whatsapp_opt_in" }
