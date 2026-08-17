@@ -29,6 +29,9 @@ const SETTINGS_ACTIONS = new Set([
   "pref:detail:detailed",
   "pref:dev:off",
   "pref:dev:on",
+  "pref:view:main",
+  "pref:view:quick",
+  "pref:view:tools",
 ]);
 
 export async function processUpdate(update, config) {
@@ -95,6 +98,7 @@ async function handleSettingsCallback(cq, config) {
       locale,
       reportDetail: next.reportDetail,
       developerMode: next.developerMode,
+      defaultView: next.defaultView,
     }, env);
 
     if (saved) {
@@ -107,10 +111,7 @@ async function handleSettingsCallback(cq, config) {
 
   if (cqId) await answerCallbackQuery(config.token, cqId, callbackText);
 
-  const text = settingsMenuText(locale, {
-    chatId,
-    userId,
-  }, presentation);
+  const text = settingsMenuText(locale, { chatId, userId }, presentation);
   const extra = { reply_markup: settingsKeyboard(locale, presentation) };
   const messageId = message && message.message_id;
 
@@ -129,6 +130,9 @@ function settingsPreferencePatch(action) {
     case "pref:detail:detailed": return { reportDetail: "detailed" };
     case "pref:dev:off": return { developerMode: false };
     case "pref:dev:on": return { developerMode: true };
+    case "pref:view:main": return { defaultView: "main" };
+    case "pref:view:quick": return { defaultView: "quick" };
+    case "pref:view:tools": return { defaultView: "tools" };
     default: return null;
   }
 }
