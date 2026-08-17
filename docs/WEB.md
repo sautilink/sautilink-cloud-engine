@@ -39,6 +39,31 @@ Recent targets are stored only in browser `localStorage` under `sautilink.cloude
 - not part of the Telegram preference profile
 - failure or denial of local storage never blocks diagnostics
 
+## Phase 8B Full Audit workspace
+
+The Full Audit page is the primary detailed report surface for the web product. It presents the existing `/api/audit` response as an interactive workspace without adding extra analyzer calls when the user changes views or filters.
+
+The workspace includes:
+
+- unified score gauge, grade, audited target and execution summary
+- priority issue, recommendation, analyzer-health and duration metrics
+- category drill-down for Security, SEO, Mobile, Infrastructure, Email, HTTPS and Technical scoring
+- Overview, Findings, Recommendations and Analyzers report tabs
+- client-side finding severity filters for error, warning, info and success signals
+- category-scoped findings and recommendations using the categories already returned by `/api/audit`
+- analyzer status cards showing execution state, duration and sanitized analyzer error information
+- copyable audit URL that re-runs the same public target rather than storing a report snapshot
+- the same browser-local recent-target key used by the Phase 8A homepage
+- responsive layout optimized for desktop, tablet and small mobile screens
+
+### Phase 8B boundaries
+
+- changing category, report tab or severity filter performs no additional network request
+- the analyzer orchestrator, scoring model, category weights, SSRF checks, deadlines and API contract remain server-owned and unchanged
+- no report history or diagnostic snapshot is persisted server-side in Phase 8B
+- the copied audit link contains only the public target URL and causes a fresh audit when opened
+- analyzer errors shown in the web report are limited to target-facing error code/message data already returned by the audit API
+
 ## Web ↔ Telegram bridge
 
 A future bridge should use short-lived, signed handoff identifiers rather than placing raw diagnostic state or sensitive values in Telegram callback data.
