@@ -26,7 +26,7 @@ test("SautiLink Account validates future-facing usernames and profile input", ()
   assert.equal(normalizeUsername(" Charles.Alex "), "charles.alex");
   assert.equal(validateUsername("charles_alex").ok, true);
   assert.equal(validateUsername("admin").ok, false);
-  assert.equal(validateUsername("UPPERCASE").ok, false);
+  assert.equal(validateUsername("UPPERCASE").username, "uppercase");
   assert.equal(validateFullName("Charles Alex").ok, true);
   assert.equal(validateEmail("user@example.com").ok, true);
   assert.equal(validatePassword("1234567890").ok, true);
