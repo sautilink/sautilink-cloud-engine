@@ -41,49 +41,70 @@ Localization changes Telegram presentation only: menus, prompts, loading/errors,
 
 Callback data remains fixed and language-neutral. Language callbacks are only `menu:lang`, `lang:en`, and `lang:sw`.
 
-## Durable language preferences (Phase 7N)
+## Durable preferences (Phase 7N+)
 
-Explicit language choices are durable through Supabase while a bounded isolate-local cache keeps normal bot interactions fast.
+Explicit user choices are durable while bounded isolate-local caches keep normal bot interactions fast.
 
 Locale resolution order:
 
 1. Explicit isolate-local override for the chat, if present and not expired.
-2. Durable Supabase preference for the Telegram numeric user ID, if one exists.
+2. Durable preference for the Telegram numeric user ID, if one exists.
 3. Telegram `from.language_code`: `sw-*` → `sw`, `en-*` → `en`.
 4. English fallback for all other/missing values.
 
 Storage behavior:
 
-- Table: `public.telegram_user_preferences`
 - Durable key: Telegram numeric user ID
-- Stored preference: allowlisted locale (`en` or `sw`)
-- Metadata: `created_at` and `updated_at`
-- Isolate cache: max 500 entries, 5-minute TTL
-- Server access: `SUPABASE_URL` + `SUPABASE_SECRET_KEY`
-- Supabase timeout/network/config failures fail open to cached/Telegram/English fallback behavior
-- No usernames, display names, checked targets, diagnostic results, or browsing history are stored for language preferences
+- Stored preferences: allowlisted presentation choices only
+- Metadata: creation/update timestamps
+- Isolate caches: max 500 entries, 5-minute TTL
+- Server-side access only; preference storage is not exposed to Telegram clients
+- Timeout/network/config failures fail open to cached/default behavior
+- No usernames, display names, checked targets, diagnostic results, or browsing history are stored by the preference layer
 
-Phase 7N was live-verified by saving `/lang sw` to Supabase, redeploying production to clear isolate state, then confirming `/start` still opened in Kiswahili from the durable preference.
+Phase 7N was live-verified by saving a language choice, redeploying production to clear isolate state, then confirming `/start` still opened in the selected language from durable preference storage.
 
 ## Preference reliability and observability (Phase 7O)
 
-- Durable writes accept only strict persisted values `en` and `sw`.
-- Unexpected locale values are rejected before an outbound Supabase request.
+- Durable writes accept only strict allowlisted preference values.
+- Unexpected values are rejected before an outbound preference request.
 - Durable reads and writes emit sanitized structured operational events without secrets, user IDs, URLs, or payload bodies.
-- Supabase configuration/network/HTTP failures remain fail-open so Telegram and Cloud Engine checks continue working.
-- `/admin` reports only `Durable preferences: Active (Supabase)` or `Durable preferences: Fallback only` instead of detailed environment diagnostics.
-- Automated Node tests cover the preference store and isolate cache behavior.
+- Preference-storage failures remain fail-open so Telegram and Cloud Engine checks continue working.
+- `/admin` reports only a concise SautiLink-managed durable-preference status.
+- Automated Node tests cover the preference store and isolate caches.
 
-## Settings & Preferences (Phase 7P)
-
-Phase 7P introduces a user-facing preferences container without expanding the stored data model.
+## Settings & Preferences (Phase 7P–7Q)
 
 - `/settings` opens the Settings screen.
 - The main menu keeps the direct **Language / Lugha** shortcut and also adds **Settings / Mipangilio**.
-- Settings shows the currently active language and links to the existing language selector.
-- Language copy now reflects the verified durable behavior: the selected language is saved and remembered across bot sessions.
-- The new Settings callback is the fixed value `menu:settings`; it carries no user IDs, URLs, secrets, or preference values.
-- The Settings callback performs normal Telegram authorization before showing the screen and clears any pending guided-input state.
-- No new Supabase columns or tables are introduced in Phase 7P.
-- Settings is intentionally extensible so future preferences can be added without changing analyzer contracts or routing.
-- Cloud Engine analyzers, scoring, SSRF controls, and `/api/*` contracts remain unchanged.
+- Settings shows Telegram User ID and Chat ID, the active language, and privacy/personalisation context.
+- `/id` remains an optional shortcut.
+- The Settings callback is the fixed value `menu:settings`; it carries no user IDs, URLs, secrets, or arbitrary preference values.
+- Opening Settings clears pending guided-input state so later text is not accidentally treated as an earlier website target.
+- Chat ID and checked-site history are not persisted in the preference profile.
+
+## Personalisation v1 (Phase 7S)
+
+Two real presentation preferences are available:
+
+- **Report Detail**
+  - `Compact` — fewer findings/records for fast scanning.
+  - `Detailed` — more findings, recommendations, priorities, and DNS records within Telegram message limits.
+- **Developer Mode**
+  - `Off` — normal user-facing report presentation.
+  - `On` — adds target-facing technical metadata and machine finding codes where available.
+
+Defaults are **Compact + Developer Mode Off**.
+
+Fixed callback values:
+
+- `pref:detail:compact`
+- `pref:detail:detailed`
+- `pref:dev:off`
+- `pref:dev:on`
+
+Personalisation is applied consistently to direct commands, guided diagnostic actions, audit re-runs, summaries, priorities, and category views. Developer Mode is explicitly limited to information about the target being checked; it must not expose SautiLink infrastructure, providers, secrets, topology, or internal architecture.
+
+The existing durable preference record is extended rather than creating a separate profile/history store. Telegram User ID remains the durable key. Chat ID and checked-site history remain non-durable.
+
+Cloud Engine analyzers, scoring, SSRF controls, and `/api/*` contracts remain unchanged.
