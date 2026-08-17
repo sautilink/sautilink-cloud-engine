@@ -1,0 +1,105 @@
+name: Adopt Manrope Font
+
+on:
+  push:
+    branches: [cloudengine-manrope-font]
+    paths:
+      - ".github/workflows/adopt-manrope.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: cloudengine-manrope-font
+
+      - name: Vendor Manrope and update web typography
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --quiet fonttools brotli
+
+          rm -rf public/assets/fonts/inter public/assets/fonts/manrope
+          mkdir -p public/assets/fonts/manrope
+
+          curl -fL 'https://raw.githubusercontent.com/google/fonts/main/ofl/manrope/Manrope%5Bwght%5D.ttf' -o /tmp/Manrope-Variable.ttf
+          python -m fontTools.ttLib.woff2 compress /tmp/Manrope-Variable.ttf -o public/assets/fonts/manrope/Manrope-Variable.woff2
+          curl -fL 'https://raw.githubusercontent.com/google/fonts/main/ofl/manrope/OFL.txt' -o public/assets/fonts/manrope/OFL.txt
+
+          cat > public/assets/brand/typography.css <<'CSS'
+          /* SautiLink Cloud Engine typography — self-hosted Manrope. */
+          @font-face {
+            font-family: "Manrope";
+            src: url("/assets/fonts/manrope/Manrope-Variable.woff2") format("woff2");
+            font-style: normal;
+            font-weight: 200 800;
+            font-display: swap;
+          }
+
+          :root {
+            --brand-primary: #2563eb;
+            --brand-primary-hover: #1d4ed8;
+            --brand-light: #60a5fa;
+            --brand-white: #ffffff;
+            --font-primary: "Manrope", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            --font: var(--font-primary);
+
+            --accent: var(--brand-primary);
+            --accent-hover: var(--brand-light);
+            --accent-soft: rgba(37, 99, 235, 0.12);
+          }
+
+          html,
+          body,
+          button,
+          input,
+          textarea,
+          select,
+          .brand-name,
+          .brand-product,
+          .footer-brand,
+          .footer-note,
+          .footer-copy,
+          [data-brand-font] {
+            font-family: var(--font-primary);
+          }
+
+          ::selection {
+            background: var(--brand-light);
+            color: #0f172a;
+          }
+          CSS
+
+          python3 <<'PY'
+          from pathlib import Path
+
+          for path in Path("public").rglob("*.html"):
+              raw = path.read_bytes()
+              newline = "\r\n" if b"\r\n" in raw else "\n"
+              had_final = raw.endswith(b"\n")
+              lines = raw.decode("utf-8").splitlines()
+              lines = [
+                  line for line in lines
+                  if "/assets/fonts/inter/" not in line
+                  and "/assets/fonts/manrope/Manrope-Variable.woff2" not in line
+              ]
+              out = []
+              for line in lines:
+                  if '/assets/brand/typography.css' in line and 'rel="stylesheet"' in line:
+                      indent = line[:len(line)-len(line.lstrip())]
+                      out.append(indent + '<link rel="preload" href="/assets/fonts/manrope/Manrope-Variable.woff2" as="font" type="font/woff2" crossorigin>')
+                  out.append(line)
+              path.write_bytes((newline.join(out) + (newline if had_final else "")).encode("utf-8"))
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/assets public/*.html public/tools/*.html
+          git commit -m "Adopt Manrope as the Cloud Engine font"
+          git push origin cloudengine-manrope-font
