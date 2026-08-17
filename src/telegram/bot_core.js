@@ -1,21 +1,12 @@
 /**
- * Telegram processUpdate — restored Phase 7K + 7L result actions.
- * Full implementation: import chain from existing modules.
+ * Telegram processUpdate — Phase 7K/7L flows + Phase 7M localization.
  */
 
 import { parseCommand, KNOWN_COMMANDS } from "./router.js";
 import { handleCommand } from "./commands.js";
-import {
-  sendMessage,
-  editMessageText,
-  answerCallbackQuery,
-} from "./telegram.js";
+import { sendMessage, editMessageText, answerCallbackQuery } from "./telegram.js";
 import { callCloudEngine } from "./engine.js";
-import {
-  parseCallbackAction,
-  recoverAuditTargetFromMessage,
-  normalizeUrlArg,
-} from "./normalize.js";
+import { parseCallbackAction, recoverAuditTargetFromMessage, normalizeUrlArg } from "./normalize.js";
 import {
   formatAudit,
   formatAuditCategory,
@@ -46,6 +37,8 @@ import {
   helpMenuKeyboard,
   toolPromptKeyboard,
   guidedAuditKeyboard,
+  languageKeyboard,
+  languageMenuText,
   mainMenuText,
   websiteMenuText,
   infrastructureMenuText,
@@ -66,7 +59,6 @@ import {
   clearPending,
   parseGuidedAuditTarget,
   guidedAuditPromptText,
-  checkAnotherPromptText,
   diagnosticMenuText,
   diagnosticMenuKeyboard,
   diagnosticResultKeyboard,
@@ -75,8 +67,10 @@ import {
   looksLikeWebsiteAttempt,
   recoverDiagDisplayFromMessage,
   DIAG_ACTIONS,
+  diagnosticLabel,
 } from "./guided.js";
 import { handleResultAction } from "./result_actions.js";
+import { resolveLocale, setLocaleOverride, t } from "./i18n/index.js";
 
 export async function processUpdate(update, config) {
   const started = Date.now();
@@ -87,18 +81,18 @@ export async function processUpdate(update, config) {
     logTelegram({ event: "telegram_duplicate_skipped", correlation_id: correlationId, update_id: updateId, status: "skipped", duration_ms: Date.now() - started });
     return { handled: true, reason: "duplicate_update" };
   }
-  if (update.callback_query) {
-    return processCallback(update.callback_query, config, { correlationId, updateId, started });
-  }
+  if (update.callback_query) return processCallback(update.callback_query, config, { correlationId, updateId, started });
+
   const message = update.message || update.edited_message;
   if (!message || typeof message.text !== "string") return { handled: false, reason: "unsupported_update" };
   const chat = message.chat;
   const from = message.from;
   if (!chat || chat.id == null) return { handled: false, reason: "no_chat" };
   const env = config.env || {};
+  const locale = resolveLocale({ chatId: chat.id, languageCode: from && from.language_code });
   const auth = authorizeUser({ from, chat, env });
   if (!auth.allowed) {
-    await sendMessage(config.token, chat.id, "This command is not available for your account.");
+    await sendMessage(config.token, chat.id, t(locale, "error.denied"));
     return { handled: true, reason: "denied" };
   }
   const adminUser = auth.role === "admin" || isAdmin(from && from.id, env);
@@ -106,68 +100,59 @@ export async function processUpdate(update, config) {
   if (parsed) {
     clearPending(chat.id);
     if (!KNOWN_COMMANDS.has(parsed.rawCommand) && !KNOWN_COMMANDS.has(parsed.command)) {
-      await sendMessage(config.token, chat.id, "Unknown command. Try /help.");
+      await sendMessage(config.token, chat.id, t(locale, "error.unknown_command"));
       return { handled: true, command: parsed.command };
     }
-    return runCommandPath({ parsed, chat, from, config, env, adminUser, correlationId, updateId, started });
+    return runCommandPath({ parsed, chat, from, config, env, adminUser, locale, correlationId, updateId, started });
   }
-  if (peekPending(chat.id) === "audit") {
-    return runGuidedTargetCapture({ text: message.text, chat, config });
-  }
+  if (peekPending(chat.id) === "audit") return runGuidedTargetCapture({ text: message.text, chat, config, locale });
   if (looksLikeWebsiteAttempt(message.text)) {
-    await sendMessage(
-      config.token,
-      chat.id,
-      "To check a website, tap 🔎 Check a Website first, then send the address.\n\nOr use:\n/audit example.com",
-      { reply_markup: mainMenuKeyboard() }
-    );
+    await sendMessage(config.token, chat.id, t(locale, "guided.hint"), { reply_markup: mainMenuKeyboard(locale) });
     return { handled: true, reason: "guided_hint" };
   }
   return { handled: false, reason: "not_command" };
 }
 
-async function runGuidedTargetCapture({ text, chat, config }) {
-  const target = parseGuidedAuditTarget(text);
+async function runGuidedTargetCapture({ text, chat, config, locale }) {
+  const target = parseGuidedAuditTarget(text, locale);
   if (!target.ok) {
     setAwaitTarget(chat.id);
-    await sendMessage(config.token, chat.id, target.message, { reply_markup: guidedAuditKeyboard() });
+    await sendMessage(config.token, chat.id, target.message, { reply_markup: guidedAuditKeyboard(locale) });
     return { handled: true, reason: "guided_invalid" };
   }
   setDiagTarget(chat.id, target.url, target.display);
-  await sendMessage(config.token, chat.id, diagnosticMenuText(target.display), {
-    reply_markup: diagnosticMenuKeyboard(),
-  });
+  await sendMessage(config.token, chat.id, diagnosticMenuText(target.display, locale), { reply_markup: diagnosticMenuKeyboard(locale) });
   return { handled: true, reason: "diag_menu" };
 }
 
-async function runCommandPath({ parsed, chat, from, config, env, adminUser, correlationId, updateId, started }) {
+async function runCommandPath({ parsed, chat, from, config, env, adminUser, locale, correlationId, updateId, started }) {
   const usage = checkUsage({ chatId: chat.id, userId: from && from.id, commandOrAction: parsed.command, isAdminUser: adminUser, env });
   if (!usage.allowed) {
-    await sendMessage(config.token, chat.id, formatUsageLimitMessage());
+    await sendMessage(config.token, chat.id, formatUsageLimitMessage(locale));
     return { handled: true, command: parsed.command, reason: "usage_limited" };
   }
   const cool = checkCooldown(chat.id, parsed.command, { isAdminUser: adminUser });
   if (cool.blocked) {
-    await sendMessage(config.token, chat.id, "🚦 Temporarily rate-limited. Please try again shortly.");
+    await sendMessage(config.token, chat.id, t(locale, "error.rate"));
     return { handled: true, command: parsed.command, reason: "cooldown" };
   }
   const slow = new Set(["audit", "email", "website", "mobile", "ssl", "headers", "sitemap", "robots", "http", "dns"]);
   let pendingId = null;
   if (slow.has(parsed.command) && parsed.arg) {
     if (parsed.command === "audit" && !tryBeginAudit(chat.id)) {
-      await sendMessage(config.token, chat.id, "⏳ An audit is already running. Please wait for the current result.");
+      await sendMessage(config.token, chat.id, t(locale, "error.audit_running"));
       return { handled: true, command: "audit", reason: "inflight" };
     }
-    const pending = await sendMessage(config.token, chat.id, "⏳ Checking… please wait.");
+    const pending = await sendMessage(config.token, chat.id, t(locale, "loading.checking"));
     if (pending.ok && pending.result && pending.result.message_id != null) pendingId = pending.result.message_id;
   }
   let result;
   try {
-    result = await handleCommand({ command: parsed.command, arg: parsed.arg, chat, from }, config);
+    result = await handleCommand({ command: parsed.command, arg: parsed.arg, chat, from, locale }, config);
   } finally {
     if (parsed.command === "audit") endAudit(chat.id);
   }
-  const text = result.text || "No response.";
+  const text = result.text || t(locale, "error.no_response");
   const extra = {};
   if (result.reply_markup) extra.reply_markup = result.reply_markup;
   if (pendingId != null) {
@@ -176,13 +161,13 @@ async function runCommandPath({ parsed, chat, from, config, env, adminUser, corr
   } else {
     await sendMessage(config.token, chat.id, text, extra);
   }
-  logTelegram({ event: "telegram_command", correlation_id: correlationId, update_id: updateId, command: parsed.command, cost_class: usage.cost, usage_allowed: true, chat_id: chat.id, status: "ok", duration_ms: Date.now() - started });
+  logTelegram({ event: "telegram_command", correlation_id: correlationId, update_id: updateId, command: parsed.command, cost_class: usage.cost, usage_allowed: true, locale, chat_id: chat.id, status: "ok", duration_ms: Date.now() - started });
   return { handled: true, command: parsed.command };
 }
 
 function resolveDiagTarget(chatId, messageText) {
-  let t = getDiagTarget(chatId);
-  if (t) return t;
+  let target = getDiagTarget(chatId);
+  if (target) return target;
   const display = recoverDiagDisplayFromMessage(messageText);
   if (display) {
     const n = normalizeUrlArg(display);
@@ -197,7 +182,7 @@ function resolveDiagTarget(chatId, messageText) {
       const host = new URL(recovered).hostname || recovered;
       setDiagTarget(chatId, recovered, host);
       return { url: recovered, display: host };
-    } catch { /* */ }
+    } catch { /* no-op */ }
   }
   return null;
 }
@@ -214,259 +199,234 @@ function buildQuery(meta, target) {
         u.hash = "";
         sitemapUrl = u.toString();
       }
-    } catch { /* */ }
+    } catch { /* no-op */ }
     return { url: sitemapUrl };
   }
   return { url: target.url };
 }
 
-function formatDiagResult(action, data) {
+function formatDiagResult(action, data, locale) {
   switch (action) {
-    case "diag:security": return formatHeaders(data);
-    case "diag:seo": return formatWebsite(data);
-    case "diag:mobile": return formatMobile(data);
-    case "diag:email": return formatEmail(data);
-    case "diag:https": return formatSsl(data);
-    case "diag:dns": return formatDns(data);
-    case "diag:robots": return formatRobots(data);
-    case "diag:sitemap": return formatSitemap(data);
-    case "diag:audit": return formatAudit(data);
-    default: return "Result received.";
+    case "diag:security": return formatHeaders(data, locale);
+    case "diag:seo": return formatWebsite(data, locale);
+    case "diag:mobile": return formatMobile(data, locale);
+    case "diag:email": return formatEmail(data, locale);
+    case "diag:https": return formatSsl(data, locale);
+    case "diag:dns": return formatDns(data, locale);
+    case "diag:robots": return formatRobots(data, locale);
+    case "diag:sitemap": return formatSitemap(data, locale);
+    case "diag:audit": return formatAudit(data, locale);
+    default: return t(locale, "error.no_response");
   }
 }
 
-async function runDiagnosticAction({ action, chatId, messageId, messageText, from, config, env, adminUser, meta }) {
+async function runDiagnosticAction({ action, chatId, messageId, messageText, from, config, env, adminUser, meta, locale = "en" }) {
   const target = resolveDiagTarget(chatId, messageText);
   if (!target) {
-    await sendMessage(config.token, chatId, expiredGuidedMessage(), { reply_markup: mainMenuKeyboard() });
-    return logCb(meta, action, chatId, "expired");
+    await sendMessage(config.token, chatId, expiredGuidedMessage(locale), { reply_markup: mainMenuKeyboard(locale) });
+    return logCb(meta, action, chatId, "expired", locale);
   }
   const toolMeta = DIAG_ACTIONS[action];
-  if (!toolMeta) return logCb(meta, action, chatId, "unknown");
+  if (!toolMeta) return logCb(meta, action, chatId, "unknown", locale);
+  const label = diagnosticLabel(action, locale);
   const cool = checkCooldown(chatId, toolMeta.command, { isAdminUser: adminUser });
   if (cool.blocked) {
-    await sendMessage(config.token, chatId, "🚦 Temporarily rate-limited. Please try again shortly.");
-    return logCb(meta, action, chatId, "cooldown");
+    await sendMessage(config.token, chatId, t(locale, "error.rate"));
+    return logCb(meta, action, chatId, "cooldown", locale);
   }
   if (action === "diag:audit" && !tryBeginAudit(chatId)) {
-    await sendMessage(config.token, chatId, "⏳ An audit is already running. Please wait for the current result.");
-    return logCb(meta, action, chatId, "inflight");
+    await sendMessage(config.token, chatId, t(locale, "error.audit_running"));
+    return logCb(meta, action, chatId, "inflight", locale);
   }
-  if (messageId != null) {
-    await editMessageText(config.token, chatId, messageId, `⏳ ${toolMeta.label} · ${target.display}…`);
-  } else {
-    await sendMessage(config.token, chatId, `⏳ ${toolMeta.label} · ${target.display}…`);
-  }
+  const loading = t(locale, "loading.diag", { label, host: target.display });
+  if (messageId != null) await editMessageText(config.token, chatId, messageId, loading);
+  else await sendMessage(config.token, chatId, loading);
+
   try {
-    const result = await callCloudEngine(
-      config.cloudEngineBaseUrl,
-      toolMeta.path,
-      buildQuery(toolMeta, target)
-    );
+    const result = await callCloudEngine(config.cloudEngineBaseUrl, toolMeta.path, buildQuery(toolMeta, target));
     let text;
-    let extra = { reply_markup: diagnosticResultKeyboard() };
+    let extra = { reply_markup: diagnosticResultKeyboard(locale) };
     if (!result.ok) {
       const code = result.error && result.error.code;
-      const timedOut =
-        code === "ENGINE_TIMEOUT" || code === "REQUEST_TIMEOUT";
-      text = timedOut
-        ? `⚠️ ${toolMeta.label} check timed out or failed.\nPlease try again.`
-        : formatEngineError(result.error);
-      extra = { reply_markup: diagnosticFailKeyboard() };
+      const timedOut = code === "ENGINE_TIMEOUT" || code === "REQUEST_TIMEOUT";
+      text = timedOut ? t(locale, "error.diag_failed", { label }) : formatEngineError(result.error, locale);
+      extra = { reply_markup: diagnosticFailKeyboard(locale) };
     } else {
       try {
-        text = formatDiagResult(action, result.data || {});
+        text = formatDiagResult(action, result.data || {}, locale);
       } catch {
-        text = `⚠️ ${toolMeta.label} check timed out or failed.\nPlease try again.`;
-        extra = { reply_markup: diagnosticFailKeyboard() };
+        text = t(locale, "error.diag_failed", { label });
+        extra = { reply_markup: diagnosticFailKeyboard(locale) };
       }
-      if (action === "diag:audit" && result.ok) {
-        extra = { reply_markup: auditKeyboard() };
-      }
+      if (action === "diag:audit") extra = { reply_markup: auditKeyboard(locale) };
     }
     setLastDiagAction(chatId, action);
     refreshDiagTarget(chatId);
     if (messageId != null) {
-      const ed = await editMessageText(
-        config.token,
-        chatId,
-        messageId,
-        text,
-        extra
-      );
+      const ed = await editMessageText(config.token, chatId, messageId, text, extra);
       if (!ed.ok) await sendMessage(config.token, chatId, text, extra);
-    } else {
-      await sendMessage(config.token, chatId, text, extra);
-    }
+    } else await sendMessage(config.token, chatId, text, extra);
   } catch {
-    const text = `⚠️ ${toolMeta.label} check timed out or failed.\nPlease try again.`;
-    const extra = { reply_markup: diagnosticFailKeyboard() };
+    const text = t(locale, "error.diag_failed", { label });
+    const extra = { reply_markup: diagnosticFailKeyboard(locale) };
     setLastDiagAction(chatId, action);
     refreshDiagTarget(chatId);
     if (messageId != null) {
-      const ed = await editMessageText(
-        config.token,
-        chatId,
-        messageId,
-        text,
-        extra
-      );
+      const ed = await editMessageText(config.token, chatId, messageId, text, extra);
       if (!ed.ok) await sendMessage(config.token, chatId, text, extra);
-    } else {
-      await sendMessage(config.token, chatId, text, extra);
-    }
+    } else await sendMessage(config.token, chatId, text, extra);
   } finally {
     if (action === "diag:audit") endAudit(chatId);
   }
-  return logCb(meta, action, chatId);
+  return logCb(meta, action, chatId, "ok", locale);
 }
 
 async function processCallback(cq, config, meta) {
   const cqId = cq && cq.id;
   if (cqId) await answerCallbackQuery(config.token, cqId);
   const env = config.env || {};
-  const auth = authorizeUser({ from: cq.from, chat: cq.message && cq.message.chat, env });
+  const msg = cq && cq.message;
+  const chatId = msg && msg.chat && msg.chat.id;
+  const locale = resolveLocale({ chatId, languageCode: cq && cq.from && cq.from.language_code });
+  const auth = authorizeUser({ from: cq.from, chat: msg && msg.chat, env });
   if (!auth.allowed) return { handled: true, reason: "denied" };
   const action = parseCallbackAction(cq && cq.data);
   if (!action) {
-    if (cqId) await answerCallbackQuery(config.token, cqId, "Unknown action");
+    if (cqId) await answerCallbackQuery(config.token, cqId, t(locale, "error.unknown_action"));
     return { handled: true, reason: "unknown_callback" };
   }
-  const msg = cq.message;
-  const chatId = msg && msg.chat && msg.chat.id;
   const messageId = msg && msg.message_id;
   if (chatId == null) return { handled: true, reason: "no_chat" };
   const adminUser = auth.role === "admin" || isAdmin(cq.from && cq.from.id, env);
   if (action.startsWith("menu:") || action === "nav:back") clearPending(chatId);
   const usage = checkUsage({ chatId, userId: cq.from && cq.from.id, commandOrAction: action, isAdminUser: adminUser, env });
   if (!usage.allowed) {
-    await sendMessage(config.token, chatId, formatUsageLimitMessage());
-    return logCb(meta, action, chatId, "limited");
+    await sendMessage(config.token, chatId, formatUsageLimitMessage(locale));
+    return logCb(meta, action, chatId, "limited", locale);
+  }
+
+  if (action === "lang:en" || action === "lang:sw") {
+    const selected = action.slice(5);
+    const nextLocale = setLocaleOverride(chatId, selected);
+    const text = [t(nextLocale, selected === "sw" ? "lang.changed_sw" : "lang.changed_en"), "", mainMenuText(nextLocale)].join("\n");
+    await safeEditOrSend(config.token, chatId, messageId, text, mainMenuKeyboard(nextLocale));
+    return logCb(meta, action, chatId, "ok", nextLocale);
+  }
+  if (action === "menu:lang") {
+    await safeEditOrSend(config.token, chatId, messageId, languageMenuText(locale), languageKeyboard(locale));
+    return logCb(meta, action, chatId, "ok", locale);
   }
   if (action === "menu:main" || action === "nav:back") {
-    await safeEditOrSend(config.token, chatId, messageId, mainMenuText(), mainMenuKeyboard());
-    return logCb(meta, action, chatId);
+    await safeEditOrSend(config.token, chatId, messageId, mainMenuText(locale), mainMenuKeyboard(locale));
+    return logCb(meta, action, chatId, "ok", locale);
   }
   if (action === "menu:website") {
-    await safeEditOrSend(config.token, chatId, messageId, websiteMenuText(), websiteMenuKeyboard());
-    return logCb(meta, action, chatId);
+    await safeEditOrSend(config.token, chatId, messageId, websiteMenuText(locale), websiteMenuKeyboard(locale));
+    return logCb(meta, action, chatId, "ok", locale);
   }
   if (action === "menu:infrastructure") {
-    await safeEditOrSend(config.token, chatId, messageId, infrastructureMenuText(), infrastructureMenuKeyboard());
-    return logCb(meta, action, chatId);
+    await safeEditOrSend(config.token, chatId, messageId, infrastructureMenuText(locale), infrastructureMenuKeyboard(locale));
+    return logCb(meta, action, chatId, "ok", locale);
   }
   if (action === "menu:about") {
-    await safeEditOrSend(config.token, chatId, messageId, formatAbout(), backToMainKeyboard());
-    return logCb(meta, action, chatId);
+    await safeEditOrSend(config.token, chatId, messageId, formatAbout(locale), backToMainKeyboard(locale));
+    return logCb(meta, action, chatId, "ok", locale);
   }
   if (action === "menu:help") {
-    await safeEditOrSend(config.token, chatId, messageId, formatHelp(), helpMenuKeyboard());
-    return logCb(meta, action, chatId);
+    await safeEditOrSend(config.token, chatId, messageId, formatHelp(locale), helpMenuKeyboard(locale));
+    return logCb(meta, action, chatId, "ok", locale);
   }
   if (action === "menu:status" || action === "status:refresh") {
     const result = await callCloudEngine(config.cloudEngineBaseUrl, "/api/health", {});
-    await safeEditOrSend(config.token, chatId, messageId, formatStatus(result.ok, result.data), statusKeyboard());
-    return logCb(meta, action, chatId);
+    await safeEditOrSend(config.token, chatId, messageId, formatStatus(result.ok, result.data, locale), statusKeyboard(locale));
+    return logCb(meta, action, chatId, "ok", locale);
   }
-  const resultHandled = await handleResultAction({
-    action, chatId, messageId, messageText: msg && msg.text, config,
-    resolveDiagTarget, runDiagnosticAction, safeEditOrSend, logCb, meta,
-    from: cq.from, env, adminUser,
-  });
+
+  const resultHandled = await handleResultAction({ action, chatId, messageId, messageText: msg && msg.text, config, resolveDiagTarget, runDiagnosticAction, safeEditOrSend, logCb, meta, from: cq.from, env, adminUser, locale });
   if (resultHandled) return resultHandled;
+
   if (action === "tool:audit") {
     setAwaitTarget(chatId);
-    await safeEditOrSend(config.token, chatId, messageId, guidedAuditPromptText(), guidedAuditKeyboard());
-    return logCb(meta, action, chatId);
+    await safeEditOrSend(config.token, chatId, messageId, guidedAuditPromptText(locale), guidedAuditKeyboard(locale));
+    return logCb(meta, action, chatId, "ok", locale);
   }
   if (action === "diag:back") {
     clearPending(chatId);
-    await safeEditOrSend(config.token, chatId, messageId, mainMenuText(), mainMenuKeyboard());
-    return logCb(meta, action, chatId);
+    await safeEditOrSend(config.token, chatId, messageId, mainMenuText(locale), mainMenuKeyboard(locale));
+    return logCb(meta, action, chatId, "ok", locale);
   }
   if (action === "diag:menu") {
     const target = resolveDiagTarget(chatId, msg && msg.text);
     if (!target) {
-      await sendMessage(config.token, chatId, expiredGuidedMessage(), { reply_markup: mainMenuKeyboard() });
-      return logCb(meta, action, chatId, "expired");
+      await sendMessage(config.token, chatId, expiredGuidedMessage(locale), { reply_markup: mainMenuKeyboard(locale) });
+      return logCb(meta, action, chatId, "expired", locale);
     }
     refreshDiagTarget(chatId);
-    await safeEditOrSend(config.token, chatId, messageId, diagnosticMenuText(target.display), diagnosticMenuKeyboard());
-    return logCb(meta, action, chatId);
+    await safeEditOrSend(config.token, chatId, messageId, diagnosticMenuText(target.display, locale), diagnosticMenuKeyboard(locale));
+    return logCb(meta, action, chatId, "ok", locale);
   }
   if (action.startsWith("diag:") && DIAG_ACTIONS[action]) {
-    return runDiagnosticAction({ action, chatId, messageId, messageText: msg && msg.text, from: cq.from, config, env, adminUser, meta });
+    return runDiagnosticAction({ action, chatId, messageId, messageText: msg && msg.text, from: cq.from, config, env, adminUser, meta, locale });
   }
   if (action.startsWith("tool:")) {
     const tool = action.slice(5);
-    const prompt = toolPrompt(tool);
+    const prompt = toolPrompt(tool, locale);
     if (!prompt) return { handled: true, reason: "unknown_tool" };
     clearPending(chatId);
-    await safeEditOrSend(config.token, chatId, messageId, prompt.text, toolPromptKeyboard(prompt.parent));
-    return logCb(meta, action, chatId);
+    await safeEditOrSend(config.token, chatId, messageId, prompt.text, toolPromptKeyboard(prompt.parent, locale));
+    return logCb(meta, action, chatId, "ok", locale);
   }
   if (!action.startsWith("audit:")) return { handled: true, reason: "unhandled_callback" };
+
   const target = recoverAuditTargetFromMessage(msg && msg.text);
   if (!target) {
-    await sendMessage(config.token, chatId, "Could not recover the audited site from this message. Please run /audit <url> again.");
+    await sendMessage(config.token, chatId, t(locale, "error.recover_audit"));
     return { handled: true, action };
   }
-  async function fetchAudit() {
-    return callCloudEngine(config.cloudEngineBaseUrl, "/api/audit", { url: target });
-  }
+  async function fetchAudit() { return callCloudEngine(config.cloudEngineBaseUrl, "/api/audit", { url: target }); }
+
   if (action === "audit:rerun" || action === "audit:back") {
     if (action === "audit:rerun" && !tryBeginAudit(chatId)) {
-      if (cqId) await answerCallbackQuery(config.token, cqId, "Audit already running");
+      if (cqId) await answerCallbackQuery(config.token, cqId, t(locale, "error.audit_running"));
       return { handled: true, action, reason: "inflight" };
     }
     try {
-      if (messageId != null) {
-        await editMessageText(config.token, chatId, messageId, action === "audit:rerun" ? "🔄 Re-running audit…" : "⏳ Loading audit…");
-      }
+      if (messageId != null) await editMessageText(config.token, chatId, messageId, action === "audit:rerun" ? t(locale, "loading.rerun") : t(locale, "loading.audit"));
       const result = await fetchAudit();
       let text;
       let extra = {};
-      if (!result.ok) {
-        text =
-          result.error && (result.error.code === "ENGINE_TIMEOUT" || result.error.code === "REQUEST_TIMEOUT")
-            ? formatTimeout()
-            : formatEngineError(result.error);
-      } else {
-        text = formatAudit(result.data || {});
-        extra = { reply_markup: auditKeyboard() };
+      if (!result.ok) text = result.error && (result.error.code === "ENGINE_TIMEOUT" || result.error.code === "REQUEST_TIMEOUT") ? formatTimeout(locale) : formatEngineError(result.error, locale);
+      else {
+        text = formatAudit(result.data || {}, locale);
+        extra = { reply_markup: auditKeyboard(locale) };
       }
       if (messageId != null) {
         const ed = await editMessageText(config.token, chatId, messageId, text, extra);
         if (!ed.ok) await sendMessage(config.token, chatId, text, extra);
-      } else {
-        await sendMessage(config.token, chatId, text, extra);
-      }
+      } else await sendMessage(config.token, chatId, text, extra);
     } finally {
       if (action === "audit:rerun") endAudit(chatId);
     }
-    return logCb(meta, action, chatId);
+    return logCb(meta, action, chatId, "ok", locale);
   }
+
   const result = await fetchAudit();
   if (!result.ok) {
-    await sendMessage(
-      config.token,
-      chatId,
-      result.error && result.error.code === "ENGINE_TIMEOUT" ? formatTimeout() : formatEngineError(result.error)
-    );
+    await sendMessage(config.token, chatId, result.error && result.error.code === "ENGINE_TIMEOUT" ? formatTimeout(locale) : formatEngineError(result.error, locale));
     return { handled: true, action };
   }
   const data = result.data || {};
   let text;
-  if (action === "audit:summary") text = formatAuditSummaryView(data);
-  else if (action === "audit:priorities") text = formatAuditPrioritiesView(data);
+  if (action === "audit:summary") text = formatAuditSummaryView(data, locale);
+  else if (action === "audit:priorities") text = formatAuditPrioritiesView(data, locale);
   else {
     const map = { "audit:security": "security", "audit:seo": "seo", "audit:mobile": "mobile", "audit:email": "email", "audit:https": "https" };
     const key = map[action];
     if (!key) return { handled: true, reason: "unknown_audit_action" };
-    text = formatAuditCategory(data, key);
+    text = formatAuditCategory(data, key, locale);
   }
-  await safeEditOrSend(config.token, chatId, messageId, text, auditDetailKeyboard());
-  return logCb(meta, action, chatId);
+  await safeEditOrSend(config.token, chatId, messageId, text, auditDetailKeyboard(locale));
+  return logCb(meta, action, chatId, "ok", locale);
 }
 
 async function safeEditOrSend(token, chatId, messageId, text, reply_markup) {
@@ -478,15 +438,7 @@ async function safeEditOrSend(token, chatId, messageId, text, reply_markup) {
   await sendMessage(token, chatId, text, extra);
 }
 
-function logCb(meta, action, chatId, status = "ok") {
-  logTelegram({
-    event: "telegram_callback",
-    correlation_id: meta.correlationId,
-    update_id: meta.updateId,
-    callback_action: action,
-    chat_id: chatId,
-    status,
-    duration_ms: Date.now() - meta.started,
-  });
+function logCb(meta, action, chatId, status = "ok", locale = "en") {
+  logTelegram({ event: "telegram_callback", correlation_id: meta.correlationId, update_id: meta.updateId, callback_action: action, locale, chat_id: chatId, status, duration_ms: Date.now() - meta.started });
   return { handled: true, action };
 }
