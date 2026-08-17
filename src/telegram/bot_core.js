@@ -71,6 +71,7 @@ import {
 } from "./guided.js";
 import { handleResultAction } from "./result_actions.js";
 import { resolveLocale, setLocaleOverride, t } from "./i18n/index.js";
+import { getPresentationPreferences } from "./personalisation.js";
 
 export async function processUpdate(update, config) {
   const started = Date.now();
@@ -205,17 +206,17 @@ function buildQuery(meta, target) {
   return { url: target.url };
 }
 
-function formatDiagResult(action, data, locale) {
+function formatDiagResult(action, data, locale, presentation = {}) {
   switch (action) {
-    case "diag:security": return formatHeaders(data, locale);
-    case "diag:seo": return formatWebsite(data, locale);
-    case "diag:mobile": return formatMobile(data, locale);
-    case "diag:email": return formatEmail(data, locale);
-    case "diag:https": return formatSsl(data, locale);
-    case "diag:dns": return formatDns(data, locale);
-    case "diag:robots": return formatRobots(data, locale);
-    case "diag:sitemap": return formatSitemap(data, locale);
-    case "diag:audit": return formatAudit(data, locale);
+    case "diag:security": return formatHeaders(data, locale, presentation);
+    case "diag:seo": return formatWebsite(data, locale, presentation);
+    case "diag:mobile": return formatMobile(data, locale, presentation);
+    case "diag:email": return formatEmail(data, locale, presentation);
+    case "diag:https": return formatSsl(data, locale, presentation);
+    case "diag:dns": return formatDns(data, locale, presentation);
+    case "diag:robots": return formatRobots(data, locale, presentation);
+    case "diag:sitemap": return formatSitemap(data, locale, presentation);
+    case "diag:audit": return formatAudit(data, locale, presentation);
     default: return t(locale, "error.no_response");
   }
 }
@@ -253,7 +254,8 @@ async function runDiagnosticAction({ action, chatId, messageId, messageText, fro
       extra = { reply_markup: diagnosticFailKeyboard(locale) };
     } else {
       try {
-        text = formatDiagResult(action, result.data || {}, locale);
+        const presentation = getPresentationPreferences(from && from.id);
+        text = formatDiagResult(action, result.data || {}, locale, presentation);
       } catch {
         text = t(locale, "error.diag_failed", { label });
         extra = { reply_markup: diagnosticFailKeyboard(locale) };
@@ -288,6 +290,7 @@ async function processCallback(cq, config, meta) {
   const msg = cq && cq.message;
   const chatId = msg && msg.chat && msg.chat.id;
   const locale = resolveLocale({ chatId, languageCode: cq && cq.from && cq.from.language_code });
+  const presentation = getPresentationPreferences(cq && cq.from && cq.from.id);
   const auth = authorizeUser({ from: cq.from, chat: msg && msg.chat, env });
   if (!auth.allowed) return { handled: true, reason: "denied" };
   const action = parseCallbackAction(cq && cq.data);
@@ -397,7 +400,7 @@ async function processCallback(cq, config, meta) {
       let extra = {};
       if (!result.ok) text = result.error && (result.error.code === "ENGINE_TIMEOUT" || result.error.code === "REQUEST_TIMEOUT") ? formatTimeout(locale) : formatEngineError(result.error, locale);
       else {
-        text = formatAudit(result.data || {}, locale);
+        text = formatAudit(result.data || {}, locale, presentation);
         extra = { reply_markup: auditKeyboard(locale) };
       }
       if (messageId != null) {
@@ -417,13 +420,13 @@ async function processCallback(cq, config, meta) {
   }
   const data = result.data || {};
   let text;
-  if (action === "audit:summary") text = formatAuditSummaryView(data, locale);
-  else if (action === "audit:priorities") text = formatAuditPrioritiesView(data, locale);
+  if (action === "audit:summary") text = formatAuditSummaryView(data, locale, presentation);
+  else if (action === "audit:priorities") text = formatAuditPrioritiesView(data, locale, presentation);
   else {
     const map = { "audit:security": "security", "audit:seo": "seo", "audit:mobile": "mobile", "audit:email": "email", "audit:https": "https" };
     const key = map[action];
     if (!key) return { handled: true, reason: "unknown_audit_action" };
-    text = formatAuditCategory(data, key, locale);
+    text = formatAuditCategory(data, key, locale, presentation);
   }
   await safeEditOrSend(config.token, chatId, messageId, text, auditDetailKeyboard(locale));
   return logCb(meta, action, chatId, "ok", locale);

@@ -5,15 +5,15 @@
 - Phase 7K: Guided diagnostics over existing Cloud Engine APIs
 - Phase 7L: Result actions (Re-run, Full Audit, Check Another, Back) + guided SEO fail-safe hotfix
 - Phase 7M: Telegram English/Kiswahili localization — live verified
-- Phase 7N: Durable Telegram language preferences with Supabase — live verified
-  - explicit language choice persists across Cloudflare isolate changes/redeploys
+- Phase 7N: Durable Telegram language preferences — live verified
+  - explicit language choice persists across runtime changes/redeploys
   - Telegram numeric user ID is the durable preference key
-  - bounded 5-minute isolate cache reduces database reads
+  - bounded 5-minute isolate cache reduces durable-store reads
   - Telegram `language_code` + English remain safe fallbacks
-  - Supabase reads/writes fail open and never block Cloud Engine checks
-  - server-side `SUPABASE_SECRET_KEY` only; no secret in clients/callbacks/logs
-  - `telegram_user_preferences` is RLS-enabled and inaccessible to anon/authenticated roles
-  - live write confirmed in Supabase and live read confirmed after production redeploy
+  - preference failures fail open and never block Cloud Engine checks
+  - server-side secret only; no secret in clients/callbacks/logs
+  - durable preference table is RLS-enabled and inaccessible to public application roles
+  - live write and live read confirmed after production redeploy
   - no analyzer, scoring, SSRF, or `/api/*` contract changes
 - Phase 7O: Telegram preference reliability and observability — live verified
   - sanitized structured logging for durable preference reads/writes
@@ -36,17 +36,28 @@
   - checked-site history is not stored in the preference profile
   - no new database tables or columns
   - no analyzer, scoring, SSRF, or `/api/*` contract changes
+- Phase 7R: SautiLink-first corporate branding and public architecture abstraction
+  - SautiLink Cloud Engine presents as a SautiLink Corporation product
+  - third-party infrastructure/provider branding removed from normal Telegram UX
+  - provider-specific operational copy replaced with SautiLink-owned wording
+  - architecture/integration enquiries directed to SautiLink Corporation
+  - branding policy and automated vendor-name regression checks added
+  - open technical standards remain visible where useful (DNS, HTTP, HTTPS, SSL/TLS, SPF, DMARC, DKIM, etc.)
+  - no analyzer, scoring, SSRF, or `/api/*` contract changes
 
 ## In progress
-- Phase 7R: SautiLink-first corporate branding and public architecture abstraction
-  - present SautiLink Cloud Engine as a SautiLink Corporation product
-  - remove third-party infrastructure/provider branding from normal Telegram UX
-  - replace provider-specific operational copy with SautiLink-owned wording
-  - direct architecture/integration enquiries to SautiLink Corporation
-  - add a durable branding policy for future public surfaces
-  - add automated regression checks against vendor-name leaks in start/about/settings/admin output
-  - keep open technical standards visible where useful (DNS, HTTP, HTTPS, SSL/TLS, SPF, DMARC, DKIM, etc.)
+- Phase 7S: Personalisation v1
+  - durable Report Detail preference: `compact` or `detailed`
+  - durable Developer Mode preference: `off` or `on`
+  - defaults remain conservative: Compact + Developer Mode Off
+  - Settings exposes fixed allowlisted callbacks only; no preference values are accepted from arbitrary callback payloads
+  - Compact reduces findings/records shown; Detailed expands findings, recommendations, and DNS records within Telegram limits
+  - Developer Mode adds target-facing technical metadata and machine finding codes only
+  - Developer Mode must never expose SautiLink infrastructure, vendors, secrets, internal topology, or architecture
+  - presentation preferences use a bounded 5-minute per-user isolate cache plus durable fallback
+  - Telegram User ID remains the durable key; Chat ID and checked-site history are not persisted in the preference profile
+  - existing preference storage is extended; no new user/profile/history table is created
   - no analyzer, scoring, SSRF, or `/api/*` contract changes
 
 ## Future
-- Phase 7S+: additional real personalisation preferences only when they have user-visible behavior and a clear persistence/privacy model
+- Phase 7T+: default landing experience and additional personalisation only when each option has real user-visible behavior and a clear persistence/privacy model

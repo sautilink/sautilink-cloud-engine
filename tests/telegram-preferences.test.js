@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 import {
   preferenceStorageStatus,
   readLocalePreference,
+  readUserPreferences,
   writeLocalePreference,
+  writePresentationPreferences,
 } from "../src/telegram/preferences.js";
 
 const goodEnv = {
@@ -37,10 +39,11 @@ test("read fails open without configuration and does not fetch", async () => {
     throw new Error("should not fetch");
   };
   assert.equal(await readLocalePreference(123, {}), null);
+  assert.equal(await readUserPreferences(123, {}), null);
   assert.equal(called, false);
 });
 
-test("invalid user id never reaches Supabase", async () => {
+test("invalid user id never reaches durable storage", async () => {
   let called = false;
   globalThis.fetch = async () => {
     called = true;
@@ -48,33 +51,55 @@ test("invalid user id never reaches Supabase", async () => {
   };
   assert.equal(await readLocalePreference("abc", goodEnv), null);
   assert.equal(await writeLocalePreference("abc", "sw", goodEnv), false);
+  assert.equal(await writePresentationPreferences("abc", { locale: "sw", reportDetail: "compact", developerMode: false }, goodEnv), false);
   assert.equal(called, false);
 });
 
-test("read returns allowlisted durable locale", async () => {
+test("read returns durable locale and personalisation profile", async () => {
   globalThis.fetch = async (url, options) => {
     assert.match(String(url), /telegram_user_id=eq\.123/);
+    assert.match(String(url), /select=locale,report_detail,developer_mode/);
     assert.equal(options.method, "GET");
     assert.equal(options.headers.apikey, goodEnv.SUPABASE_SECRET_KEY);
     assert.equal(options.headers.Authorization, undefined);
-    return new Response(JSON.stringify([{ locale: "sw" }]), {
+    return new Response(JSON.stringify([{
+      locale: "sw",
+      report_detail: "detailed",
+      developer_mode: true,
+    }]), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   };
-  assert.equal(await readLocalePreference(123, goodEnv), "sw");
+
+  assert.deepEqual(await readUserPreferences(123, goodEnv), {
+    locale: "sw",
+    reportDetail: "detailed",
+    developerMode: true,
+  });
 });
 
-test("read rejects unexpected stored locale", async () => {
+test("legacy locale helper still returns allowlisted durable locale", async () => {
   globalThis.fetch = async () =>
-    new Response(JSON.stringify([{ locale: "fr" }]), {
+    new Response(JSON.stringify([{ locale: "sw" }]), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
+  assert.equal(await readLocalePreference(123, goodEnv), "sw");
+});
+
+test("read rejects unexpected stored locale while using safe presentation defaults", async () => {
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify([{ locale: "fr", report_detail: "bad", developer_mode: "yes" }]), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  const profile = await readUserPreferences(123, goodEnv);
+  assert.deepEqual(profile, { locale: null, reportDetail: "compact", developerMode: false });
   assert.equal(await readLocalePreference(123, goodEnv), null);
 });
 
-test("write upserts only strict en/sw values", async () => {
+test("locale write upserts only strict en/sw values", async () => {
   let calls = 0;
   globalThis.fetch = async (url, options) => {
     calls += 1;
@@ -92,6 +117,47 @@ test("write upserts only strict en/sw values", async () => {
   assert.equal(calls, 1);
 });
 
+test("personalisation write upserts strict full preference values", async () => {
+  let calls = 0;
+  globalThis.fetch = async (url, options) => {
+    calls += 1;
+    assert.match(String(url), /on_conflict=telegram_user_id/);
+    const body = JSON.parse(options.body);
+    assert.deepEqual(
+      {
+        telegram_user_id: body.telegram_user_id,
+        locale: body.locale,
+        report_detail: body.report_detail,
+        developer_mode: body.developer_mode,
+      },
+      {
+        telegram_user_id: "123",
+        locale: "en",
+        report_detail: "detailed",
+        developer_mode: true,
+      }
+    );
+    return new Response(null, { status: 204 });
+  };
+
+  assert.equal(await writePresentationPreferences(123, {
+    locale: "en",
+    reportDetail: "detailed",
+    developerMode: true,
+  }, goodEnv), true);
+  assert.equal(await writePresentationPreferences(123, {
+    locale: "en",
+    reportDetail: "verbose",
+    developerMode: true,
+  }, goodEnv), false);
+  assert.equal(await writePresentationPreferences(123, {
+    locale: "en",
+    reportDetail: "compact",
+    developerMode: "yes",
+  }, goodEnv), false);
+  assert.equal(calls, 1);
+});
+
 test("network failure fails open without leaking secret in logs", async () => {
   const logs = [];
   console.log = (line) => logs.push(String(line));
@@ -99,11 +165,17 @@ test("network failure fails open without leaking secret in logs", async () => {
     throw new Error(`do not leak ${goodEnv.SUPABASE_SECRET_KEY}`);
   };
 
-  assert.equal(await readLocalePreference(123, goodEnv), null);
+  assert.equal(await readUserPreferences(123, goodEnv), null);
   assert.equal(await writeLocalePreference(123, "en", goodEnv), false);
+  assert.equal(await writePresentationPreferences(123, {
+    locale: "en",
+    reportDetail: "compact",
+    developerMode: false,
+  }, goodEnv), false);
 
   const joined = logs.join("\n");
   assert.doesNotMatch(joined, /sb_secret_test_only/);
-  assert.match(joined, /telegram_preference_read/);
+  assert.match(joined, /telegram_preference_profile_read/);
   assert.match(joined, /telegram_preference_write/);
+  assert.match(joined, /telegram_personalisation_write/);
 });

@@ -37,20 +37,44 @@ export function languageMenuText(locale = "en") {
   return [t(locale, "lang.title"), "", t(locale, "lang.prompt"), "", t(locale, "lang.note")].join("\n");
 }
 
-export function settingsKeyboard(locale = "en") {
+export function settingsKeyboard(locale = "en", preferences = {}) {
+  const sw = locale === "sw";
+  const reportDetail = preferences.reportDetail === "detailed" ? "detailed" : "compact";
+  const developerMode = preferences.developerMode === true;
+  const compact = `${reportDetail === "compact" ? "✅ " : ""}📄 ${sw ? "Fupi" : "Compact"}`;
+  const detailed = `${reportDetail === "detailed" ? "✅ " : ""}📑 ${sw ? "Kina" : "Detailed"}`;
+  const devOff = `${!developerMode ? "✅ " : ""}🧑‍💻 Dev Off`;
+  const devOn = `${developerMode ? "✅ " : ""}🧑‍💻 Dev On`;
+
   return {
     inline_keyboard: [
       [{ text: t(locale, "menu.language"), callback_data: "menu:lang" }],
+      [
+        { text: compact, callback_data: "pref:detail:compact" },
+        { text: detailed, callback_data: "pref:detail:detailed" },
+      ],
+      [
+        { text: devOff, callback_data: "pref:dev:off" },
+        { text: devOn, callback_data: "pref:dev:on" },
+      ],
       [{ text: t(locale, "menu.back"), callback_data: "menu:main" }],
     ],
   };
 }
 
-export function settingsMenuText(locale = "en", profile = {}) {
+export function settingsMenuText(locale = "en", profile = {}, preferences = {}) {
   const currentLanguage = t(locale, locale === "sw" ? "lang.swahili" : "lang.english");
   const userId = profile.userId != null ? String(profile.userId) : t(locale, "report.unavailable");
   const chatId = profile.chatId != null ? String(profile.chatId) : t(locale, "report.unavailable");
   const sw = locale === "sw";
+  const reportDetail = preferences.reportDetail === "detailed" ? "detailed" : "compact";
+  const developerMode = preferences.developerMode === true;
+  const reportLabel = sw
+    ? (reportDetail === "detailed" ? "Kina" : "Fupi")
+    : (reportDetail === "detailed" ? "Detailed" : "Compact");
+  const devLabel = sw
+    ? (developerMode ? "Imewashwa" : "Imezimwa")
+    : (developerMode ? "On" : "Off");
 
   return [
     t(locale, "settings.title"),
@@ -63,12 +87,16 @@ export function settingsMenuText(locale = "en", profile = {}) {
     "",
     sw ? "🎛 Ubinafsishaji" : "🎛 Personalisation",
     t(locale, "settings.current_language", { language: currentLanguage }),
-    sw ? "• Hali: Imehifadhiwa" : "• Status: Saved",
+    `${sw ? "• Muundo wa report" : "• Report detail"}: ${reportLabel}`,
+    `• Developer Mode: ${devLabel}`,
+    sw
+      ? "• Developer Mode huonyesha technical details zaidi za target unayokagua; haiwezi kuonyesha architecture ya SautiLink."
+      : "• Developer Mode shows extra technical details about the target you check; it does not expose SautiLink architecture.",
     "",
     sw ? "🔒 Faragha" : "🔒 Privacy",
     sw
-      ? "• SautiLink Corporation huhifadhi Telegram User ID kama kitambulisho cha preference pamoja na lugha. Chat ID na historia ya tovuti ulizokagua hazihifadhiwi kwenye preference profile."
-      : "• SautiLink Corporation stores your Telegram User ID as the preference key together with your language. Chat ID and checked-site history are not stored in the preference profile.",
+      ? "• SautiLink Corporation huhifadhi Telegram User ID pamoja na preferences ulizochagua. Chat ID na historia ya tovuti ulizokagua hazihifadhiwi kwenye preference profile."
+      : "• SautiLink Corporation stores your Telegram User ID with the preferences you choose. Chat ID and checked-site history are not stored in the preference profile.",
     "",
     sw ? "🏢 SautiLink Cloud Engine ni sehemu ya SautiLink Corporation · sautilink.com" : "🏢 SautiLink Cloud Engine is part of SautiLink Corporation · sautilink.com",
     "",

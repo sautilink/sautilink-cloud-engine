@@ -7,11 +7,29 @@ import {
   resolveLocale,
   setLocaleOverride,
 } from "./i18n/index.js";
-import { readLocalePreference, writeLocalePreference } from "./preferences.js";
+import {
+  readUserPreferences,
+  writeLocalePreference,
+  writePresentationPreferences,
+} from "./preferences.js";
+import {
+  getPresentationPreferences,
+  hasPresentationPreferences,
+  presentationDefaults,
+  setPresentationPreferences,
+} from "./personalisation.js";
 import { answerCallbackQuery, editMessageText, sendMessage } from "./telegram.js";
 import { settingsKeyboard, settingsMenuText } from "./menu.js";
 import { authorizeUser } from "./authz.js";
 import { clearPending } from "./guided.js";
+
+const SETTINGS_ACTIONS = new Set([
+  "menu:settings",
+  "pref:detail:compact",
+  "pref:detail:detailed",
+  "pref:dev:off",
+  "pref:dev:on",
+]);
 
 export async function processUpdate(update, config) {
   const env = (config && config.env) || {};
@@ -19,16 +37,27 @@ export async function processUpdate(update, config) {
 
   if (identity.chatId != null) {
     const selected = explicitLocaleChoice(update);
+    const needsLocale = !getLocaleOverride(identity.chatId);
+    const needsPresentation = identity.userId != null && !hasPresentationPreferences(identity.userId);
+
     if (selected) {
       setLocaleOverride(identity.chatId, selected);
       if (identity.userId != null) await writeLocalePreference(identity.userId, selected, env);
-    } else if (!getLocaleOverride(identity.chatId) && identity.userId != null) {
-      const durable = await readLocalePreference(identity.userId, env);
-      if (durable) setLocaleOverride(identity.chatId, durable);
+    }
+
+    if (identity.userId != null && (needsPresentation || (!selected && needsLocale))) {
+      const durable = await readUserPreferences(identity.userId, env);
+      if (durable) {
+        if (!selected && needsLocale && durable.locale) setLocaleOverride(identity.chatId, durable.locale);
+        if (needsPresentation) setPresentationPreferences(identity.userId, durable);
+      } else if (needsPresentation) {
+        setPresentationPreferences(identity.userId, presentationDefaults());
+      }
     }
   }
 
-  if (update && update.callback_query && update.callback_query.data === "menu:settings") {
+  const callbackAction = update && update.callback_query && update.callback_query.data;
+  if (SETTINGS_ACTIONS.has(callbackAction)) {
     return handleSettingsCallback(update.callback_query, config);
   }
 
@@ -37,33 +66,71 @@ export async function processUpdate(update, config) {
 
 async function handleSettingsCallback(cq, config) {
   const cqId = cq && cq.id;
-  if (cqId) await answerCallbackQuery(config.token, cqId);
-
   const message = cq && cq.message;
   const chat = message && message.chat;
   const chatId = chat && chat.id;
-  if (chatId == null) return { handled: true, reason: "no_chat" };
+  if (chatId == null) {
+    if (cqId) await answerCallbackQuery(config.token, cqId);
+    return { handled: true, reason: "no_chat" };
+  }
 
   const env = (config && config.env) || {};
   const auth = authorizeUser({ from: cq.from, chat, env });
-  if (!auth.allowed) return { handled: true, reason: "denied" };
+  if (!auth.allowed) {
+    if (cqId) await answerCallbackQuery(config.token, cqId);
+    return { handled: true, reason: "denied" };
+  }
 
   clearPending(chatId);
+  const userId = cq.from && cq.from.id;
   const locale = resolveLocale({ chatId, languageCode: cq.from && cq.from.language_code });
+  const action = cq && cq.data;
+  let presentation = getPresentationPreferences(userId);
+  let callbackText = null;
+
+  const patch = settingsPreferencePatch(action);
+  if (patch) {
+    const next = { ...presentation, ...patch };
+    const saved = userId != null && await writePresentationPreferences(userId, {
+      locale,
+      reportDetail: next.reportDetail,
+      developerMode: next.developerMode,
+    }, env);
+
+    if (saved) {
+      presentation = setPresentationPreferences(userId, next);
+      callbackText = locale === "sw" ? "✅ Mpangilio umehifadhiwa." : "✅ Preference saved.";
+    } else {
+      callbackText = locale === "sw" ? "⚠️ Haikuweza kuhifadhi mpangilio. Jaribu tena." : "⚠️ Could not save the preference. Try again.";
+    }
+  }
+
+  if (cqId) await answerCallbackQuery(config.token, cqId, callbackText);
+
   const text = settingsMenuText(locale, {
     chatId,
-    userId: cq.from && cq.from.id,
-  });
-  const extra = { reply_markup: settingsKeyboard(locale) };
+    userId,
+  }, presentation);
+  const extra = { reply_markup: settingsKeyboard(locale, presentation) };
   const messageId = message && message.message_id;
 
   if (messageId != null) {
     const edited = await editMessageText(config.token, chatId, messageId, text, extra);
-    if (edited.ok) return { handled: true, action: "menu:settings" };
+    if (edited.ok) return { handled: true, action };
   }
 
   await sendMessage(config.token, chatId, text, extra);
-  return { handled: true, action: "menu:settings" };
+  return { handled: true, action };
+}
+
+function settingsPreferencePatch(action) {
+  switch (action) {
+    case "pref:detail:compact": return { reportDetail: "compact" };
+    case "pref:detail:detailed": return { reportDetail: "detailed" };
+    case "pref:dev:off": return { developerMode: false };
+    case "pref:dev:on": return { developerMode: true };
+    default: return null;
+  }
 }
 
 function extractIdentity(update) {
