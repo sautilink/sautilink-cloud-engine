@@ -41,7 +41,7 @@ export async function handleCommand(ctx, config) {
     case "help": return { text: formatHelp(locale), reply_markup: helpMenuKeyboard(locale) };
     case "about": return { text: formatAbout(locale) };
     case "id": return { text: formatId(chat, from, locale) };
-    case "settings": return { text: settingsMenuText(locale), reply_markup: settingsKeyboard(locale) };
+    case "settings": return { text: settingsMenuText(locale, { chatId: chat && chat.id, userId: from && from.id }), reply_markup: settingsKeyboard(locale) };
     case "lang": {
       if (!arg) return { text: languageMenuText(locale), reply_markup: languageKeyboard(locale) };
       const selected = parseLocaleChoice(arg);
