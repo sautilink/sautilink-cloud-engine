@@ -1,6 +1,15 @@
 const RECENTS_KEY = "sautilink.cloudengine.recentTargets.v1";
 const MAX_RECENTS = 5;
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function normalizeTarget(value) {
   const raw = String(value || "").trim();
   if (!raw) return "";
@@ -55,7 +64,12 @@ function downloadBlob(content, type, filename) {
 }
 
 function csvCell(value) {
-  const text = String(value ?? "");
+  let text = String(value ?? "");
+  // Prevent spreadsheet formula execution when user-controlled text is opened
+  // in Excel/Sheets/LibreOffice. Numeric values remain numeric.
+  if (typeof value === "string" && /^[\t\r\n ]*[=+\-@]/.test(text)) {
+    text = `'${text}`;
+  }
   return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
@@ -181,10 +195,10 @@ function renderComparison(primary, secondary) {
     const delta = av != null && bv != null ? bv - av : null;
     const label = key === "seo" ? "SEO" : key === "https" ? "HTTPS" : `${key.charAt(0).toUpperCase()}${key.slice(1)}`;
     return `<tr>
-      <td>${label}</td>
-      <td class="compare-value">${scoreText(av)}${a?.grade ? ` · ${a.grade}` : ""}</td>
-      <td class="compare-value">${scoreText(bv)}${b?.grade ? ` · ${b.grade}` : ""}</td>
-      <td class="compare-delta ${deltaClass(delta)}">${deltaText(delta)}</td>
+      <td>${escapeHtml(label)}</td>
+      <td class="compare-value">${escapeHtml(scoreText(av))}${a?.grade ? ` · ${escapeHtml(a.grade)}` : ""}</td>
+      <td class="compare-value">${escapeHtml(scoreText(bv))}${b?.grade ? ` · ${escapeHtml(b.grade)}` : ""}</td>
+      <td class="compare-delta ${deltaClass(delta)}">${escapeHtml(deltaText(delta))}</td>
     </tr>`;
   }).join("");
 
