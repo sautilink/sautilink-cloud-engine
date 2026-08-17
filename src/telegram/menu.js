@@ -14,8 +14,9 @@ export function mainMenuKeyboard(locale = "en") {
       ],
       [
         { text: t(locale, "menu.language"), callback_data: "menu:lang" },
-        { text: t(locale, "menu.help"), callback_data: "menu:help" },
+        { text: t(locale, "menu.settings"), callback_data: "menu:settings" },
       ],
+      [{ text: t(locale, "menu.help"), callback_data: "menu:help" }],
     ],
   };
 }
@@ -34,6 +35,28 @@ export function languageKeyboard(locale = "en") {
 
 export function languageMenuText(locale = "en") {
   return [t(locale, "lang.title"), "", t(locale, "lang.prompt"), "", t(locale, "lang.note")].join("\n");
+}
+
+export function settingsKeyboard(locale = "en") {
+  return {
+    inline_keyboard: [
+      [{ text: t(locale, "menu.language"), callback_data: "menu:lang" }],
+      [{ text: t(locale, "menu.back"), callback_data: "menu:main" }],
+    ],
+  };
+}
+
+export function settingsMenuText(locale = "en") {
+  const currentLanguage = t(locale, locale === "sw" ? "lang.swahili" : "lang.english");
+  return [
+    t(locale, "settings.title"),
+    "",
+    t(locale, "settings.body"),
+    "",
+    t(locale, "settings.current_language", { language: currentLanguage }),
+    "",
+    t(locale, "settings.choose"),
+  ].join("\n");
 }
 
 export function websiteMenuKeyboard(locale = "en") {
