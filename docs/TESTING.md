@@ -5,115 +5,96 @@
 - cost registry: every public command has cost cheap|expensive
 - under limit → allowed; at limit → rejected; admin → bypass
 - max tracked chats bounded
-- language/menu callbacks remain cheap
+- language/menu/settings callbacks remain cheap
 
-## Phase 7M localization
+## Localization regression
 
-Offline checks should cover:
+Offline checks cover:
 
 - `resolveLocale`: `en`, `en-US`, `sw`, `sw-TZ`, other/missing → English fallback
 - explicit choices: `en`, `english`, `sw`, `swahili`, `kiswahili`
 - invalid `/lang` input does not change locale
 - missing Kiswahili key falls back to English
 - interpolation preserves technical values
-- `menu:lang`, `lang:en`, `lang:sw` are allowlisted
 - existing `audit:*`, `diag:*`, `result:*`, `tool:*`, `menu:*` callbacks remain valid
-- English and Kiswahili menus use identical callback_data
 - guided invalid inputs remain rejected in both languages
 - audit/domain recovery still works with English and Kiswahili report headings
-- usage/cooldown/dedup/admin/in-flight mechanics are unchanged
+- usage/cooldown/dedup/admin/in-flight mechanics remain unchanged
 
-## Live Telegram smoke for Phase 7M
+## Durable preference regression
 
-After deployment:
+Focused checks cover:
 
-1. `/lang sw` then `/start`, `/help`, `/about`, `/status`
-2. Language menu → English → verify main menu returns to English
-3. Language menu → Kiswahili → Check a Website → `example.com`
-4. Run SEO, DNS, and Full Audit; verify localized chrome and unchanged technical values
-5. Test Summary, Priorities, category view, Re-run, Back, Check Another
-6. Test invalid URL/protocol messaging in Kiswahili
-7. Switch back with `/lang en` and repeat a basic audit
+- missing/invalid server-side durable-store configuration → bot falls back safely
+- valid Telegram numeric user ID → durable preference read/write path allowed
+- invalid/non-numeric user ID → no durable request
+- invalid locale/report-detail/developer-mode values never reach durable storage
+- durable read hydrates locale and presentation caches
+- timeout/network/HTTP failure → bot remains usable
+- caches remain bounded to 500 entries and expire after 5 minutes
+- no credential value appears in callback data, user-visible output, or logs
 
-## Phase 7N durable preferences
+## Settings regression
 
-Focused checks should cover:
+The Settings suite covers:
 
-- missing `SUPABASE_URL` or `SUPABASE_SECRET_KEY` → preference storage reports not configured and bot falls back safely
-- malformed Supabase URL or secret format → no outbound preference request
-- valid Telegram numeric user ID + `en`/`sw` → durable read/write path allowed
-- invalid/non-numeric user ID → no database request
-- invalid locale input never reaches durable storage
-- read with no matching row → Telegram `language_code`, then English fallback
-- read success → durable locale hydrates the isolate cache
-- write success → explicit `/lang` choice is upserted by Telegram user ID
-- timeout/network/HTTP failure → bot remains usable and explicit local choice still applies in the current isolate
-- cache remains bounded to 500 entries and expires after 5 minutes
-- no secret value appears in callback data, user-visible output, or logs
+- `/settings` remains a cheap general command
+- `menu:settings` is fixed and allowlisted while arbitrary suffixes are rejected
+- the main menu retains direct Language access and Settings
+- Settings shows Telegram User ID and Chat ID
+- Settings shows active English/Kiswahili locale
+- privacy copy does not claim Chat ID or checked-site history is persisted
+- public Settings output remains SautiLink-branded and vendor-neutral
 
-## Live Telegram smoke for Phase 7N
+## Phase 7S personalisation tests
 
-Production validation completed:
+Automated tests cover:
 
-1. Cloudflare runtime confirmed `SUPABASE_URL` and `SUPABASE_SECRET_KEY` were present and valid via admin boolean-only diagnostics.
-2. `/lang sw` returned the Kiswahili UI.
-3. Supabase row was confirmed with the Telegram numeric user ID and `locale = 'sw'`.
-4. Production was redeployed to clear isolate-local preference state.
-5. Without sending `/lang sw` again, `/start` opened directly in Kiswahili, confirming durable read/hydration from Supabase.
-6. Language menu remained available and functional.
+- default presentation = Compact + Developer Mode Off
+- personalisation cache hydration/update/expiry/500-entry bound
+- fixed allowlisted callbacks:
+  - `pref:detail:compact`
+  - `pref:detail:detailed`
+  - `pref:dev:off`
+  - `pref:dev:on`
+- arbitrary callback suffixes are rejected
+- durable profile read maps locale, report detail, and developer mode correctly
+- durable personalisation writes require strict full values
+- Detailed mode returns more DNS records/findings/recommendations than Compact
+- Developer Mode adds target-facing technical metadata and machine finding codes
+- Developer Mode output remains free of infrastructure-vendor branding
+- audit Compact/Detailed modes use different item limits
+- Settings callback integration persists the new value before updating the local cache/UI
 
-## Phase 7O automated preference tests
-
-Run:
+Run the Node suite with:
 
 ```bash
 npm test
 ```
 
-The Node test suite covers:
+The connected execution environment used during Phase 7S cannot resolve GitHub from the local container, so local clone-based execution is not treated as a validation signal. Branch/PR deployment plus live Telegram smoke are required before marking the phase live verified.
 
-- preference configuration readiness
-- fail-open behavior when Supabase is not configured
-- invalid Telegram user IDs never reaching Supabase
-- allowlisted durable locale reads
-- rejection of unexpected stored locales
-- strict `en`/`sw` write allowlist and upsert request shape
-- network failure fallback with secret-leak assertion
-- isolate cache precedence while fresh
-- 5-minute cache expiry fallback
-- 500-entry cache bound
-
-The Phase 7O implementation was validated locally with 10/10 automated tests passing before PR creation.
-
-## Phase 7P settings tests
-
-The settings regression suite covers:
-
-- `/settings` is registered as a cheap general command
-- `menu:settings` is fixed and allowlisted while arbitrary suffixes are rejected
-- the main menu retains direct Language access and adds Settings
-- Settings shows the active English/Kiswahili locale
-- Settings links only to the fixed language selector and Back callbacks
-- Language menu copy describes durable saved behavior instead of the old temporary-state wording
-
-A dependency-light local Node smoke passed 6/6 Phase 7P settings checks before PR creation.
-
-### Live Telegram smoke for Phase 7P
+## Live Telegram smoke for Phase 7S
 
 After production deployment:
 
-1. `/start` → verify both **Language/Lugha** and **Settings/Mipangilio** are visible.
-2. Tap **Settings/Mipangilio** → verify the current language is shown correctly.
-3. Tap Language inside Settings → switch English/Kiswahili → verify the main menu returns in the selected language.
-4. Send `/settings` → verify it opens the same localized Settings screen.
-5. Redeploy production, then `/settings` again → verify the previously selected language is still remembered.
-6. `/admin` → verify `Durable preferences: Active (Supabase)` remains concise.
-7. Run one basic DNS or Website check to confirm analyzer routing is unchanged.
+1. `/settings` → confirm defaults/current saved values are visible.
+2. Select **Detailed** → reopen `/settings`; it must still show Detailed.
+3. Run DNS or Website check → confirm more findings/records are shown than Compact.
+4. Switch to **Compact** → rerun the same target; output should be shorter while scores remain unchanged.
+5. Enable **Developer Mode** → rerun Website/HTTP/Audit; confirm additional target metadata/finding codes appear.
+6. Confirm Developer Mode output does not mention infrastructure providers, secrets, deployment topology, or SautiLink architecture.
+7. Disable Developer Mode → technical extras disappear.
+8. Redeploy production, then `/settings` again → Report Detail and Developer Mode must remain remembered.
+9. Switch language and confirm presentation preferences remain unchanged.
+10. Run Full Audit → Summary → Priorities → category view → Re-run; all views must respect the same presentation preference.
 
 ## Production regression
 
 - valid tool APIs remain HTTP 200
 - webhook GET remains 405
 - webhook POST with bad secret remains 401
-- Cloud Engine schemas and scoring are unchanged
-- Supabase preference failure must never block analyzer/API execution
+- Cloud Engine schemas and scoring remain unchanged
+- SSRF behavior remains unchanged
+- durable-preference failure must never block analyzer/API execution
+- normal user-facing bot output must remain SautiLink-first and vendor-neutral
