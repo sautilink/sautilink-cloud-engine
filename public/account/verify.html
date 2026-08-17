@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verify email — SautiLink Account</title>
+  <meta name="description" content="Enter your six-digit SautiLink Account email verification code." />
+  <link rel="canonical" href="https://cloudengine.sautilink.com/account/verify" />
+  <meta name="theme-color" content="#0b0f19" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="preload" href="/assets/fonts/manrope/Manrope-Variable.woff2?v=1" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/brand/typography-manrope.css?v=1" />
+  <link rel="stylesheet" href="/account/account.css" />
+</head>
+<body class="account-shell" data-account-page="verify">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><div class="container header-inner">
+    <a href="/" class="brand" aria-label="SautiLink Cloud Engine home"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><span class="brand-name">SautiLink</span><span class="brand-product">Account</span></span></a>
+    <nav class="nav" aria-label="Primary"><a href="/" class="nav-link">Cloud Engine</a><a href="/#tools" class="nav-link">Tools</a></nav>
+    <div class="header-actions"><a href="/account/login" class="btn btn-secondary">Sign in</a><button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></div>
+  </div></header>
+
+  <main id="main" class="account-main"><div class="container account-auth-layout">
+    <section class="account-pitch">
+      <p class="eyebrow">One last step</p>
+      <h1>Verify the email behind <span>your identity.</span></h1>
+      <p>We send a six-digit code to your email. Entering it confirms that you control the address before your SautiLink Account receives its verified-email status.</p>
+      <div class="account-benefits">
+        <article class="account-benefit"><strong>Six digits</strong><span>Enter the code exactly as it appears in the verification email.</span></article>
+        <article class="account-benefit"><strong>Short-lived</strong><span>Verification codes expire for account security.</span></article>
+        <article class="account-benefit"><strong>Private</strong><span>Never share your verification code with anyone.</span></article>
+      </div>
+    </section>
+
+    <section class="auth-card" aria-labelledby="verify-title">
+      <div class="auth-card-head"><p class="panel-label">Email verification</p><h2 id="verify-title">Enter verification code</h2><p>Check your inbox for the message sent by SautiLink.</p></div>
+      <div class="verify-email"><span>Code sent to</span><strong id="verify-email">your email</strong></div>
+      <form class="account-form" id="verify-form" novalidate>
+        <div class="field-group">
+          <label id="verification-label">6-digit code</label>
+          <div class="verify-code" id="verify-code" role="group" aria-labelledby="verification-label">
+            <input inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 1" autocomplete="one-time-code" />
+            <input inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 2" />
+            <input inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 3" />
+            <input inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 4" />
+            <input inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 5" />
+            <input inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 6" />
+          </div>
+        </div>
+        <div class="form-message" id="form-message" role="alert" hidden></div>
+        <button type="submit" class="btn btn-primary auth-submit" id="verify-submit">Verify account</button>
+        <div class="inline-actions"><span class="field-hint">Didn't receive the code?</span><button type="button" class="text-button" id="resend-code">Resend code</button></div>
+      </form>
+      <p class="auth-foot">Wrong email? <a href="/account/signup">Start again</a></p>
+    </section>
+  </div></main>
+
+  <footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><span class="brand-name">SautiLink</span> Account</div><p class="footer-note">A SautiLink Corporation identity service.</p><p class="footer-copy">&copy; <span id="year"></span> SautiLink Corporation.</p></div></footer>
+  <script type="module" src="/account/account.js"></script>
+</body>
+</html>
