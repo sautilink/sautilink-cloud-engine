@@ -1,0 +1,63 @@
+name: Vendor SautiLink Brand Fonts
+
+on:
+  push:
+    branches: [phase-brand-typography]
+    paths:
+      - ".github/workflows/vendor-brand-fonts.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  vendor-fonts:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase-brand-typography
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install font tooling
+        run: pip install "fonttools[woff]"
+      - name: Download pinned upstream variable fonts and licenses
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p public/assets/fonts/lora public/assets/fonts/zalando-sans-semiexpanded
+
+          curl -fsSL "https://raw.githubusercontent.com/cyrealtype/Lora-Cyrillic/403b1a66ca2e79f81d749c5299559e168591a4df/fonts/variable/Lora%5Bwght%5D.ttf" -o /tmp/lora.ttf
+          curl -fsSL "https://raw.githubusercontent.com/cyrealtype/Lora-Cyrillic/403b1a66ca2e79f81d749c5299559e168591a4df/fonts/variable/Lora-Italic%5Bwght%5D.ttf" -o /tmp/lora-italic.ttf
+          curl -fsSL "https://raw.githubusercontent.com/cyrealtype/Lora-Cyrillic/403b1a66ca2e79f81d749c5299559e168591a4df/OFL.txt" -o public/assets/fonts/lora/OFL.txt
+
+          curl -fsSL "https://raw.githubusercontent.com/zalando/sans/4e44d0864c4e37ab67fa549cd188aec8776dc948/fonts/variable/ZalandoSansSemiExpanded%5Bwght%5D.ttf" -o /tmp/zalando.ttf
+          curl -fsSL "https://raw.githubusercontent.com/zalando/sans/4e44d0864c4e37ab67fa549cd188aec8776dc948/fonts/variable/ZalandoSansSemiExpanded-Italic%5Bwght%5D.ttf" -o /tmp/zalando-italic.ttf
+          curl -fsSL "https://raw.githubusercontent.com/zalando/sans/4e44d0864c4e37ab67fa549cd188aec8776dc948/OFL.txt" -o public/assets/fonts/zalando-sans-semiexpanded/OFL.txt
+      - name: Convert variable fonts to WOFF2
+        shell: python
+        run: |
+          from fontTools.ttLib import TTFont
+
+          pairs = [
+              ("/tmp/lora.ttf", "public/assets/fonts/lora/Lora-Variable.woff2"),
+              ("/tmp/lora-italic.ttf", "public/assets/fonts/lora/Lora-VariableItalic.woff2"),
+              ("/tmp/zalando.ttf", "public/assets/fonts/zalando-sans-semiexpanded/ZalandoSansSemiExpanded-Variable.woff2"),
+              ("/tmp/zalando-italic.ttf", "public/assets/fonts/zalando-sans-semiexpanded/ZalandoSansSemiExpanded-VariableItalic.woff2"),
+          ]
+          for src, dest in pairs:
+              font = TTFont(src)
+              font.flavor = "woff2"
+              font.save(dest)
+      - name: Commit vendored font assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/assets/fonts
+          git diff --cached --quiet && exit 0
+          git commit -m "Vendor SautiLink brand fonts"
+          git push origin HEAD:phase-brand-typography
