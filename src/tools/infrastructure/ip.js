@@ -14,6 +14,14 @@ function fail(code, message) {
   throw { code, message };
 }
 
+function looksLikeIpLiteral(value) {
+  const raw = String(value || "").trim();
+  const unwrapped = raw.startsWith("[") && raw.endsWith("]") ? raw.slice(1, -1) : raw;
+  const ipv4Shape = /^\d{1,3}(?:\.\d{1,3}){3}$/.test(unwrapped);
+  const ipv6Shape = unwrapped.includes(":") && /^[0-9a-f:.]+$/i.test(unwrapped);
+  return ipv4Shape || ipv6Shape;
+}
+
 export function preparePublicIp(input) {
   if (input === undefined || input === null || typeof input !== "string") {
     return { error: { code: "MISSING_IP", message: "Please provide an IP address." } };
@@ -94,8 +102,8 @@ export async function lookupIp(queryInput) {
     };
   }
 
-  // If it looks like an IP literal but failed validation, preserve the specific IP error.
-  if (/^[0-9a-f:.\[\]]+$/i.test(raw) && (raw.includes(":") || /^\[?\d/.test(raw))) {
+  // Preserve specific invalid/private IP errors only for input that is actually IP-shaped.
+  if (looksLikeIpLiteral(raw)) {
     fail(directIp.error.code, directIp.error.message);
   }
 
