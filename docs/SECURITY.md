@@ -38,3 +38,13 @@ SSRF authority remains Cloud Engine.
 - Preference log events expose only operational status, bounded error codes, and duration; they do not include Supabase keys, request URLs, Telegram user IDs, or preference payload bodies.
 - Network/HTTP/config failures remain fail-open and are logged as fallback/skipped states rather than thrown into the bot flow.
 - `/admin` exposes only a concise `Active (Supabase)` or `Fallback only` durable-preference status. The temporary detailed environment presence/format diagnostic is removed from user-visible output.
+
+## Phase 7P settings foundation
+
+- Settings adds no new database table, column, or durable user attribute.
+- The only durable preference remains the allowlisted `en`/`sw` locale from Phase 7N.
+- The new `menu:settings` callback is a fixed, allowlisted action and carries no identifiers, domains, URLs, secrets, or preference payloads.
+- The Settings callback checks normal Telegram authorization before returning user-facing content.
+- Opening Settings clears pending guided-input state so a later text message is not accidentally treated as an earlier website target flow.
+- Settings only displays the current presentation locale and routes to the existing fixed language selector.
+- Analyzer routing, scoring, SSRF validation, webhook secret validation, and `/api/*` contracts remain unchanged.
