@@ -4,7 +4,8 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const typographyPath = "public/assets/brand/typography.css";
-const interDir = "public/assets/fonts/inter";
+const brandingPath = "docs/BRANDING.md";
+const manropeDir = "public/assets/fonts/manrope";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -20,13 +21,13 @@ function htmlFiles(dir) {
   return out;
 }
 
-test("SautiLink typography uses Inter as the single UI and brand family", () => {
+test("Cloud Engine uses Manrope as its single UI and brand family", () => {
   const css = read(typographyPath);
-  assert.match(css, /font-family:\s*"Inter"/);
-  assert.match(css, /font-weight:\s*100 900/);
-  assert.match(css, /--font-primary:\s*"Inter"/);
+  assert.match(css, /font-family:\s*"Manrope"/);
+  assert.match(css, /font-weight:\s*200 800/);
+  assert.match(css, /--font-primary:\s*"Manrope"/);
   assert.match(css, /--font:\s*var\(--font-primary\)/);
-  assert.doesNotMatch(css, /Lora|Zalando Sans SemiExpanded|--font-brand/);
+  assert.doesNotMatch(css, /Inter|Lora|Zalando Sans SemiExpanded|--font-brand/);
   assert.match(css, /\.footer-copy,[\s\S]*\[data-brand-font\][\s\S]*font-family:\s*var\(--font-primary\)/);
 });
 
@@ -40,32 +41,41 @@ test("SautiLink corporate color tokens remain canonical", () => {
   assert.match(css, /--accent-hover:\s*var\(--brand-light\)/);
 });
 
-test("self-hosted Inter variable normal and italic assets plus OFL are present", () => {
-  for (const path of [`${interDir}/InterVariable.woff2`, `${interDir}/InterVariable-Italic.woff2`]) {
-    assert.equal(existsSync(path), true, `${path} should exist`);
-    assert.ok(statSync(path).size > 100_000, `${path} should contain a real WOFF2 font`);
-  }
-  const license = `${interDir}/OFL.txt`;
+test("self-hosted Manrope variable WOFF2 and OFL are present", () => {
+  const font = `${manropeDir}/Manrope-Variable.woff2`;
+  assert.equal(existsSync(font), true, `${font} should exist`);
+  assert.ok(statSync(font).size > 40_000, `${font} should contain a real WOFF2 variable font`);
+
+  const license = `${manropeDir}/OFL.txt`;
   assert.equal(existsSync(license), true, `${license} should exist`);
   assert.match(read(license), /SIL OPEN FONT LICENSE Version 1\.1/);
+
+  assert.equal(existsSync("public/assets/fonts/inter"), false, "Inter assets should not remain in Cloud Engine");
   assert.equal(existsSync("public/assets/fonts/lora"), false, "Lora assets should be removed");
   assert.equal(existsSync("public/assets/fonts/zalando-sans-semiexpanded"), false, "Zalando assets should be removed");
 });
 
-test("every static HTML page wires self-hosted Inter", () => {
+test("every static HTML page wires self-hosted Manrope", () => {
   const pages = htmlFiles("public");
   assert.ok(pages.length > 1);
   for (const path of pages) {
     const html = read(path);
     if (!html.includes('href="/styles.css"')) continue;
     assert.match(html, /href="\/assets\/brand\/typography\.css"/i, path);
-    assert.match(html, /href="\/assets\/fonts\/inter\/InterVariable\.woff2"[^>]*as="font"/i, path);
-    assert.doesNotMatch(html, /fonts\.googleapis\.com|fonts\.gstatic\.com|Lora-Variable|ZalandoSans/i, path);
+    assert.match(html, /href="\/assets\/fonts\/manrope\/Manrope-Variable\.woff2"[^>]*as="font"/i, path);
+    assert.doesNotMatch(html, /fonts\.googleapis\.com|fonts\.gstatic\.com|InterVariable|Lora-Variable|ZalandoSans/i, path);
   }
 });
 
 test("typography stylesheet has no runtime external font-provider dependency", () => {
   const css = read(typographyPath);
   assert.doesNotMatch(css, /https?:\/\//i);
-  assert.doesNotMatch(css, /Lora|Zalando Sans SemiExpanded/);
+  assert.doesNotMatch(css, /Inter|Lora|Zalando Sans SemiExpanded/);
+});
+
+test("branding policy carries Manrope from web into future native apps", () => {
+  const branding = read(brandingPath);
+  assert.match(branding, /Manrope is the official SautiLink Cloud Engine product font/i);
+  assert.match(branding, /iOS and Android app builds should bundle the same Manrope variable family/i);
+  assert.match(branding, /Platform system fonts are fallbacks, not the Cloud Engine brand font/i);
 });
