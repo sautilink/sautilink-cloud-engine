@@ -40,11 +40,20 @@ export function formatTimeout(locale = "en") { return t(locale, "error.timeout")
 export function formatHelp(locale = "en") { return formatHelpFromRegistry(locale); }
 
 export function formatStart(locale = "en") {
-  return ["🚀 SautiLink Cloud Engine", "", t(locale, "start.body"), "", t(locale, "start.try"), "/audit example.com", "", t(locale, "start.help")].join("\n");
+  const company = locale === "sw"
+    ? "🏢 Product ya SautiLink Corporation · sautilink.com"
+    : "🏢 A SautiLink Corporation product · sautilink.com";
+  return ["🚀 SautiLink Cloud Engine", "", t(locale, "start.body"), "", t(locale, "start.try"), "/audit example.com", "", t(locale, "start.help"), "", company].join("\n");
 }
 
 export function formatAbout(locale = "en") {
-  return ["ℹ️ SautiLink Cloud Engine", "", t(locale, "about.body"), "", t(locale, "about.disclaimer"), "", "https://cloudengine.sautilink.com"].join("\n");
+  const ownership = locale === "sw"
+    ? "SautiLink Cloud Engine ni sehemu ya SautiLink Corporation."
+    : "SautiLink Cloud Engine is part of SautiLink Corporation.";
+  const architecture = locale === "sw"
+    ? "Kwa maswali ya integration au architecture, wasiliana na SautiLink Corporation."
+    : "For integration or architecture enquiries, contact SautiLink Corporation.";
+  return ["ℹ️ SautiLink Cloud Engine", "", t(locale, "about.body"), "", t(locale, "about.disclaimer"), "", ownership, architecture, "", "https://cloudengine.sautilink.com", "https://sautilink.com"].join("\n");
 }
 
 export function formatStatus(ok, data, locale = "en") {
@@ -70,7 +79,7 @@ export function formatAdmin(info, locale = "en") {
     lines.push(`• Expensive limit: ${info.expensiveLimit ?? 5}`);
     lines.push(`• Cheap limit: ${info.cheapLimit ?? 20}`);
   }
-  lines.push("", "Cloudflare edge rate limiting remains the global control.");
+  lines.push("", "SautiLink global protection remains active.");
   return lines.join("\n");
 }
 
