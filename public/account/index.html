@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Account — SautiLink</title>
+  <meta name="description" content="Manage your SautiLink Account identity, verification status, preferences and Cloud Engine account features." />
+  <link rel="canonical" href="https://cloudengine.sautilink.com/account/" />
+  <meta name="theme-color" content="#0b0f19" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="preload" href="/assets/fonts/manrope/Manrope-Variable.woff2?v=1" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/brand/typography-manrope.css?v=1" />
+  <link rel="stylesheet" href="/account/account.css" />
+</head>
+<body class="account-shell" data-account-page="dashboard">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><div class="container header-inner">
+    <a href="/" class="brand" aria-label="SautiLink Cloud Engine home"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><span class="brand-name">SautiLink</span><span class="brand-product">Account</span></span></a>
+    <nav class="nav" aria-label="Primary"><a href="/" class="nav-link">Cloud Engine</a><a href="/#tools" class="nav-link">Tools</a><a href="/tools/audit" class="nav-link">Full Audit</a></nav>
+    <div class="header-actions"><a href="/tools/audit" class="btn btn-primary">Run an audit</a><button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></div>
+  </div></header>
+
+  <main id="main" class="account-main"><div class="container account-dashboard">
+    <section class="account-hero" aria-labelledby="account-name">
+      <div class="identity-row">
+        <div class="profile-avatar" id="profile-avatar" aria-hidden="true">SL</div>
+        <div class="identity-copy">
+          <div class="identity-name-line"><h1 id="account-name" class="skeleton">SautiLink User</h1><span class="verified-badge" id="verified-badge" title="Email verified" aria-label="Email verified" hidden><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 12 3 3 7-7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+          <p class="identity-handle" id="account-handle">@username</p>
+          <p class="identity-email" id="account-email">Loading account…</p>
+          <div class="identity-meta"><span class="identity-chip verified" id="verified-chip" hidden>✓ Email verified</span><span class="identity-chip" id="member-since">SautiLink Account</span></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="form-message" id="dashboard-message" role="alert" hidden></div>
+
+    <section class="account-panel" id="profile-setup-panel" hidden>
+      <div class="panel-head"><div><p class="panel-label">Finish setup</p><h2>Choose your SautiLink username</h2><p>Your email is verified. The username you originally chose is no longer available, so select another handle to finish the profile.</p></div></div>
+      <form class="profile-form" id="profile-setup-form">
+        <div class="field-row"><div class="field-group"><label for="setup-name">Full name</label><input id="setup-name" maxlength="80" required /></div><div class="field-group"><label for="setup-username">Username</label><input id="setup-username" autocapitalize="none" spellcheck="false" maxlength="30" required /><span class="field-state" id="setup-username-state"></span></div></div>
+        <div class="profile-actions"><button class="btn btn-primary" type="submit" id="setup-submit">Finish account setup</button></div>
+      </form>
+    </section>
+
+    <div class="dashboard-grid" id="dashboard-content">
+      <div class="dashboard-stack">
+        <section class="account-panel" aria-labelledby="history-title">
+          <div class="panel-head"><div><p class="panel-label">Cloud Engine</p><h2 id="history-title">Scan history</h2><p>Account history is designed for a rolling 30-day window.</p></div><a class="btn btn-secondary" href="/tools/audit">New scan</a></div>
+          <div class="account-stat-grid"><div class="account-stat"><strong>30 days</strong><span>planned retention window</span></div><div class="account-stat"><strong>—</strong><span>saved scans</span></div><div class="account-stat"><strong>Private</strong><span>account-scoped access</span></div></div>
+          <div class="empty-history"><strong>History storage is the next account phase.</strong><br />Cloud Engine is not silently saving your existing anonymous scans. Once history launches, eligible scans made while signed in will appear here and expire automatically after 30 days.</div>
+        </section>
+
+        <section class="account-panel" aria-labelledby="profile-title">
+          <div class="panel-head"><div><p class="panel-label">Identity</p><h2 id="profile-title">Profile</h2><p>Manage the name and future-facing SautiLink handle attached to your account.</p></div></div>
+          <form class="profile-form" id="profile-form">
+            <div class="field-row"><div class="field-group"><label for="profile-name">Full name</label><input id="profile-name" maxlength="80" required /></div><div class="field-group"><label for="profile-username">Username</label><input id="profile-username" autocapitalize="none" spellcheck="false" maxlength="30" required /></div></div>
+            <div class="field-group"><label for="profile-email">Email address</label><input id="profile-email" type="email" readonly aria-readonly="true" /><span class="field-hint">Email changes will use a separate verification flow in a later account-security phase.</span></div>
+            <div class="check-row"><input id="profile-email-updates" type="checkbox" /><label for="profile-email-updates"><strong>SautiLink ecosystem email updates</strong><br />Optional product news and feature announcements. Transactional security emails are separate.</label></div>
+            <div class="profile-actions"><button type="submit" class="btn btn-primary" id="profile-save">Save profile</button></div>
+          </form>
+        </section>
+      </div>
+
+      <aside class="dashboard-stack">
+        <section class="account-panel" aria-labelledby="security-title">
+          <div class="panel-head"><div><p class="panel-label">Security</p><h2 id="security-title">Account status</h2><p>Your verification and session state.</p></div></div>
+          <div class="security-list">
+            <div class="security-item"><div><strong>Email address</strong><span id="security-email">Loading…</span></div><span class="security-state blue" id="security-email-state">Checking</span></div>
+            <div class="security-item"><div><strong>Sign-in</strong><span>Email + password</span></div><span class="security-state">Protected</span></div>
+            <div class="security-item"><div><strong>Web session</strong><span>Secure account session</span></div><span class="security-state">Active</span></div>
+          </div>
+        </section>
+
+        <section class="account-panel" aria-labelledby="updates-title">
+          <div class="panel-head"><div><p class="panel-label">Communication</p><h2 id="updates-title">Preferences</h2><p>Email product updates are optional. WhatsApp preferences will be added separately with explicit number verification.</p></div></div>
+          <div class="security-list"><div class="security-item"><div><strong>Email updates</strong><span id="email-updates-summary">Off</span></div><span class="security-state blue">Editable</span></div><div class="security-item"><div><strong>WhatsApp updates</strong><span>Not connected</span></div><span class="security-state blue">Later</span></div></div>
+        </section>
+
+        <section class="account-panel account-danger" aria-labelledby="session-title">
+          <div class="panel-head"><div><p class="panel-label">Session</p><h2 id="session-title">Sign out</h2><p>End the current web session on this browser.</p></div></div>
+          <button type="button" class="btn btn-secondary logout-button" id="logout-button">Sign out</button>
+        </section>
+      </aside>
+    </div>
+  </div></main>
+
+  <footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><span class="brand-name">SautiLink</span> Account</div><p class="footer-note">Your identity across the SautiLink ecosystem.</p><p class="footer-copy">&copy; <span id="year"></span> SautiLink Corporation.</p></div></footer>
+  <script type="module" src="/account/account.js"></script>
+</body>
+</html>

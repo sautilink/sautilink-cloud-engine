@@ -126,8 +126,6 @@
   - cookie metadata shows name, Secure, HttpOnly, SameSite and Path while not rendering cookie values
   - no target/result persistence, no database migration, no new external provider, and no Telegram change
   - CI passed 86/86 tests and exact-head Pages preview deployed successfully before merge
-
-## Active Web Track
 - Phase 8H: Cache & Compression Inspector
   - standalone `/tools/cache` workspace
   - reuses the existing SSRF-protected `/api/headers` GET probe
@@ -135,6 +133,26 @@
   - parses common cache directives including no-store, private, no-cache, public, max-age, s-maxage, immutable, must-revalidate, stale-while-revalidate and stale-if-error
   - content-encoding interpretation is observational and does not claim a compression ratio or synthetic performance score
   - no external performance/CDN provider, no target/result persistence, no database migration, and no Telegram change
+  - CI passed 91/91 tests and exact-head Pages preview deployed successfully before merge
+
+## Active Web Track
+- Phase 8I: SautiLink Account Foundation
+  - shared SautiLink Account identity rather than a Cloud Engine-only login
+  - email/password signup with full name and globally unique future-facing username
+  - six-digit email OTP verification before the durable profile is created
+  - verified-email status is derived from Auth confirmation, not a writable profile flag
+  - blue account-panel check explicitly means `Email verified`; it is not public/notability verification
+  - same-origin `/api/account/*` facade keeps access and refresh tokens in Secure, HttpOnly, SameSite cookies
+  - owner-only profile RLS and anonymous profile-table access disabled
+  - optional ecosystem email updates remain separate consent and default off
+  - reviewed Supabase Auth and security-notification templates are stored under `supabase/templates/` as the source of truth
+  - authentication/security email is owned by Supabase Auth and delivered through custom SMTP; application transactional email has a separate ZeptoMail API adapter
+  - post-verification account notice is scheduled with Pages `context.waitUntil()` and never blocks successful account verification
+  - product updates cannot use the transactional ZeptoMail API and still require explicit email opt-in plus a dedicated marketing-capable provider
+  - WhatsApp communication remains disabled until the current E.164 number has server-owned verification proof and explicit opt-in
+  - anonymous Cloud Engine scans continue to work without an account
+  - no scan history is silently persisted in this phase
+  - Telegram feature work remains paused
 
 ## Paused Telegram Track
 - Phase 7T: Default Experience
@@ -150,9 +168,18 @@
   - no analyzer, scoring, SSRF, authorization, or `/api/*` contract changes
 
 ## Next Web Phases
+- Phase 8J: Account Dashboard + 30-day Scan History
+  - save eligible signed-in scans with owner-only access and sanitized result snapshots
+  - automatic 30-day expiry and deletion
+  - anonymous scanning remains unsaved server-side
+- Phase 8K: Communications Activation & Delivery Operations
+  - activate and live-verify ZeptoMail custom SMTP for hosted Supabase Auth using `noreply@sautilink.com`
+  - synchronize reviewed templates into hosted Supabase Auth and enable selected security notifications
+  - configure the server-only ZeptoMail API token and live-verify the post-verification transactional notice
+  - choose a dedicated marketing-capable provider before any ecosystem campaign delivery is enabled
+- WhatsApp provider and verified-number delivery flow after the email/account foundation
+- Redirect Chain Inspector after account/history foundations are stable
 - Web ↔ Telegram handoff — deferred until Telegram work resumes
   - short-lived signed handoff IDs; no raw secrets or arbitrary callback payloads
   - continue an eligible diagnostic between Telegram and the web without forking analyzer behavior
-- Shareable/saved report model only if an explicit retention, access-control and privacy design is approved
 - ASN / geolocation / hosting-provider attribution only after an external data source, privacy boundary, rate limit, attribution requirement, and operational cost are deliberately chosen
-- additional web-only tools where the web format provides clear product value

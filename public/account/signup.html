@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create account — SautiLink Account</title>
+  <meta name="description" content="Create a SautiLink Account for Cloud Engine and future SautiLink products." />
+  <link rel="canonical" href="https://cloudengine.sautilink.com/account/signup" />
+  <meta name="theme-color" content="#0b0f19" />
+  <meta name="robots" content="noindex, follow" />
+  <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="preload" href="/assets/fonts/manrope/Manrope-Variable.woff2?v=1" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/brand/typography-manrope.css?v=1" />
+  <link rel="stylesheet" href="/account/account.css" />
+</head>
+<body class="account-shell" data-account-page="signup">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><div class="container header-inner">
+    <a href="/" class="brand" aria-label="SautiLink Cloud Engine home"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><span class="brand-name">SautiLink</span><span class="brand-product">Account</span></span></a>
+    <nav class="nav" aria-label="Primary"><a href="/" class="nav-link">Cloud Engine</a><a href="/#tools" class="nav-link">Tools</a><a href="/tools/audit" class="nav-link">Full Audit</a></nav>
+    <div class="header-actions"><a href="/account/login" class="btn btn-secondary">Sign in</a><button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></div>
+  </div></header>
+
+  <main id="main" class="account-main"><div class="container account-auth-layout">
+    <section class="account-pitch">
+      <p class="eyebrow">SautiLink Account · Identity foundation</p>
+      <h1>Create one identity for <span>what comes next.</span></h1>
+      <p>Your username is designed as a future SautiLink handle. After signup, we send a six-digit email verification code before the account becomes verified.</p>
+      <div class="account-benefits">
+        <article class="account-benefit"><strong>Cloud Engine history</strong><span>30-day scan history is the next account feature.</span></article>
+        <article class="account-benefit"><strong>Email verification</strong><span>A verified-email badge appears only after successful confirmation.</span></article>
+        <article class="account-benefit"><strong>Updates are optional</strong><span>Product-news email consent is separate and off by default.</span></article>
+      </div>
+    </section>
+
+    <section class="auth-card" aria-labelledby="signup-title">
+      <div class="auth-card-head"><p class="panel-label">Join SautiLink</p><h2 id="signup-title">Create your account</h2><p>Choose the identity you want to use across SautiLink products.</p></div>
+      <form class="account-form" id="signup-form" novalidate>
+        <div class="field-group"><label for="signup-name">Full name</label><input id="signup-name" name="fullName" type="text" autocomplete="name" maxlength="80" required /></div>
+        <div class="field-group"><label for="signup-username">Username</label><input id="signup-username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30" placeholder="charlesalex" required /><span class="field-state" id="username-state">3–30 characters: lowercase letters, numbers, dots, or underscores.</span></div>
+        <div class="field-group"><label for="signup-email">Email address</label><input id="signup-email" name="email" type="email" autocomplete="email" required /></div>
+        <div class="field-row">
+          <div class="field-group"><label for="signup-password">Password</label><input id="signup-password" name="password" type="password" autocomplete="new-password" minlength="10" required /><span class="field-hint">At least 10 characters.</span></div>
+          <div class="field-group"><label for="signup-confirm">Confirm password</label><input id="signup-confirm" name="confirmPassword" type="password" autocomplete="new-password" minlength="10" required /></div>
+        </div>
+        <div class="check-row"><input id="email-updates" name="emailUpdates" type="checkbox" /><label for="email-updates"><strong>Keep me updated by email</strong><br />Send me optional SautiLink ecosystem product news and feature announcements. You can turn this off later.</label></div>
+        <div class="form-message" id="form-message" role="alert" hidden></div>
+        <button type="submit" class="btn btn-primary auth-submit" id="signup-submit">Create account</button>
+      </form>
+      <p class="auth-foot">Already have an account? <a href="/account/login">Sign in</a></p>
+    </section>
+  </div></main>
+
+  <footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><span class="brand-name">SautiLink</span> Account</div><p class="footer-note">A SautiLink Corporation identity service.</p><p class="footer-copy">&copy; <span id="year"></span> SautiLink Corporation.</p></div></footer>
+  <script type="module" src="/account/account.js"></script>
+</body>
+</html>
