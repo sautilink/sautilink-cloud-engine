@@ -1,14 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://cloudengine.sautilink.com/</loc><priority>1.0</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/faq</loc><priority>0.8</priority></url>
   <url><loc>https://cloudengine.sautilink.com/tools/audit</loc><priority>0.95</priority></url>
   <url><loc>https://cloudengine.sautilink.com/tools/website</loc><priority>0.9</priority></url>
   <url><loc>https://cloudengine.sautilink.com/tools/mobile</loc><priority>0.9</priority></url>
   <url><loc>https://cloudengine.sautilink.com/tools/ssl</loc><priority>0.9</priority></url>
-  <url><loc>https://cloudengine.sautilink.com/tools/dns</loc><priority>0.8</priority></url>
-  <url><loc>https://cloudengine.sautilink.com/tools/http-status</loc><priority>0.8</priority></url>
-  <url><loc>https://cloudengine.sautilink.com/tools/email</loc><priority>0.8</priority></url>
-  <url><loc>https://cloudengine.sautilink.com/tools/headers</loc><priority>0.8</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/tools/dns</loc><priority>0.85</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/tools/http-status</loc><priority>0.85</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/tools/email</loc><priority>0.85</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/tools/headers</loc><priority>0.85</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/tools/ip</loc><priority>0.8</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/tools/rdns</loc><priority>0.8</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/tools/server</loc><priority>0.8</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/tools/cors</loc><priority>0.8</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/tools/cache</loc><priority>0.8</priority></url>
   <url><loc>https://cloudengine.sautilink.com/tools/robots</loc><priority>0.8</priority></url>
   <url><loc>https://cloudengine.sautilink.com/tools/sitemap</loc><priority>0.8</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/tools/mx</loc><priority>0.75</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/tools/spf</loc><priority>0.75</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/tools/dmarc</loc><priority>0.75</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/tools/dkim</loc><priority>0.75</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/tools/nameserver</loc><priority>0.75</priority></url>
 </urlset>
