@@ -15,24 +15,30 @@
   - `telegram_user_preferences` is RLS-enabled and inaccessible to anon/authenticated roles
   - live write confirmed in Supabase and live read confirmed after production redeploy
   - no analyzer, scoring, SSRF, or `/api/*` contract changes
-- Phase 7O: Telegram preference reliability and observability
+- Phase 7O: Telegram preference reliability and observability — live verified
   - sanitized structured logging for durable preference reads/writes
   - strict persisted-locale allowlist (`en`, `sw`)
   - focused automated tests for configuration, read, upsert, failure, fallback, and cache behavior
   - concise `/admin` durable-preference status
   - production language-persistence regression verified after deployment
   - no analyzer/API scoring changes
+- Phase 7P: Telegram Settings & Preferences foundation — live verified
+  - `/settings` and fixed `menu:settings` action
+  - direct Language/Lugha shortcut retained
+  - active language visible in Settings
+  - durable-language messaging reflects verified Supabase persistence
+  - no new stored preference fields
 
 ## In progress
-- Phase 7P: Telegram Settings & Preferences foundation
-  - add `/settings` as a cheap general command
-  - add a fixed `menu:settings` main-menu action
-  - show the currently active language inside Settings
-  - retain the direct Language/Lugha shortcut on the main menu
-  - move durable-language messaging from the old temporary-state wording to the verified Supabase behavior
-  - keep Settings extensible for future preferences without adding new stored fields yet
-  - store no usernames, display names, targets, results, or history
+- Phase 7Q: Settings account + personalisation summary
+  - show Telegram User ID and Chat ID directly inside Settings
+  - keep `/id` as an optional shortcut, not a requirement
+  - add Account, Personalisation, and Privacy sections to Settings
+  - show the active saved language under Personalisation
+  - make clear that IDs are read live from Telegram and are not added to the Supabase preference record
+  - make clear that checked-site history is not stored in the preference profile
+  - no new Supabase tables or columns
   - no analyzer, scoring, SSRF, or `/api/*` contract changes
 
 ## Future
-- Phase 7Q+: to be defined after Phase 7P live verification
+- Phase 7R+: define additional real personalisation preferences only when they have user-visible behavior and a clear persistence/privacy model
