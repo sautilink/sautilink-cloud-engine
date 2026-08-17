@@ -1,0 +1,39 @@
+name: Phase 8I account entry migration
+
+on:
+  push:
+    branches:
+      - phase-8i-sautilink-account
+    paths:
+      - .github/workflows/phase-8i-account-entry.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase-8i-sautilink-account
+      - name: Add account entry to homepage
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('public/index.html')
+          s = p.read_text()
+          old = '''      <div class="header-actions">\n        <a href="#channel-bridge" class="btn btn-secondary btn-telegram">Companion channels</a>'''
+          new = '''      <div class="header-actions">\n        <a href="/account/login" class="btn btn-secondary">Account</a>\n        <a href="#channel-bridge" class="btn btn-secondary btn-telegram">Companion channels</a>'''
+          if old not in s:
+              raise SystemExit('homepage header marker not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+      - name: Commit migration
+        run: |
+          git config user.name "sautilink-automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add public/index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Expose SautiLink Account from homepage"
+          git push origin HEAD:phase-8i-sautilink-account
