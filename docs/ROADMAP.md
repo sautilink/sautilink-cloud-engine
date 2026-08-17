@@ -108,8 +108,6 @@
   - no ASN, geolocation, hosting-provider, reputation, or CDN attribution in this phase
   - no browser/server target history and no database migration
   - CI passed 76/76 tests and Pages preview deployed successfully before merge
-
-## Active Web Track
 - Phase 8F: Server Information & Edge Signals
   - standalone `/tools/server` workspace
   - reuses the existing SSRF-protected `/api/headers` probe; no new outbound-fetch implementation
@@ -118,6 +116,17 @@
   - security response signals summarize HSTS, CSP and related browser-facing controls
   - redirect-chain drill-down and links to the deeper Headers, HTTP Status, IP and SSL tools
   - no external infrastructure-attribution provider, no target history, no database migration, and no Telegram change
+  - CI passed 81/81 tests and Pages preview deployed successfully before merge
+
+## Active Web Track
+- Phase 8G: CORS & Cookie Inspector
+  - standalone `/tools/cors` workspace
+  - reuses the existing SSRF-protected `/api/headers` GET probe
+  - observed CORS headers include allow-origin, credentials, methods, headers, exposed headers, max-age and Vary
+  - explicitly passive: no custom Origin, alternate method, custom request-header set, or OPTIONS preflight simulation
+  - wildcard allow-origin plus credential allowance is surfaced for review
+  - cookie metadata shows name, Secure, HttpOnly, SameSite and Path while not rendering cookie values
+  - no target/result persistence, no database migration, no new external provider, and no Telegram change
 
 ## Paused Telegram Track
 - Phase 7T: Default Experience
