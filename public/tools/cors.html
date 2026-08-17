@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CORS & Cookie Inspector — SautiLink Cloud Engine</title>
+  <title>CORS &amp; Cookie Inspector — SautiLink Cloud Engine</title>
   <meta name="description" content="Inspect observed CORS response headers and cookie security metadata for a public URL." />
   <link rel="canonical" href="https://cloudengine.sautilink.com/tools/cors" />
   <meta name="theme-color" content="#0b0f19" />
@@ -19,7 +19,7 @@
   <header class="site-header"><div class="container header-inner"><a href="/" class="brand" aria-label="SautiLink Cloud Engine home"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><span class="brand-name">SautiLink</span><span class="brand-product">Cloud Engine</span></span></a><nav class="nav" aria-label="Primary"><a href="/" class="nav-link">Workspace</a><a href="/#tools" class="nav-link">Tools</a><a href="/tools/audit" class="nav-link">Full Audit</a></nav><div class="header-actions"><a href="/tools/headers" class="btn btn-secondary">HTTP Headers</a><button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></div></div></header>
 
   <main id="main" class="cors-page"><div class="container cors-layout">
-    <header class="cors-header"><p class="eyebrow">Security · Browser policy signals</p><h1>CORS & Cookie Inspector</h1><p class="cors-lead">Inspect CORS response headers and cookie security metadata observed during a safe public GET request. This is passive inspection—not a custom-Origin or OPTIONS preflight simulator.</p></header>
+    <header class="cors-header"><p class="eyebrow">Security · Browser policy signals</p><h1>CORS &amp; Cookie Inspector</h1><p class="cors-lead">Inspect CORS response headers and cookie security metadata observed during a safe public GET request. This is passive inspection—not a custom-Origin or OPTIONS preflight simulator.</p></header>
 
     <form class="cors-form" id="cors-form" novalidate><label class="field-label" for="cors-url">Public URL</label><div class="cors-input-row"><input type="url" id="cors-url" name="url" placeholder="https://example.com" autocomplete="off" spellcheck="false" inputmode="url" required aria-describedby="cors-hint cors-error" /><button type="submit" class="btn btn-primary" id="cors-submit">Inspect policy</button></div><p class="field-hint" id="cors-hint">Public HTTP/HTTPS only. The shared Cloud Engine SSRF protections remain authoritative.</p><p class="field-error" id="cors-error" role="alert" hidden></p></form>
 
