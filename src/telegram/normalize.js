@@ -53,7 +53,7 @@ export function recoverAuditTargetFromMessage(text) {
 }
 
 export const ALLOWED_CALLBACKS = new Set([
-  "menu:main", "menu:website", "menu:infrastructure", "menu:about", "menu:help", "menu:status", "menu:lang",
+  "menu:main", "menu:website", "menu:infrastructure", "menu:about", "menu:help", "menu:status", "menu:lang", "menu:settings",
   "nav:back", "status:refresh", "lang:en", "lang:sw",
   "tool:audit", "tool:website", "tool:mobile", "tool:headers", "tool:ssl", "tool:robots", "tool:sitemap", "tool:dns", "tool:email", "tool:http",
   "audit:rerun", "audit:security", "audit:seo", "audit:mobile", "audit:email", "audit:https", "audit:summary", "audit:priorities", "audit:back",
