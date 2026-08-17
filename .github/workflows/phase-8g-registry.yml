@@ -1,0 +1,44 @@
+name: Phase 8G registry migration
+
+on:
+  push:
+    branches:
+      - phase-8g-cors-cookie-inspector
+    paths:
+      - .github/workflows/phase-8g-registry.yml
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phase-8g-cors-cookie-inspector
+      - name: Add CORS tool to registries
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          files = [Path('public/app.js'), Path('src/config/tools.js')]
+          for p in files:
+              s = p.read_text()
+              marker = '      { id: "security-headers", name: "HTTP Headers Analyzer",'
+              lines = s.splitlines()
+              idx = next((i for i, line in enumerate(lines) if line.startswith(marker)), None)
+              if idx is None:
+                  raise SystemExit(f'marker not found in {p}')
+              entry = '      { id: "cors-cookie", name: "CORS & Cookie Inspector", description: "Inspect observed CORS response headers and cookie security metadata.", route: "/tools/cors", status: "available" },'
+              if entry not in lines:
+                  lines.insert(idx + 1, entry)
+              p.write_text('\n'.join(lines) + '\n')
+          PY
+      - name: Commit migration
+        run: |
+          git config user.name "sautilink-automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add public/app.js src/config/tools.js
+          git diff --cached --quiet && exit 0
+          git commit -m "Expose CORS and Cookie Inspector in catalogs"
+          git push origin HEAD:phase-8g-cors-cookie-inspector
