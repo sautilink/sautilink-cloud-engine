@@ -139,7 +139,7 @@
 - Phase 8I: SautiLink Account Foundation
   - shared SautiLink Account identity rather than a Cloud Engine-only login
   - email/password signup with full name and globally unique future-facing username
-  - six-digit email OTP verification before the durable profile is created
+  - configured-length email OTP verification (currently eight digits) before the durable profile is created
   - verified-email status is derived from Auth confirmation, not a writable profile flag
   - blue account-panel check explicitly means `Email verified`; it is not public/notability verification
   - same-origin `/api/account/*` facade keeps access and refresh tokens in Secure, HttpOnly, SameSite cookies
