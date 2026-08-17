@@ -59,8 +59,21 @@
   - production Settings behavior confirmed live and durable preference write verified in the preference store
   - no analyzer, scoring, SSRF, or `/api/*` contract changes
 
-## In progress
+## Active Web Track
+- Phase 8A: Web Experience Foundation
+  - make the web experience the flagship Cloud Engine product surface
+  - Full Audit command bar as the primary homepage action
+  - quick-launch shortcuts for live diagnostics
+  - searchable tool workspace
+  - live engine health status
+  - browser-local recent targets only, maximum five, clearable and never written to durable storage
+  - responsive mobile-first homepage using the Cloud Engine Manrope typography contract
+  - explicit Web + Telegram product roles over one shared analyzer/API layer
+  - no analyzer, scoring, SSRF, authorization, Telegram preference, or `/api/*` contract changes
+
+## Paused Telegram Track
 - Phase 7T: Default Experience
+  - implementation is present on `main`; further Telegram feature work is paused while the web flagship experience is developed
   - durable `/start` preference: `main`, `quick`, or `tools`
   - conservative default remains `main` for existing and new users
   - `quick` opens branded guided website target capture immediately
@@ -69,8 +82,15 @@
   - Settings displays the currently selected default start experience
   - preference uses the existing Telegram User ID durable record and bounded presentation cache
   - no Chat ID, checked target, diagnostic result, or browsing history is added to durable storage
-  - Help may open the SautiLink Tools Hub through fixed `menu:tools`
   - no analyzer, scoring, SSRF, authorization, or `/api/*` contract changes
 
-## Future
-- Phase 7U+: continue only with user-visible improvements that have a clear persistence/privacy model and measurable product value
+## Next Web Phases
+- Phase 8B: Full Audit workspace redesign
+  - richer visual score summary, findings filters, analyzer drill-downs, recommendation priorities and responsive report layout
+- Phase 8C: Web ↔ Telegram handoff
+  - short-lived signed handoff IDs; no raw secrets or arbitrary callback payloads
+  - continue a diagnostic from Telegram on the web and send an eligible web result into the Telegram companion
+- Phase 8D: Compare + Export
+  - comparison of approved diagnostic snapshots
+  - export/share workflows with an explicit retention and privacy model
+- Phase 8E+: additional web-only tools and workspace capabilities where the web format provides clear product value
