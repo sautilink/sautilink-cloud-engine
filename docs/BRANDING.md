@@ -55,30 +55,26 @@ Cloud Engine maps its existing `--accent`, `--accent-hover`, and `--accent-soft`
 
 ## Corporate typography
 
-SautiLink web products use a shared two-family typography system:
+SautiLink web products use **Inter as the single font family** across the entire product experience.
 
-- **Primary / content font: Lora**
-  - Used for normal page content, headings, navigation, buttons, forms, cards, reports, and other product UI text.
+- **Inter**
+  - Used for normal page content, headings, navigation, buttons, forms, cards, reports, brand names, product labels, footer branding, and copyright/signature surfaces.
   - Variable normal and italic faces are self-hosted.
-  - Supported weight range: `400–700`.
-- **Secondary / corporate font: Zalando Sans SemiExpanded**
-  - Used for SautiLink brand names, product labels, footer branding, copyright lines, and other deliberate corporate/signature surfaces.
-  - Variable normal and italic faces are self-hosted.
-  - Supported weight range: `200–900`.
+  - Supported weight range: `100–900`.
+  - Brand distinction should come from weight, scale, spacing, color, layout, and the SautiLink logo rather than a secondary typeface.
 
 Implementation tokens:
 
-- `--font-primary` → Lora
-- `--font-brand` → Zalando Sans SemiExpanded
+- `--font-primary` → Inter
 - `--font` → `--font-primary` for compatibility with the existing shared stylesheet
-- `[data-brand-font]` may be used when a new corporate/signature element needs the secondary family.
+- `[data-brand-font]` remains supported for semantic brand markup but resolves to Inter like all other product text.
 
-Web font files live under `public/assets/fonts/` and the shared mapping lives in `public/assets/brand/typography.css`. Pages must self-host the font assets rather than depending on a runtime request to an external font stylesheet/provider. Form controls explicitly inherit the primary font so mobile browsers do not silently fall back to their system UI font. Monospace technical output remains monospace for readability.
+Web font files live under `public/assets/fonts/inter/` and the shared mapping lives in `public/assets/brand/typography.css`. Pages must self-host the font assets rather than depending on a runtime request to an external font stylesheet/provider. Form controls explicitly inherit Inter so mobile browsers do not silently fall back to a different UI family. Monospace technical output may remain monospace where required for readability.
 
-Both families are distributed under the SIL Open Font License 1.1. Their original license files must remain alongside the vendored font assets. Do not rename or modify the font software in a way that violates Reserved Font Name restrictions.
+Inter is distributed under the SIL Open Font License 1.1. The original license file must remain alongside the vendored font assets.
 
-This typography and color contract is intended to be reused across SautiLink Corporation web products so desktop and mobile surfaces maintain a consistent visual identity.
+This single-family typography and color contract is intended to be reused across SautiLink Corporation web products so desktop and mobile surfaces maintain a consistent, product-first visual identity.
 
 ## Regression protection
 
-Automated branding tests should fail if normal user-facing start, about, settings, or admin output reintroduces known infrastructure-vendor branding. Web brand tests should also fail if the self-hosted font assets, license files, primary/brand mappings, corporate color tokens, or page wiring are removed. New user-facing features must follow the same SautiLink-first rule.
+Automated branding tests should fail if normal user-facing start, about, settings, or admin output reintroduces known infrastructure-vendor branding. Web brand tests should also fail if the self-hosted Inter assets, license file, single-family mapping, corporate color tokens, or page wiring are removed. New user-facing features must follow the same SautiLink-first rule.
