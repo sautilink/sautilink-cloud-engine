@@ -19,7 +19,7 @@ import {
   setPresentationPreferences,
 } from "./personalisation.js";
 import { answerCallbackQuery, editMessageText, sendMessage } from "./telegram.js";
-import { settingsKeyboard, settingsMenuText } from "./menu.js";
+import { settingsKeyboard, settingsMenuText, toolsHomeKeyboard, toolsHomeText } from "./menu.js";
 import { authorizeUser } from "./authz.js";
 import { clearPending } from "./guided.js";
 
@@ -63,8 +63,43 @@ export async function processUpdate(update, config) {
   if (SETTINGS_ACTIONS.has(callbackAction)) {
     return handleSettingsCallback(update.callback_query, config);
   }
+  if (callbackAction === "menu:tools") {
+    return handleToolsCallback(update.callback_query, config);
+  }
 
   return processCoreUpdate(update, config);
+}
+
+async function handleToolsCallback(cq, config) {
+  const cqId = cq && cq.id;
+  const message = cq && cq.message;
+  const chat = message && message.chat;
+  const chatId = chat && chat.id;
+  if (chatId == null) {
+    if (cqId) await answerCallbackQuery(config.token, cqId);
+    return { handled: true, reason: "no_chat" };
+  }
+
+  const env = (config && config.env) || {};
+  const auth = authorizeUser({ from: cq.from, chat, env });
+  if (!auth.allowed) {
+    if (cqId) await answerCallbackQuery(config.token, cqId);
+    return { handled: true, reason: "denied" };
+  }
+
+  clearPending(chatId);
+  const locale = resolveLocale({ chatId, languageCode: cq.from && cq.from.language_code });
+  if (cqId) await answerCallbackQuery(config.token, cqId);
+  const text = toolsHomeText(locale);
+  const extra = { reply_markup: toolsHomeKeyboard(locale) };
+  const messageId = message && message.message_id;
+
+  if (messageId != null) {
+    const edited = await editMessageText(config.token, chatId, messageId, text, extra);
+    if (edited.ok) return { handled: true, action: "menu:tools" };
+  }
+  await sendMessage(config.token, chatId, text, extra);
+  return { handled: true, action: "menu:tools" };
 }
 
 async function handleSettingsCallback(cq, config) {
