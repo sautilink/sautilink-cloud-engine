@@ -15,14 +15,24 @@
   - `telegram_user_preferences` is RLS-enabled and inaccessible to anon/authenticated roles
   - live write confirmed in Supabase and live read confirmed after production redeploy
   - no analyzer, scoring, SSRF, or `/api/*` contract changes
-
-## In progress
 - Phase 7O: Telegram preference reliability and observability
-  - add sanitized structured logging for durable preference reads/writes
-  - add focused tests for configuration, read, upsert, timeout/failure, fallback, and cache behavior
-  - replace temporary verbose `/admin` Supabase diagnostics with a concise durable-preference status
-  - keep preference storage minimal; do not store usernames, names, checked targets, or result history
+  - sanitized structured logging for durable preference reads/writes
+  - strict persisted-locale allowlist (`en`, `sw`)
+  - focused automated tests for configuration, read, upsert, failure, fallback, and cache behavior
+  - concise `/admin` durable-preference status
+  - production language-persistence regression verified after deployment
   - no analyzer/API scoring changes
 
+## In progress
+- Phase 7P: Telegram Settings & Preferences foundation
+  - add `/settings` as a cheap general command
+  - add a fixed `menu:settings` main-menu action
+  - show the currently active language inside Settings
+  - retain the direct Language/Lugha shortcut on the main menu
+  - move durable-language messaging from the old temporary-state wording to the verified Supabase behavior
+  - keep Settings extensible for future preferences without adding new stored fields yet
+  - store no usernames, display names, targets, results, or history
+  - no analyzer, scoring, SSRF, or `/api/*` contract changes
+
 ## Future
-- Phase 7P+: to be defined after Phase 7O live verification
+- Phase 7Q+: to be defined after Phase 7P live verification

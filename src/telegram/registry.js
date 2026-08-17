@@ -7,6 +7,7 @@ export const COMMANDS = [
   { name: "status", descriptionKey: "help.status", usage: "/status", category: "general", requiresArgument: false, cost: "cheap" },
   { name: "id", descriptionKey: "help.id", usage: "/id", category: "general", requiresArgument: false, cost: "cheap" },
   { name: "lang", descriptionKey: "help.lang", usage: "/lang sw", category: "general", requiresArgument: false, cost: "cheap" },
+  { name: "settings", descriptionKey: "help.settings", usage: "/settings", category: "general", requiresArgument: false, cost: "cheap" },
   { name: "admin", description: "Admin operational status", usage: "/admin", category: "admin", requiresArgument: false, cost: "cheap", visibility: "admin" },
   { name: "audit", aliases: ["check"], descriptionKey: "help.audit", usage: "/audit example.com", category: "website", requiresArgument: true, argumentType: "url", cost: "expensive" },
   { name: "website", aliases: ["site"], descriptionKey: "help.website_cmd", usage: "/website example.com", category: "website", requiresArgument: true, argumentType: "url", cost: "expensive" },

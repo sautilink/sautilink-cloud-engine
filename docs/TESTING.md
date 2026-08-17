@@ -85,6 +85,31 @@ The Node test suite covers:
 
 The Phase 7O implementation was validated locally with 10/10 automated tests passing before PR creation.
 
+## Phase 7P settings tests
+
+The settings regression suite covers:
+
+- `/settings` is registered as a cheap general command
+- `menu:settings` is fixed and allowlisted while arbitrary suffixes are rejected
+- the main menu retains direct Language access and adds Settings
+- Settings shows the active English/Kiswahili locale
+- Settings links only to the fixed language selector and Back callbacks
+- Language menu copy describes durable saved behavior instead of the old temporary-state wording
+
+A dependency-light local Node smoke passed 6/6 Phase 7P settings checks before PR creation.
+
+### Live Telegram smoke for Phase 7P
+
+After production deployment:
+
+1. `/start` → verify both **Language/Lugha** and **Settings/Mipangilio** are visible.
+2. Tap **Settings/Mipangilio** → verify the current language is shown correctly.
+3. Tap Language inside Settings → switch English/Kiswahili → verify the main menu returns in the selected language.
+4. Send `/settings` → verify it opens the same localized Settings screen.
+5. Redeploy production, then `/settings` again → verify the previously selected language is still remembered.
+6. `/admin` → verify `Durable preferences: Active (Supabase)` remains concise.
+7. Run one basic DNS or Website check to confirm analyzer routing is unchanged.
+
 ## Production regression
 
 - valid tool APIs remain HTTP 200
