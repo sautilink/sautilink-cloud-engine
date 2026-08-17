@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "wrangler pages dev public --compatibility-date=2024-09-23",
     "deploy": "wrangler pages deploy public --project-name=sautilink-cloud-engine",
-    "check": "echo \"No build step required for static + Pages Functions\""
+    "check": "echo \"No build step required for static + Pages Functions\"",
+    "test": "node --test tests/*.test.js"
   },
   "keywords": [
     "sautilink",

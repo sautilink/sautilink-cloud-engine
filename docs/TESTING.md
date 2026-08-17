@@ -62,6 +62,29 @@ Production validation completed:
 5. Without sending `/lang sw` again, `/start` opened directly in Kiswahili, confirming durable read/hydration from Supabase.
 6. Language menu remained available and functional.
 
+## Phase 7O automated preference tests
+
+Run:
+
+```bash
+npm test
+```
+
+The Node test suite covers:
+
+- preference configuration readiness
+- fail-open behavior when Supabase is not configured
+- invalid Telegram user IDs never reaching Supabase
+- allowlisted durable locale reads
+- rejection of unexpected stored locales
+- strict `en`/`sw` write allowlist and upsert request shape
+- network failure fallback with secret-leak assertion
+- isolate cache precedence while fresh
+- 5-minute cache expiry fallback
+- 500-entry cache bound
+
+The Phase 7O implementation was validated locally with 10/10 automated tests passing before PR creation.
+
 ## Production regression
 
 - valid tool APIs remain HTTP 200

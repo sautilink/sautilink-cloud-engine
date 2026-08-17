@@ -64,3 +64,12 @@ Storage behavior:
 - No usernames, display names, checked targets, diagnostic results, or browsing history are stored for language preferences
 
 Phase 7N was live-verified by saving `/lang sw` to Supabase, redeploying production to clear isolate state, then confirming `/start` still opened in Kiswahili from the durable preference.
+
+## Preference reliability and observability (Phase 7O)
+
+- Durable writes accept only strict persisted values `en` and `sw`.
+- Unexpected locale values are rejected before an outbound Supabase request.
+- Durable reads and writes emit sanitized structured operational events without secrets, user IDs, URLs, or payload bodies.
+- Supabase configuration/network/HTTP failures remain fail-open so Telegram and Cloud Engine checks continue working.
+- `/admin` reports only `Durable preferences: Active (Supabase)` or `Durable preferences: Fallback only` instead of detailed environment diagnostics.
+- Automated Node tests cover the preference store and isolate cache behavior.
