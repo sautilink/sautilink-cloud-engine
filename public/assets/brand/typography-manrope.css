@@ -39,3 +39,5 @@ select,
   background: var(--brand-light);
   color: #0f172a;
 }
+
+@import url("/assets/brand/product-shell.css?v=1");
