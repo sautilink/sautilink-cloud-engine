@@ -4,7 +4,7 @@ import { callCloudEngine } from "./engine.js";
 import { normalizeUrlArg, normalizeDomainArg } from "./normalize.js";
 import { parseLocaleChoice, setLocaleOverride, t } from "./i18n/index.js";
 import { localizeValidationMessage } from "./i18n/validation.js";
-import { preferenceStorageStatus } from "./preferences.js";
+import { preferenceStorageConfigured } from "./preferences.js";
 import {
   formatHelp, formatStart, formatAbout, formatStatus, formatId, formatAdmin,
   formatAudit, formatDns, formatEmail, formatHeaders, formatSsl, formatWebsite,
@@ -49,17 +49,18 @@ export async function handleCommand(ctx, config) {
       const health = await callCloudEngine(base, "/api/health", {});
       const stats = getUsageStats();
       const cfg = getUsageConfig(env);
-      const pref = preferenceStorageStatus(env);
-      const diagnostic = [
-        "",
-        "Durable preferences:",
-        `Supabase URL present: ${pref.urlPresent ? "YES" : "NO"}`,
-        `Supabase URL valid: ${pref.urlValid ? "YES" : "NO"}`,
-        `Supabase secret present: ${pref.secretPresent ? "YES" : "NO"}`,
-        `Supabase secret format: ${pref.secretFormatValid ? "YES" : "NO"}`,
-        `Preference storage ready: ${pref.configured ? "YES" : "NO"}`,
-      ].join("\n");
-      return { text: `${formatAdmin({ engineOk: health.ok, trackedChats: stats.trackedChats, maxTracked: stats.maxTracked, windowSeconds: cfg.windowSeconds, expensiveLimit: cfg.expensiveLimit, cheapLimit: cfg.cheapLimit }, locale)}${diagnostic}` };
+      const preferenceStatus = preferenceStorageConfigured(env)
+        ? "Active (Supabase)"
+        : "Fallback only";
+      const text = formatAdmin({
+        engineOk: health.ok,
+        trackedChats: stats.trackedChats,
+        maxTracked: stats.maxTracked,
+        windowSeconds: cfg.windowSeconds,
+        expensiveLimit: cfg.expensiveLimit,
+        cheapLimit: cfg.cheapLimit,
+      }, locale);
+      return { text: `${text}\nDurable preferences: ${preferenceStatus}` };
     }
     case "audit": {
       const usage = "/audit <url>"; const r = requireArg(arg, usage, locale); if (r.errorText) return { text: r.errorText };
