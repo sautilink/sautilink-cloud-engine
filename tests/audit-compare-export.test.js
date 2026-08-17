@@ -13,13 +13,14 @@ test("audit workspace exposes web-only compare and export controls", () => {
   assert.match(html, /id="compare-panel"/);
   assert.match(html, /id="compare-category-rows"/);
   assert.match(html, /\/tools\/audit-power\.css/);
-  assert.match(html, /\/tools\/audit-workspace\.js/);
+  assert.match(html, /\/tools\/audit-workspace\.js\?v=2/);
   assert.doesNotMatch(html, /src="\/tools\/audit\.js"/);
 });
 
 test("workspace bootstrap statically loads the audit module before installing the power layer", () => {
   const bootstrap = read("public/tools/audit-workspace.js");
-  assert.match(bootstrap, /import "\.\/audit\.js"/);
+  assert.match(bootstrap, /import "\.\/audit\.js\?v=2"/);
+  assert.match(bootstrap, /from "\.\/audit-power\.js\?v=2"/);
   assert.match(bootstrap, /installAuditPower\(\)/);
   assert.doesNotMatch(bootstrap, /await import\(/);
 });
