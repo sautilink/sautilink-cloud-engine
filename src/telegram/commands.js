@@ -59,7 +59,7 @@ export async function handleCommand(ctx, config) {
       const stats = getUsageStats();
       const cfg = getUsageConfig(env);
       const preferenceStatus = preferenceStorageConfigured(env)
-        ? "Active (Supabase)"
+        ? "Active (SautiLink managed)"
         : "Fallback only";
       const text = formatAdmin({
         engineOk: health.ok,
