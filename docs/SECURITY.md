@@ -31,4 +31,10 @@ SSRF authority remains Cloud Engine.
 - No Telegram username, display name, checked domain/URL, diagnostic result, or browsing history is stored by the preference layer.
 - Locale persistence does not alter analyzer routing, Cloud Engine scoring, authorization, SSRF boundaries, or `/api/*` contracts.
 
-The temporary `/admin` configuration diagnostic reports only presence/format booleans and never returns environment variable values or secret fragments.
+## Phase 7O preference hardening
+
+- Durable writes accept only strict persisted locale values `en` and `sw`; unexpected locale values are rejected before any Supabase request.
+- Preference read/write observability uses sanitized structured events: `telegram_preference_read` and `telegram_preference_write`.
+- Preference log events expose only operational status, bounded error codes, and duration; they do not include Supabase keys, request URLs, Telegram user IDs, or preference payload bodies.
+- Network/HTTP/config failures remain fail-open and are logged as fallback/skipped states rather than thrown into the bot flow.
+- `/admin` exposes only a concise `Active (Supabase)` or `Fallback only` durable-preference status. The temporary detailed environment presence/format diagnostic is removed from user-visible output.
