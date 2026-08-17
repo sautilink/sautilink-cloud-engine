@@ -266,38 +266,61 @@ export async function updateOwnProfile(userId, accessToken, input, env) {
   });
 }
 
-async function bootstrapVerifiedProfile(user, env) {
-  const id = String(user?.id || "");
-  const username = validateUsername(user?.user_metadata?.username);
-  const fullName = validateFullName(user?.user_metadata?.full_name);
-  if (!id || !username.ok || !fullName.ok) {
-    return { ok: false, reason: "profile_metadata_invalid" };
+export async function setupVerifiedProfile(user, input, env) {
+  if (!user?.id || !user?.email_confirmed_at) {
+    return { ok: false, status: 403, reason: "email_not_verified", message: "Verify your email before completing your profile." };
+  }
+  const username = validateUsername(input?.username || user?.user_metadata?.username);
+  const fullName = validateFullName(input?.fullName || user?.user_metadata?.full_name);
+  if (!username.ok || !fullName.ok) {
+    return { ok: false, status: 400, reason: "invalid_profile", message: username.message || fullName.message };
   }
 
   const existing = await adminRest(
     env,
-    `account_profiles?id=eq.${encodeURIComponent(id)}&select=id,username&limit=1`,
+    `account_profiles?id=eq.${encodeURIComponent(user.id)}&select=id,username&limit=1`,
     { method: "GET" }
   );
   if (existing.ok && Array.isArray(existing.body) && existing.body.length) {
-    return { ok: true, existing: true };
+    return { ok: true, existing: true, username: existing.body[0].username };
+  }
+
+  const availability = await usernameAvailable(username.username, env);
+  if (availability.available === false) {
+    return { ok: false, status: 409, reason: "username_taken", message: "That username is already taken. Choose another one." };
+  }
+  if (availability.available == null) {
+    return { ok: false, status: 503, reason: "profile_store_unavailable", message: "Account profile setup is temporarily unavailable." };
   }
 
   const inserted = await adminRest(env, "account_profiles", {
     method: "POST",
-    headers: { Prefer: "return=minimal" },
+    headers: { Prefer: "return=representation" },
     body: JSON.stringify({
-      id,
+      id: user.id,
       username: username.username,
       full_name: fullName.fullName,
-      email_updates: user?.user_metadata?.email_updates === true,
+      email_updates: input?.emailUpdates === true || user?.user_metadata?.email_updates === true,
       whatsapp_updates: false,
     }),
   });
   if (!inserted.ok && inserted.status === 409) {
-    return { ok: false, reason: "username_taken_after_verification" };
+    return { ok: false, status: 409, reason: "username_taken", message: "That username is already taken. Choose another one." };
   }
-  return { ok: inserted.ok, reason: inserted.ok ? undefined : inserted.reason || `http_${inserted.status}` };
+  return {
+    ok: inserted.ok,
+    status: inserted.status,
+    reason: inserted.ok ? undefined : inserted.reason || `http_${inserted.status}`,
+    body: inserted.body,
+  };
+}
+
+async function bootstrapVerifiedProfile(user, env) {
+  return setupVerifiedProfile(user, {
+    username: user?.user_metadata?.username,
+    fullName: user?.user_metadata?.full_name,
+    emailUpdates: user?.user_metadata?.email_updates === true,
+  }, env);
 }
 
 export function accountServiceStatus(env) {
