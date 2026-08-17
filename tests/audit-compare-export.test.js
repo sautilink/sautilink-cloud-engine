@@ -33,6 +33,13 @@ test("export reuses the captured primary audit instead of re-running it", () => 
   assert.match(js, /URL\.createObjectURL/);
 });
 
+test("CSV export guards spreadsheet formulas in string cells", () => {
+  const js = read("public/tools/audit-power.js");
+  assert.match(js, /typeof value === "string"/);
+  assert.match(js, /\[=\+\\-@\]/);
+  assert.match(js, /text = `\'\$\{text\}`/);
+});
+
 test("comparison performs one explicit fresh audit for only the second target", () => {
   const js = read("public/tools/audit-power.js");
   const html = read("public/tools/audit.html");
@@ -40,6 +47,14 @@ test("comparison performs one explicit fresh audit for only the second target", 
   assert.equal(compareFetches.length, 1);
   assert.match(js, /renderComparison\(currentAudit, comparisonAudit\)/);
   assert.match(html, /comparison minus primary/i);
+});
+
+test("comparison HTML escapes dynamic table labels and grades", () => {
+  const js = read("public/tools/audit-power.js");
+  assert.match(js, /function escapeHtml/);
+  assert.match(js, /<td>\$\{escapeHtml\(label\)\}<\/td>/);
+  assert.match(js, /escapeHtml\(a\.grade\)/);
+  assert.match(js, /escapeHtml\(b\.grade\)/);
 });
 
 test("compare and export add no durable report-history storage", () => {
