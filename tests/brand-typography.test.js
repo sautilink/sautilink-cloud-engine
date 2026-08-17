@@ -34,6 +34,16 @@ test("SautiLink typography maps Lora primary and Zalando Sans SemiExpanded corpo
   assert.match(css, /\.footer-copy,[\s\S]*\[data-brand-font\][\s\S]*font-family:\s*var\(--font-brand\)/);
 });
 
+test("SautiLink corporate color tokens are canonical and mapped to Cloud Engine accents", () => {
+  const css = read(typographyPath);
+  assert.match(css, /--brand-primary:\s*#2563eb/i);
+  assert.match(css, /--brand-primary-hover:\s*#1d4ed8/i);
+  assert.match(css, /--brand-light:\s*#60a5fa/i);
+  assert.match(css, /--brand-white:\s*#ffffff/i);
+  assert.match(css, /--accent:\s*var\(--brand-primary\)/);
+  assert.match(css, /--accent-hover:\s*var\(--brand-light\)/);
+});
+
 test("self-hosted normal and italic variable WOFF2 assets and OFL licenses are present", () => {
   const assets = [
     `${loraDir}/Lora-Variable.woff2`,
