@@ -93,6 +93,38 @@ Phase 8C adds web-only productivity tools to the Full Audit workspace without cr
 - the comparison action is the only additional audit request and happens only after explicit user action
 - analyzer, scoring, SSRF, deadline, authorization and Telegram preference behavior remain unchanged
 
+## Phase 8D Focused DNS & Email Tools
+
+Phase 8D turns capabilities that already exist inside the DNS and email engines into first-class standalone web tools:
+
+- MX Record Checker
+- SPF Checker
+- DMARC Checker
+- DKIM Checker
+- Nameserver Lookup
+
+The five pages share one browser renderer and one responsive stylesheet. They are deliberately focused: each page explains only the selected protocol, presents only the relevant result fields, and links back to the broader Email Infrastructure Checker or DNS Lookup when a wider investigation is needed.
+
+### Focused email orchestration
+
+The standalone MX, SPF, DMARC, and DKIM pages call `/api/email-check` with a strict `check` allowlist. That route does not clone the analyzer implementations. Instead it invokes the existing MX/SPF/DMARC/DKIM modules and performs only the DNS query work needed for the selected check.
+
+- MX requests MX records only
+- SPF requests TXT records for the domain only
+- DMARC requests TXT records at `_dmarc.<domain>` only
+- DKIM checks the supplied selector or uses the existing bounded heuristic selector discovery
+- Nameserver Lookup continues to use the existing `/api/dns` response and reads only its NS result in the focused web UI
+
+This avoids making a simple MX lookup execute the full email-security suite just to render one card.
+
+### Phase 8D boundaries
+
+- no duplicate scoring model is introduced
+- the existing full `/api/email` endpoint remains unchanged
+- no report history, user profile, saved target, or database schema is added
+- public UI remains SautiLink-first and does not expose provider-specific infrastructure
+- DKIM remains DNS public-key inspection; it does not claim to verify a signature from a specific message
+
 ## Web ↔ Telegram bridge
 
 The signed handoff bridge remains planned, but implementation is deferred while Telegram feature work is intentionally paused. When Telegram development resumes, the bridge should use short-lived, signed handoff identifiers; an opaque representation may be used internally, but raw diagnostic state or sensitive values must never be placed in Telegram callback data.
