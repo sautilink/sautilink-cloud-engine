@@ -1,0 +1,60 @@
+name: Hotfix account email OTP length
+on:
+  push:
+    branches: [hotfix/account-email-otp-length]
+    paths: [.github/workflows/hotfix-account-otp-length.yml]
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hotfix/account-email-otp-length
+      - name: Patch OTP contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          def r(path,a,b):
+            p=Path(path); s=p.read_text()
+            if a not in s: raise SystemExit(f'missing marker: {path}')
+            p.write_text(s.replace(a,b,1))
+
+          r('src/account/service.js','const DEFAULT_PUBLISHABLE_KEY = "sb_publishable_omJ-5Mem-K4vgm6WLXRzJQ_jeGs65ca";\n','const DEFAULT_PUBLISHABLE_KEY = "sb_publishable_omJ-5Mem-K4vgm6WLXRzJQ_jeGs65ca";\nconst DEFAULT_EMAIL_OTP_LENGTH = 8;\n\nexport function emailOtpLength(env = {}) {\n  const value = Number.parseInt(String(env.SUPABASE_EMAIL_OTP_LENGTH || ""), 10);\n  return Number.isInteger(value) && value >= 6 && value <= 10 ? value : DEFAULT_EMAIL_OTP_LENGTH;\n}\n')
+          r('src/account/service.js','  const token = String(tokenValue || "").trim();\n  if (!email.ok || !/^\\d{6}$/.test(token)) {\n    return { ok: false, status: 400, reason: "invalid_code", message: "Enter the 6-digit verification code." };\n  }','  const token = String(tokenValue || "").trim();\n  const otpLength = emailOtpLength(env);\n  const otpPattern = new RegExp(`^\\\\d{${otpLength}}$`);\n  if (!email.ok || !otpPattern.test(token)) {\n    return { ok: false, status: 400, reason: "invalid_code", message: `Enter the ${otpLength}-digit verification code.` };\n  }')
+          r('src/account/service.js','  return { publicReady: cfg.publicReady, adminReady: cfg.adminReady };','  return { publicReady: cfg.publicReady, adminReady: cfg.adminReady, emailOtpLength: emailOtpLength(env) };')
+
+          r('functions/api/account/[[path]].js','      available: status.publicReady && status.adminReady,\n      communications:','      available: status.publicReady && status.adminReady,\n      emailOtpLength: status.emailOtpLength,\n      communications:')
+          r('functions/api/account/[[path]].js','    return ok({ verificationRequired: true, email: String(parsed.value?.email || "").trim().toLowerCase() }, requestId, 201);','    return ok({ verificationRequired: true, email: String(parsed.value?.email || "").trim().toLowerCase(), otpLength: accountServiceStatus(env).emailOtpLength }, requestId, 201);')
+
+          r('public/account/account.js','const PENDING_EMAIL_KEY = "sl_pending_verification_email";\nlet usernameTimer = null;','const PENDING_EMAIL_KEY = "sl_pending_verification_email";\nconst PENDING_OTP_LENGTH_KEY = "sl_pending_verification_otp_length";\nconst DEFAULT_EMAIL_OTP_LENGTH = 8;\nlet usernameTimer = null;')
+          r('public/account/account.js','      sessionStorage.setItem(PENDING_EMAIL_KEY, email);\n      window.location.assign("/account/verify");','      sessionStorage.setItem(PENDING_EMAIL_KEY, email);\n      sessionStorage.setItem(PENDING_OTP_LENGTH_KEY, String(normalizeOtpLength(payload?.data?.otpLength)));\n      window.location.assign("/account/verify");')
+          r('public/account/account.js','function verificationCode(inputs) {\n  return inputs.map((input) => input.value).join("");\n}','function normalizeOtpLength(value) {\n  const length = Number.parseInt(String(value || ""), 10);\n  return Number.isInteger(length) && length >= 6 && length <= 10 ? length : DEFAULT_EMAIL_OTP_LENGTH;\n}\n\nasync function resolveOtpLength() {\n  const stored = sessionStorage.getItem(PENDING_OTP_LENGTH_KEY);\n  if (stored) return normalizeOtpLength(stored);\n  try {\n    const { response, payload } = await api("status");\n    if (response.ok && payload?.success === true) return normalizeOtpLength(payload?.data?.emailOtpLength);\n  } catch {}\n  return DEFAULT_EMAIL_OTP_LENGTH;\n}\n\nfunction renderVerificationInputs(container, length) {\n  container.replaceChildren();\n  container.style.setProperty("--otp-length", String(length));\n  for (let i = 0; i < length; i += 1) {\n    const input = document.createElement("input");\n    input.inputMode = "numeric"; input.pattern = "[0-9]"; input.maxLength = 1;\n    input.setAttribute("aria-label", `Digit ${i + 1}`);\n    if (i === 0) input.autocomplete = "one-time-code";\n    container.appendChild(input);\n  }\n  return Array.from(container.querySelectorAll("input"));\n}\n\nfunction verificationCode(inputs) {\n  return inputs.map((input) => input.value).join("");\n}')
+          r('public/account/account.js','      const digits = event.clipboardData?.getData("text")?.replace(/\\D/g, "").slice(0, 6) || "";\n      if (digits.length !== 6) return;','      const digits = event.clipboardData?.getData("text")?.replace(/\\D/g, "").slice(0, inputs.length) || "";\n      if (digits.length !== inputs.length) return;')
+          r('public/account/account.js','      inputs[5]?.focus();','      inputs[inputs.length - 1]?.focus();')
+          r('public/account/account.js','function setupVerify() {','async function setupVerify() {')
+          r('public/account/account.js','  const inputs = Array.from(document.querySelectorAll("#verify-code input"));\n  if (emailEl) emailEl.textContent = email || "your email";','  const codeContainer = document.getElementById("verify-code");\n  const verificationLabel = document.getElementById("verification-label");\n  const otpLength = await resolveOtpLength();\n  const inputs = renderVerificationInputs(codeContainer, otpLength);\n  if (verificationLabel) verificationLabel.textContent = `${otpLength}-digit code`;\n  if (emailEl) emailEl.textContent = email || "your email";')
+          r('public/account/account.js','    if (!/^\\d{6}$/.test(code)) {\n      setMessage("form-message", "Enter all six digits from your verification email.");','    if (code.length !== inputs.length || !/^\\d+$/.test(code)) {\n      setMessage("form-message", `Enter all ${inputs.length} digits from your verification email.`);')
+          r('public/account/account.js','      sessionStorage.removeItem(PENDING_EMAIL_KEY);','      sessionStorage.removeItem(PENDING_EMAIL_KEY);\n      sessionStorage.removeItem(PENDING_OTP_LENGTH_KEY);')
+
+          p=Path('public/account/verify.html'); s=p.read_text()
+          s=s.replace('Enter your six-digit SautiLink Account email verification code.','Enter your SautiLink Account email verification code.')
+          s=s.replace('We send a six-digit code to your email.','We send a one-time verification code to your email.')
+          s=s.replace('<strong>Six digits</strong><span>Enter the code exactly as it appears in the verification email.</span>','<strong>One-time code</strong><span>Enter every digit exactly as it appears in the verification email.</span>')
+          start=s.index('          <label id="verification-label">6-digit code</label>')
+          end=s.index('          </div>',start)+len('          </div>')
+          s=s[:start]+'          <label id="verification-label">Verification code</label>\n          <div class="verify-code" id="verify-code" role="group" aria-labelledby="verification-label"></div>'+s[end:]
+          p.write_text(s)
+
+          p=Path('public/account/account.css'); s=p.read_text(); p.write_text(s.replace('grid-template-columns:repeat(6,1fr)','grid-template-columns:repeat(var(--otp-length,8),1fr)',1))
+          PY
+      - name: Smoke test syntax
+        run: node --check src/account/service.js && node --check 'functions/api/account/[[path]].js' && node --check public/account/account.js
+      - name: Commit hotfix
+        run: |
+          git config user.name sautilink-automation
+          git config user.email actions@users.noreply.github.com
+          git add src/account/service.js 'functions/api/account/[[path]].js' public/account/account.js public/account/verify.html public/account/account.css
+          git commit -m 'Fix account email OTP length contract'
+          git push origin HEAD:hotfix/account-email-otp-length
