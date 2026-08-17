@@ -53,28 +53,29 @@ Implementation tokens:
 
 Cloud Engine maps its existing `--accent`, `--accent-hover`, and `--accent-soft` tokens onto this corporate palette so feature styles remain compatible while the public visual identity stays consistent.
 
-## Corporate typography
+## Cloud Engine typography
 
-SautiLink web products use **Inter as the single font family** across the entire product experience.
+**Manrope is the official SautiLink Cloud Engine product font** across web and native app surfaces. This is an intentional Cloud Engine product-level typography decision and should not be automatically replaced by typography choices used by other SautiLink products.
 
-- **Inter**
-  - Used for normal page content, headings, navigation, buttons, forms, cards, reports, brand names, product labels, footer branding, and copyright/signature surfaces.
-  - Variable normal and italic faces are self-hosted.
-  - Supported weight range: `100–900`.
-  - Brand distinction should come from weight, scale, spacing, color, layout, and the SautiLink logo rather than a secondary typeface.
+- **Manrope**
+  - Used for normal page content, headings, navigation, buttons, forms, cards, reports, settings, brand names, product labels, footer branding, and copyright/signature surfaces.
+  - The official variable weight range is `200–800`.
+  - The web build self-hosts an optimized WOFF2 generated from the official variable font source.
+  - Future iOS and Android app builds should bundle the same Manrope variable family as the primary product font. Platform system fonts are fallbacks, not the Cloud Engine brand font.
+  - Brand distinction should come from weight, scale, spacing, color, layout, and the SautiLink Cloud Engine identity rather than a secondary typeface.
 
 Implementation tokens:
 
-- `--font-primary` → Inter
+- `--font-primary` → Manrope
 - `--font` → `--font-primary` for compatibility with the existing shared stylesheet
-- `[data-brand-font]` remains supported for semantic brand markup but resolves to Inter like all other product text.
+- `[data-brand-font]` remains supported for semantic brand markup but resolves to Manrope like the rest of the product UI.
 
-Web font files live under `public/assets/fonts/inter/` and the shared mapping lives in `public/assets/brand/typography.css`. Pages must self-host the font assets rather than depending on a runtime request to an external font stylesheet/provider. Form controls explicitly inherit Inter so mobile browsers do not silently fall back to a different UI family. Monospace technical output may remain monospace where required for readability.
+The web font lives under `public/assets/fonts/manrope/` and the shared mapping lives in `public/assets/brand/typography.css`. Pages must self-host the font rather than depending on a runtime request to an external font stylesheet/provider. Form controls explicitly inherit Manrope so mobile browsers do not silently fall back to a different UI family.
 
-Inter is distributed under the SIL Open Font License 1.1. The original license file must remain alongside the vendored font assets.
+Technical values where character alignment materially improves readability—such as code-like output, raw DNS records, hashes, or similar diagnostics—may use a monospace rendering. That is a functional technical treatment, not a secondary Cloud Engine brand font.
 
-This single-family typography and color contract is intended to be reused across SautiLink Corporation web products so desktop and mobile surfaces maintain a consistent, product-first visual identity.
+Manrope is distributed under the SIL Open Font License 1.1. The original license file must remain alongside the vendored web font asset.
 
 ## Regression protection
 
-Automated branding tests should fail if normal user-facing start, about, settings, or admin output reintroduces known infrastructure-vendor branding. Web brand tests should also fail if the self-hosted Inter assets, license file, single-family mapping, corporate color tokens, or page wiring are removed. New user-facing features must follow the same SautiLink-first rule.
+Automated branding tests should fail if normal user-facing start, about, settings, or admin output reintroduces known infrastructure-vendor branding. Web typography tests should also fail if the self-hosted Manrope asset, license file, `200–800` variable mapping, corporate color tokens, app typography contract, or page wiring are removed. They should reject Inter, Lora, Zalando Sans SemiExpanded, and external font-provider dependencies from the Cloud Engine product UI.
