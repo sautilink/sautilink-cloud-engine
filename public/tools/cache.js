@@ -69,7 +69,7 @@ function describeCache(headers) {
 function describeCompression(headers) {
   const encoding = String(headers["content-encoding"] || "").trim().toLowerCase();
   if (!encoding) {
-    return { tone: "muted", title: "No content encoding observed", message: "This response did not expose Content-Encoding to the Cloud Engine request. Negotiated delivery may differ for other clients." };
+    return { tone: "muted", title: "No content encoding observed", message: "This response did not expose Content-Encoding to the Cloud Engine request. This does not prove that every client receives an uncompressed response; negotiated delivery may differ." };
   }
   const recognized = new Set(["br", "gzip", "zstd", "deflate"]);
   const names = encoding.split(",").map((v) => v.trim()).filter(Boolean);
@@ -110,7 +110,7 @@ function buildNotes(headers) {
   if (String(headers.vary || "").trim() === "*") notes.push("Vary: * was observed; shared cache reuse is generally prevented because every request is treated as a different representation.");
   if (headers.vary && /cookie/i.test(headers.vary)) notes.push("Vary includes Cookie, which can greatly reduce shared-cache reuse depending on request traffic.");
   if (headers.age) notes.push(`Age: ${headers.age} was observed, indicating the response may have spent time in a cache before reaching Cloud Engine.`);
-  if (!headers["content-encoding"]) notes.push("No Content-Encoding header was observed; this is not proof that all clients receive an uncompressed representation.");
+  if (!headers["content-encoding"]) notes.push("No Content-Encoding header was observed; this does not prove that every client receives an uncompressed response.");
   if (!notes.length) notes.push("No special review note was generated from the observed cache and encoding headers.");
   return notes;
 }
