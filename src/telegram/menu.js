@@ -41,10 +41,14 @@ export function settingsKeyboard(locale = "en", preferences = {}) {
   const sw = locale === "sw";
   const reportDetail = preferences.reportDetail === "detailed" ? "detailed" : "compact";
   const developerMode = preferences.developerMode === true;
+  const defaultView = ["quick", "tools"].includes(preferences.defaultView) ? preferences.defaultView : "main";
   const compact = `${reportDetail === "compact" ? "✅ " : ""}📄 ${sw ? "Fupi" : "Compact"}`;
   const detailed = `${reportDetail === "detailed" ? "✅ " : ""}📑 ${sw ? "Kina" : "Detailed"}`;
   const devOff = `${!developerMode ? "✅ " : ""}🧑‍💻 Dev Off`;
   const devOn = `${developerMode ? "✅ " : ""}🧑‍💻 Dev On`;
+  const home = `${defaultView === "main" ? "✅ " : ""}🏠 ${sw ? "Mwanzo" : "Main"}`;
+  const quick = `${defaultView === "quick" ? "✅ " : ""}⚡ Quick`;
+  const tools = `${defaultView === "tools" ? "✅ " : ""}🧰 Tools`;
 
   return {
     inline_keyboard: [
@@ -56,6 +60,11 @@ export function settingsKeyboard(locale = "en", preferences = {}) {
       [
         { text: devOff, callback_data: "pref:dev:off" },
         { text: devOn, callback_data: "pref:dev:on" },
+      ],
+      [
+        { text: home, callback_data: "pref:view:main" },
+        { text: quick, callback_data: "pref:view:quick" },
+        { text: tools, callback_data: "pref:view:tools" },
       ],
       [{ text: t(locale, "menu.back"), callback_data: "menu:main" }],
     ],
@@ -69,12 +78,12 @@ export function settingsMenuText(locale = "en", profile = {}, preferences = {}) 
   const sw = locale === "sw";
   const reportDetail = preferences.reportDetail === "detailed" ? "detailed" : "compact";
   const developerMode = preferences.developerMode === true;
-  const reportLabel = sw
-    ? (reportDetail === "detailed" ? "Kina" : "Fupi")
-    : (reportDetail === "detailed" ? "Detailed" : "Compact");
-  const devLabel = sw
-    ? (developerMode ? "Imewashwa" : "Imezimwa")
-    : (developerMode ? "On" : "Off");
+  const defaultView = ["quick", "tools"].includes(preferences.defaultView) ? preferences.defaultView : "main";
+  const reportLabel = sw ? (reportDetail === "detailed" ? "Kina" : "Fupi") : (reportDetail === "detailed" ? "Detailed" : "Compact");
+  const devLabel = sw ? (developerMode ? "Imewashwa" : "Imezimwa") : (developerMode ? "On" : "Off");
+  const defaultLabel = sw
+    ? ({ main: "Menyu Kuu", quick: "Quick Check", tools: "Tools Hub" }[defaultView])
+    : ({ main: "Main Menu", quick: "Quick Check", tools: "Tools Hub" }[defaultView]);
 
   return [
     t(locale, "settings.title"),
@@ -89,6 +98,7 @@ export function settingsMenuText(locale = "en", profile = {}, preferences = {}) 
     t(locale, "settings.current_language", { language: currentLanguage }),
     `${sw ? "• Muundo wa report" : "• Report detail"}: ${reportLabel}`,
     `• Developer Mode: ${devLabel}`,
+    `${sw ? "• /start ya kawaida" : "• Default /start"}: ${defaultLabel}`,
     sw
       ? "• Developer Mode huonyesha technical details zaidi za target unayokagua; haiwezi kuonyesha architecture ya SautiLink."
       : "• Developer Mode shows extra technical details about the target you check; it does not expose SautiLink architecture.",
@@ -101,6 +111,39 @@ export function settingsMenuText(locale = "en", profile = {}, preferences = {}) 
     sw ? "🏢 SautiLink Cloud Engine ni sehemu ya SautiLink Corporation · sautilink.com" : "🏢 SautiLink Cloud Engine is part of SautiLink Corporation · sautilink.com",
     "",
     t(locale, "settings.choose"),
+  ].join("\n");
+}
+
+export function toolsHomeKeyboard(locale = "en") {
+  return {
+    inline_keyboard: [
+      [{ text: t(locale, "menu.check_website"), callback_data: "tool:audit" }],
+      [
+        { text: t(locale, "menu.website_tools"), callback_data: "menu:website" },
+        { text: t(locale, "menu.infrastructure"), callback_data: "menu:infrastructure" },
+      ],
+      [
+        { text: t(locale, "menu.settings"), callback_data: "menu:settings" },
+        { text: t(locale, "menu.back"), callback_data: "menu:main" },
+      ],
+    ],
+  };
+}
+
+export function toolsHomeText(locale = "en") {
+  return locale === "sw"
+    ? "🧰 SautiLink Tools Hub\n\nChagua aina ya ukaguzi au anza Quick Check ya tovuti."
+    : "🧰 SautiLink Tools Hub\n\nChoose a diagnostic category or start a Quick Website Check.";
+}
+
+export function quickStartText(locale = "en") {
+  return [
+    "⚡ SautiLink Quick Check",
+    "",
+    t(locale, "guided.prompt"),
+    "",
+    t(locale, "guided.example"),
+    t(locale, "guided.or"),
   ].join("\n");
 }
 
@@ -154,7 +197,7 @@ export function statusKeyboard(locale = "en") {
 export function helpMenuKeyboard(locale = "en") {
   return {
     inline_keyboard: [
-      [{ text: t(locale, "menu.open_tools"), callback_data: "menu:main" }],
+      [{ text: t(locale, "menu.open_tools"), callback_data: "menu:tools" }],
       [{ text: t(locale, "menu.back"), callback_data: "menu:main" }],
     ],
   };

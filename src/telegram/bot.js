@@ -19,7 +19,7 @@ import {
   setPresentationPreferences,
 } from "./personalisation.js";
 import { answerCallbackQuery, editMessageText, sendMessage } from "./telegram.js";
-import { settingsKeyboard, settingsMenuText } from "./menu.js";
+import { settingsKeyboard, settingsMenuText, toolsHomeKeyboard, toolsHomeText } from "./menu.js";
 import { authorizeUser } from "./authz.js";
 import { clearPending } from "./guided.js";
 
@@ -29,6 +29,9 @@ const SETTINGS_ACTIONS = new Set([
   "pref:detail:detailed",
   "pref:dev:off",
   "pref:dev:on",
+  "pref:view:main",
+  "pref:view:quick",
+  "pref:view:tools",
 ]);
 
 export async function processUpdate(update, config) {
@@ -60,8 +63,43 @@ export async function processUpdate(update, config) {
   if (SETTINGS_ACTIONS.has(callbackAction)) {
     return handleSettingsCallback(update.callback_query, config);
   }
+  if (callbackAction === "menu:tools") {
+    return handleToolsCallback(update.callback_query, config);
+  }
 
   return processCoreUpdate(update, config);
+}
+
+async function handleToolsCallback(cq, config) {
+  const cqId = cq && cq.id;
+  const message = cq && cq.message;
+  const chat = message && message.chat;
+  const chatId = chat && chat.id;
+  if (chatId == null) {
+    if (cqId) await answerCallbackQuery(config.token, cqId);
+    return { handled: true, reason: "no_chat" };
+  }
+
+  const env = (config && config.env) || {};
+  const auth = authorizeUser({ from: cq.from, chat, env });
+  if (!auth.allowed) {
+    if (cqId) await answerCallbackQuery(config.token, cqId);
+    return { handled: true, reason: "denied" };
+  }
+
+  clearPending(chatId);
+  const locale = resolveLocale({ chatId, languageCode: cq.from && cq.from.language_code });
+  if (cqId) await answerCallbackQuery(config.token, cqId);
+  const text = toolsHomeText(locale);
+  const extra = { reply_markup: toolsHomeKeyboard(locale) };
+  const messageId = message && message.message_id;
+
+  if (messageId != null) {
+    const edited = await editMessageText(config.token, chatId, messageId, text, extra);
+    if (edited.ok) return { handled: true, action: "menu:tools" };
+  }
+  await sendMessage(config.token, chatId, text, extra);
+  return { handled: true, action: "menu:tools" };
 }
 
 async function handleSettingsCallback(cq, config) {
@@ -95,6 +133,7 @@ async function handleSettingsCallback(cq, config) {
       locale,
       reportDetail: next.reportDetail,
       developerMode: next.developerMode,
+      defaultView: next.defaultView,
     }, env);
 
     if (saved) {
@@ -107,10 +146,7 @@ async function handleSettingsCallback(cq, config) {
 
   if (cqId) await answerCallbackQuery(config.token, cqId, callbackText);
 
-  const text = settingsMenuText(locale, {
-    chatId,
-    userId,
-  }, presentation);
+  const text = settingsMenuText(locale, { chatId, userId }, presentation);
   const extra = { reply_markup: settingsKeyboard(locale, presentation) };
   const messageId = message && message.message_id;
 
@@ -129,6 +165,9 @@ function settingsPreferencePatch(action) {
     case "pref:detail:detailed": return { reportDetail: "detailed" };
     case "pref:dev:off": return { developerMode: false };
     case "pref:dev:on": return { developerMode: true };
+    case "pref:view:main": return { defaultView: "main" };
+    case "pref:view:quick": return { defaultView: "quick" };
+    case "pref:view:tools": return { defaultView: "tools" };
     default: return null;
   }
 }

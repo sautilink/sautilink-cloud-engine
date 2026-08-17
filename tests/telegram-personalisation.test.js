@@ -18,10 +18,11 @@ test.afterEach(() => {
   _resetPersonalisationForTests();
 });
 
-test("presentation defaults are compact with developer mode off", () => {
+test("presentation defaults are compact, developer off, and main start view", () => {
   assert.deepEqual(getPresentationPreferences(123), {
     reportDetail: "compact",
     developerMode: false,
+    defaultView: "main",
   });
   assert.equal(hasPresentationPreferences(123), false);
 });
@@ -29,32 +30,38 @@ test("presentation defaults are compact with developer mode off", () => {
 test("presentation cache hydrates, updates, expires, and remains bounded", () => {
   let now = 1_000_000;
   Date.now = () => now;
-  setPresentationPreferences(123, { reportDetail: "detailed", developerMode: true });
+  setPresentationPreferences(123, { reportDetail: "detailed", developerMode: true, defaultView: "tools" });
   assert.equal(hasPresentationPreferences(123), true);
-  assert.deepEqual(getPresentationPreferences(123), { reportDetail: "detailed", developerMode: true });
+  assert.deepEqual(getPresentationPreferences(123), {
+    reportDetail: "detailed", developerMode: true, defaultView: "tools",
+  });
 
-  updatePresentationPreferences(123, { developerMode: false });
-  assert.deepEqual(getPresentationPreferences(123), { reportDetail: "detailed", developerMode: false });
+  updatePresentationPreferences(123, { developerMode: false, defaultView: "quick" });
+  assert.deepEqual(getPresentationPreferences(123), {
+    reportDetail: "detailed", developerMode: false, defaultView: "quick",
+  });
 
   now += 5 * 60 * 1000 + 1;
   assert.equal(hasPresentationPreferences(123), false);
-  assert.deepEqual(getPresentationPreferences(123), { reportDetail: "compact", developerMode: false });
+  assert.deepEqual(getPresentationPreferences(123), {
+    reportDetail: "compact", developerMode: false, defaultView: "main",
+  });
 
   now += 1;
   for (let i = 0; i < 501; i += 1) {
-    setPresentationPreferences(i, { reportDetail: "compact", developerMode: false });
+    setPresentationPreferences(i, { reportDetail: "compact", developerMode: false, defaultView: "main" });
   }
   assert.equal(hasPresentationPreferences(0), false);
   assert.equal(hasPresentationPreferences(500), true);
 });
 
+test("invalid default view normalizes to main", () => {
+  setPresentationPreferences(123, { reportDetail: "compact", developerMode: false, defaultView: "admin" });
+  assert.equal(getPresentationPreferences(123).defaultView, "main");
+});
+
 test("detailed DNS output returns more records than compact", () => {
-  const data = {
-    domain: "example.com",
-    records: {
-      A: ["1", "2", "3", "4", "5", "6"],
-    },
-  };
+  const data = { domain: "example.com", records: { A: ["1", "2", "3", "4", "5", "6"] } };
   const compact = formatDns(data, "en", { reportDetail: "compact", developerMode: false });
   const detailed = formatDns(data, "en", { reportDetail: "detailed", developerMode: false });
   assert.match(compact, /… \+2 more/);
@@ -70,11 +77,7 @@ test("developer mode adds target diagnostics and machine finding codes", () => {
     responseTimeMs: 123,
     redirectCount: 1,
     contentType: "text/html",
-    score: {
-      total: 80,
-      grade: "B",
-      findings: [{ title: "Missing description", code: "META_DESCRIPTION_MISSING" }],
-    },
+    score: { total: 80, grade: "B", findings: [{ title: "Missing description", code: "META_DESCRIPTION_MISSING" }] },
   };
   const normal = formatWebsite(data, "en", { reportDetail: "compact", developerMode: false });
   const developer = formatWebsite(data, "en", { reportDetail: "compact", developerMode: true });
@@ -88,13 +91,7 @@ test("developer mode adds target diagnostics and machine finding codes", () => {
 test("audit compact and detailed modes use different item limits", () => {
   const findings = Array.from({ length: 6 }, (_, i) => ({ title: `Finding ${i + 1}`, code: `F_${i + 1}` }));
   const recommendations = Array.from({ length: 6 }, (_, i) => ({ title: `Recommendation ${i + 1}`, code: `R_${i + 1}` }));
-  const data = {
-    domain: "example.com",
-    score: { total: 75, max: 100, grade: "B" },
-    categories: {},
-    findings,
-    recommendations,
-  };
+  const data = { domain: "example.com", score: { total: 75, max: 100, grade: "B" }, categories: {}, findings, recommendations };
 
   const compact = formatAuditReport(data, "en", { reportDetail: "compact", developerMode: false });
   const detailed = formatAuditReport(data, "en", { reportDetail: "detailed", developerMode: false });

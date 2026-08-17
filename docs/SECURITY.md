@@ -23,6 +23,7 @@ SSRF authority remains Cloud Engine.
   - locale (`en` or `sw`)
   - report detail (`compact` or `detailed`)
   - developer mode (`false` or `true`)
+  - default start view (`main`, `quick`, or `tools`)
   - creation/update timestamps
 - Row Level Security is enabled on the preference table.
 - Public application roles have no table privileges.
@@ -44,14 +45,29 @@ SSRF authority remains Cloud Engine.
 ## Settings callbacks
 
 - `menu:settings` is fixed and allowlisted.
-- Phase 7S adds only these fixed preference callbacks:
+- Personalisation uses only fixed preference callbacks:
   - `pref:detail:compact`
   - `pref:detail:detailed`
   - `pref:dev:off`
   - `pref:dev:on`
+  - `pref:view:main`
+  - `pref:view:quick`
+  - `pref:view:tools`
+- `menu:tools` is a fixed navigation callback and carries no user data.
 - Arbitrary callback suffixes or user-supplied preference payloads are rejected.
-- Settings callbacks perform normal Telegram authorization before returning or changing user-facing content.
-- Opening Settings clears pending guided-input state so later text is not accidentally interpreted as an earlier website target.
+- Settings and Tools callbacks perform normal Telegram authorization before returning or changing user-facing content.
+- Opening Settings or Tools clears pending guided-input state so later text is not accidentally interpreted as an earlier website target.
+
+## Default Experience boundary
+
+`default_view` changes only what `/start` presents to the authenticated Telegram user.
+
+- `main` returns the normal branded main menu.
+- `quick` activates the existing ephemeral guided target-capture state; it does not persist a target.
+- `tools` returns a SautiLink-owned navigation hub using existing tool/menu callbacks.
+- Unknown durable values normalize to `main`.
+- Invalid callback values never reach durable storage.
+- No default-view choice can alter API paths, analyzer inputs, scoring, authorization, SSRF validation, rate controls, secrets, or vendor visibility.
 
 ## Developer Mode boundary
 

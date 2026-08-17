@@ -37,6 +37,7 @@ test("Detailed preference callback persists then updates the active Settings vie
         locale: "en",
         report_detail: "compact",
         developer_mode: false,
+        default_view: "main",
       }]), {
         status: 200,
         headers: { "Content-Type": "application/json" },
@@ -65,11 +66,7 @@ test("Detailed preference callback persists then updates the active Settings vie
       id: "cq-7s",
       data: "pref:detail:detailed",
       from: { id: 123, language_code: "en" },
-      message: {
-        message_id: 55,
-        chat: { id: 123 },
-        text: "Settings",
-      },
+      message: { message_id: 55, chat: { id: 123 }, text: "Settings" },
     },
   }, config);
 
@@ -80,9 +77,11 @@ test("Detailed preference callback persists then updates the active Settings vie
   assert.equal(durableWrites[0].locale, "en");
   assert.equal(durableWrites[0].report_detail, "detailed");
   assert.equal(durableWrites[0].developer_mode, false);
+  assert.equal(durableWrites[0].default_view, "main");
   assert.deepEqual(getPresentationPreferences(123), {
     reportDetail: "detailed",
     developerMode: false,
+    defaultView: "main",
   });
 
   const edit = telegramCalls.find((call) => call.target.includes("/editMessageText"));

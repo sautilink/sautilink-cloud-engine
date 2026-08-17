@@ -4,6 +4,7 @@ const MAX_PREFS = 500;
 const DEFAULTS = Object.freeze({
   reportDetail: "compact",
   developerMode: false,
+  defaultView: "main",
 });
 
 const preferences = new Map();
@@ -22,10 +23,15 @@ function normalizeDeveloperMode(value) {
   return value === true;
 }
 
+function normalizeDefaultView(value) {
+  return value === "quick" || value === "tools" ? value : "main";
+}
+
 function normalizePreferences(value = {}) {
   return {
     reportDetail: normalizeReportDetail(value.reportDetail),
     developerMode: normalizeDeveloperMode(value.developerMode),
+    defaultView: normalizeDefaultView(value.defaultView),
   };
 }
 

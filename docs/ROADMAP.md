@@ -60,7 +60,17 @@
   - no analyzer, scoring, SSRF, or `/api/*` contract changes
 
 ## In progress
-- Phase 7T: define the next user-visible experience improvement
+- Phase 7T: Default Experience
+  - durable `/start` preference: `main`, `quick`, or `tools`
+  - conservative default remains `main` for existing and new users
+  - `quick` opens branded guided website target capture immediately
+  - `tools` opens a vendor-neutral SautiLink Tools Hub for Website, Infrastructure, and Quick Check entry points
+  - fixed allowlisted callbacks only: `pref:view:main`, `pref:view:quick`, `pref:view:tools`
+  - Settings displays the currently selected default start experience
+  - preference uses the existing Telegram User ID durable record and bounded presentation cache
+  - no Chat ID, checked target, diagnostic result, or browsing history is added to durable storage
+  - Help may open the SautiLink Tools Hub through fixed `menu:tools`
+  - no analyzer, scoring, SSRF, authorization, or `/api/*` contract changes
 
 ## Future
-- Phase 7T+: default landing experience and additional personalisation only when each option has real user-visible behavior and a clear persistence/privacy model
+- Phase 7U+: continue only with user-visible improvements that have a clear persistence/privacy model and measurable product value
