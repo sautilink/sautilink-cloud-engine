@@ -9,3 +9,9 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
+
+/assets/brand/typography-manrope.css
+  Cache-Control: public, max-age=0, must-revalidate
+
+/assets/fonts/manrope/*
+  Cache-Control: public, max-age=31536000, immutable

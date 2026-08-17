@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-const typographyPath = "public/assets/brand/typography.css";
+const typographyPath = "public/assets/brand/typography-manrope.css";
 const brandingPath = "docs/BRANDING.md";
 const manropeDir = "public/assets/fonts/manrope";
 
@@ -61,8 +61,8 @@ test("every static HTML page wires self-hosted Manrope", () => {
   for (const path of pages) {
     const html = read(path);
     if (!html.includes('href="/styles.css"')) continue;
-    assert.match(html, /href="\/assets\/brand\/typography\.css"/i, path);
-    assert.match(html, /href="\/assets\/fonts\/manrope\/Manrope-Variable\.woff2"[^>]*as="font"/i, path);
+    assert.match(html, /href="\/assets\/brand\/typography-manrope\.css\?v=1"/i, path);
+    assert.match(html, /href="\/assets\/fonts\/manrope\/Manrope-Variable\.woff2\?v=1"[^>]*as="font"/i, path);
     assert.doesNotMatch(html, /fonts\.googleapis\.com|fonts\.gstatic\.com|InterVariable|Lora-Variable|ZalandoSans/i, path);
   }
 });
