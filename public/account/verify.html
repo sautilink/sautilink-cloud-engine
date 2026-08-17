@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Verify email — SautiLink Account</title>
-  <meta name="description" content="Enter your six-digit SautiLink Account email verification code." />
+  <meta name="description" content="Enter your SautiLink Account email verification code." />
   <link rel="canonical" href="https://cloudengine.sautilink.com/account/verify" />
   <meta name="theme-color" content="#0b0f19" />
   <meta name="robots" content="noindex, nofollow" />
@@ -26,9 +26,9 @@
     <section class="account-pitch">
       <p class="eyebrow">One last step</p>
       <h1>Verify the email behind <span>your identity.</span></h1>
-      <p>We send a six-digit code to your email. Entering it confirms that you control the address before your SautiLink Account receives its verified-email status.</p>
+      <p>We send a one-time verification code to your email. Entering it confirms that you control the address before your SautiLink Account receives its verified-email status.</p>
       <div class="account-benefits">
-        <article class="account-benefit"><strong>Six digits</strong><span>Enter the code exactly as it appears in the verification email.</span></article>
+        <article class="account-benefit"><strong>One-time code</strong><span>Enter every digit exactly as it appears in the verification email.</span></article>
         <article class="account-benefit"><strong>Short-lived</strong><span>Verification codes expire for account security.</span></article>
         <article class="account-benefit"><strong>Private</strong><span>Never share your verification code with anyone.</span></article>
       </div>
@@ -39,15 +39,8 @@
       <div class="verify-email"><span>Code sent to</span><strong id="verify-email">your email</strong></div>
       <form class="account-form" id="verify-form" novalidate>
         <div class="field-group">
-          <label id="verification-label">6-digit code</label>
-          <div class="verify-code" id="verify-code" role="group" aria-labelledby="verification-label">
-            <input inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 1" autocomplete="one-time-code" />
-            <input inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 2" />
-            <input inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 3" />
-            <input inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 4" />
-            <input inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 5" />
-            <input inputmode="numeric" pattern="[0-9]" maxlength="1" aria-label="Digit 6" />
-          </div>
+          <label id="verification-label">Verification code</label>
+          <div class="verify-code" id="verify-code" role="group" aria-labelledby="verification-label"></div>
         </div>
         <div class="form-message" id="form-message" role="alert" hidden></div>
         <button type="submit" class="btn btn-primary auth-submit" id="verify-submit">Verify account</button>

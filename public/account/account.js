@@ -1,5 +1,7 @@
 const page = document.body?.dataset?.accountPage || "";
 const PENDING_EMAIL_KEY = "sl_pending_verification_email";
+const PENDING_OTP_LENGTH_KEY = "sl_pending_verification_otp_length";
+const DEFAULT_EMAIL_OTP_LENGTH = 8;
 let usernameTimer = null;
 
 async function api(path, options = {}) {
@@ -157,6 +159,7 @@ function setupSignup() {
         return;
       }
       sessionStorage.setItem(PENDING_EMAIL_KEY, email);
+      sessionStorage.setItem(PENDING_OTP_LENGTH_KEY, String(normalizeOtpLength(payload?.data?.otpLength)));
       window.location.assign("/account/verify");
     } catch {
       setMessage("form-message", "Network error. Check your connection and try again.");
@@ -195,6 +198,34 @@ function setupLogin() {
   });
 }
 
+function normalizeOtpLength(value) {
+  const length = Number.parseInt(String(value || ""), 10);
+  return Number.isInteger(length) && length >= 6 && length <= 10 ? length : DEFAULT_EMAIL_OTP_LENGTH;
+}
+
+async function resolveOtpLength() {
+  const stored = sessionStorage.getItem(PENDING_OTP_LENGTH_KEY);
+  if (stored) return normalizeOtpLength(stored);
+  try {
+    const { response, payload } = await api("status");
+    if (response.ok && payload?.success === true) return normalizeOtpLength(payload?.data?.emailOtpLength);
+  } catch {}
+  return DEFAULT_EMAIL_OTP_LENGTH;
+}
+
+function renderVerificationInputs(container, length) {
+  container.replaceChildren();
+  container.style.setProperty("--otp-length", String(length));
+  for (let i = 0; i < length; i += 1) {
+    const input = document.createElement("input");
+    input.inputMode = "numeric"; input.pattern = "[0-9]"; input.maxLength = 1;
+    input.setAttribute("aria-label", `Digit ${i + 1}`);
+    if (i === 0) input.autocomplete = "one-time-code";
+    container.appendChild(input);
+  }
+  return Array.from(container.querySelectorAll("input"));
+}
+
 function verificationCode(inputs) {
   return inputs.map((input) => input.value).join("");
 }
@@ -211,11 +242,11 @@ function setupVerificationInputs(inputs) {
       if (event.key === "ArrowRight" && inputs[index + 1]) inputs[index + 1].focus();
     });
     input.addEventListener("paste", (event) => {
-      const digits = event.clipboardData?.getData("text")?.replace(/\D/g, "").slice(0, 6) || "";
-      if (digits.length !== 6) return;
+      const digits = event.clipboardData?.getData("text")?.replace(/\D/g, "").slice(0, inputs.length) || "";
+      if (digits.length !== inputs.length) return;
       event.preventDefault();
       digits.split("").forEach((digit, i) => { if (inputs[i]) inputs[i].value = digit; });
-      inputs[5]?.focus();
+      inputs[inputs.length - 1]?.focus();
     });
   });
 }
@@ -236,13 +267,17 @@ function startResendCooldown(button, seconds = 60) {
   }, 1000);
 }
 
-function setupVerify() {
+async function setupVerify() {
   const email = sessionStorage.getItem(PENDING_EMAIL_KEY) || new URLSearchParams(location.search).get("email") || "";
   const emailEl = document.getElementById("verify-email");
   const form = document.getElementById("verify-form");
   const submit = document.getElementById("verify-submit");
   const resend = document.getElementById("resend-code");
-  const inputs = Array.from(document.querySelectorAll("#verify-code input"));
+  const codeContainer = document.getElementById("verify-code");
+  const verificationLabel = document.getElementById("verification-label");
+  const otpLength = await resolveOtpLength();
+  const inputs = renderVerificationInputs(codeContainer, otpLength);
+  if (verificationLabel) verificationLabel.textContent = `${otpLength}-digit code`;
   if (emailEl) emailEl.textContent = email || "your email";
   setupVerificationInputs(inputs);
   if (!email) {
@@ -254,8 +289,8 @@ function setupVerify() {
     event.preventDefault();
     setMessage("form-message", "");
     const code = verificationCode(inputs);
-    if (!/^\d{6}$/.test(code)) {
-      setMessage("form-message", "Enter all six digits from your verification email.");
+    if (code.length !== inputs.length || !/^\d+$/.test(code)) {
+      setMessage("form-message", `Enter all ${inputs.length} digits from your verification email.`);
       return;
     }
     setBusy(submit, true, "Verifying…", "Verify account");
@@ -266,6 +301,7 @@ function setupVerify() {
         return;
       }
       sessionStorage.removeItem(PENDING_EMAIL_KEY);
+      sessionStorage.removeItem(PENDING_OTP_LENGTH_KEY);
       setMessage("form-message", "Email verified. Opening your SautiLink Account…", "success");
       window.location.assign(payload?.data?.next || "/account/");
     } catch {

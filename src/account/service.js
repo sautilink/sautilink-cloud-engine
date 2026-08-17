@@ -1,5 +1,11 @@
 const REQUEST_TIMEOUT_MS = 6000;
 const DEFAULT_PUBLISHABLE_KEY = "sb_publishable_omJ-5Mem-K4vgm6WLXRzJQ_jeGs65ca";
+const DEFAULT_EMAIL_OTP_LENGTH = 8;
+
+export function emailOtpLength(env = {}) {
+  const value = Number.parseInt(String(env.SUPABASE_EMAIL_OTP_LENGTH || ""), 10);
+  return Number.isInteger(value) && value >= 6 && value <= 10 ? value : DEFAULT_EMAIL_OTP_LENGTH;
+}
 
 const RESERVED_USERNAMES = new Set([
   "admin", "administrator", "root", "support", "security", "sautilink",
@@ -170,8 +176,10 @@ export async function signUpAccount(input, env) {
 export async function verifySignupCode(emailValue, tokenValue, env) {
   const email = validateEmail(emailValue);
   const token = String(tokenValue || "").trim();
-  if (!email.ok || !/^\d{6}$/.test(token)) {
-    return { ok: false, status: 400, reason: "invalid_code", message: "Enter the 6-digit verification code." };
+  const otpLength = emailOtpLength(env);
+  const otpPattern = new RegExp(`^\\d{${otpLength}}$`);
+  if (!email.ok || !otpPattern.test(token)) {
+    return { ok: false, status: 400, reason: "invalid_code", message: `Enter the ${otpLength}-digit verification code.` };
   }
   const verified = await authCall(env, "verify", {
     method: "POST",
@@ -325,5 +333,5 @@ async function bootstrapVerifiedProfile(user, env) {
 
 export function accountServiceStatus(env) {
   const cfg = config(env);
-  return { publicReady: cfg.publicReady, adminReady: cfg.adminReady };
+  return { publicReady: cfg.publicReady, adminReady: cfg.adminReady, emailOtpLength: emailOtpLength(env) };
 }
