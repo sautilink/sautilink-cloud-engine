@@ -67,8 +67,10 @@ export function settingsMenuText(locale = "en", profile = {}) {
     "",
     sw ? "🔒 Faragha" : "🔒 Privacy",
     sw
-      ? "• Supabase huhifadhi Telegram User ID kama kitambulisho cha preference pamoja na lugha. Chat ID na historia ya tovuti ulizokagua hazihifadhiwi kwenye preference profile."
-      : "• Supabase stores your Telegram User ID as the preference key together with your language. Chat ID and checked-site history are not stored in the preference profile.",
+      ? "• SautiLink Corporation huhifadhi Telegram User ID kama kitambulisho cha preference pamoja na lugha. Chat ID na historia ya tovuti ulizokagua hazihifadhiwi kwenye preference profile."
+      : "• SautiLink Corporation stores your Telegram User ID as the preference key together with your language. Chat ID and checked-site history are not stored in the preference profile.",
+    "",
+    sw ? "🏢 SautiLink Cloud Engine ni sehemu ya SautiLink Corporation · sautilink.com" : "🏢 SautiLink Cloud Engine is part of SautiLink Corporation · sautilink.com",
     "",
     t(locale, "settings.choose"),
   ].join("\n");
