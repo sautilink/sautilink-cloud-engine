@@ -12,6 +12,7 @@
   <link rel="preload" href="/assets/fonts/manrope/Manrope-Variable.woff2?v=1" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/assets/brand/typography-manrope.css?v=1" />
   <link rel="stylesheet" href="/tools/audit.css" />
+  <link rel="stylesheet" href="/tools/audit-power.css" />
 </head>
 <body class="audit-shell">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -128,6 +129,67 @@
           </article>
         </div>
 
+        <section class="report-tools" aria-labelledby="report-tools-heading">
+          <div class="report-tools-copy">
+            <p class="section-kicker">Web-only workspace tools</p>
+            <h2 id="report-tools-heading">Compare, export, or print this report.</h2>
+            <p>Exports are generated in this browser. No report snapshot is uploaded or persisted by these controls.</p>
+          </div>
+          <div class="report-tools-actions">
+            <button type="button" class="btn btn-secondary" id="compare-toggle" disabled>Compare target</button>
+            <button type="button" class="btn btn-secondary" id="export-json" disabled>Export JSON</button>
+            <button type="button" class="btn btn-secondary" id="export-csv" disabled>Export CSV</button>
+            <button type="button" class="btn btn-secondary" id="print-report" disabled>Print / Save PDF</button>
+          </div>
+        </section>
+
+        <section class="compare-panel" id="compare-panel" hidden aria-labelledby="compare-heading">
+          <div class="compare-panel-head">
+            <div>
+              <p class="section-kicker">Side-by-side audit</p>
+              <h2 id="compare-heading">Compare another public target</h2>
+              <p id="compare-primary-note">Run a primary audit first.</p>
+            </div>
+            <button type="button" class="text-button" id="compare-close">Close</button>
+          </div>
+          <form class="compare-form" id="compare-form" novalidate>
+            <label class="visually-hidden" for="compare-input">Website or URL to compare</label>
+            <input type="url" id="compare-input" inputmode="url" autocomplete="url" placeholder="competitor.example or https://example.org" required />
+            <button type="submit" class="btn btn-primary" id="compare-submit">Run comparison</button>
+          </form>
+          <p class="compare-hint">Comparison runs one fresh Full Audit for the second target. The primary report stays in memory and is not re-scanned.</p>
+          <div class="compare-status" id="compare-status" role="status" aria-live="polite" hidden></div>
+          <div class="compare-results" id="compare-results" hidden>
+            <div class="compare-score-grid">
+              <article class="compare-score-card">
+                <span>Primary</span>
+                <strong id="compare-primary-score">—</strong>
+                <small id="compare-primary-domain">—</small>
+              </article>
+              <article class="compare-score-card">
+                <span>Comparison</span>
+                <strong id="compare-secondary-score">—</strong>
+                <small id="compare-secondary-domain">—</small>
+              </article>
+              <article class="compare-score-card delta-card">
+                <span>Score difference</span>
+                <strong id="compare-score-delta">—</strong>
+                <small>comparison minus primary</small>
+              </article>
+            </div>
+            <div class="compare-table-wrap">
+              <table class="compare-table">
+                <thead><tr><th>Category</th><th id="compare-head-primary">Primary</th><th id="compare-head-secondary">Comparison</th><th>Delta</th></tr></thead>
+                <tbody id="compare-category-rows"></tbody>
+              </table>
+            </div>
+            <div class="compare-foot">
+              <p id="compare-summary-note"></p>
+              <a class="btn btn-secondary" id="open-comparison-primary" href="#">Open comparison as primary</a>
+            </div>
+          </div>
+        </section>
+
         <section class="category-section" aria-labelledby="category-heading">
           <div class="section-heading-row">
             <div>
@@ -222,6 +284,6 @@
     </div>
   </footer>
 
-  <script type="module" src="/tools/audit.js"></script>
+  <script type="module" src="/tools/audit-workspace.js"></script>
 </body>
 </html>

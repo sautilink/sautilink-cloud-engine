@@ -11,7 +11,7 @@ The web may expose capabilities that are impractical in chat, including:
 - richer visual reports and longer findings
 - multi-tool workflows
 - comparison views
-- exports and shareable reports
+- exports and printable reports
 - saved workspaces when an explicit privacy model is approved
 - broader tool coverage than the Telegram client
 
@@ -64,16 +64,45 @@ The workspace includes:
 - the copied audit link contains only the public target URL and causes a fresh audit when opened
 - analyzer errors shown in the web report are limited to target-facing error code/message data already returned by the audit API
 
+## Phase 8C Compare + Export v1
+
+Phase 8C adds web-only productivity tools to the Full Audit workspace without creating a server-side report store.
+
+### Comparison
+
+- the current Full Audit response remains the primary report in browser memory
+- the user may explicitly run one fresh `/api/audit` request for a second public target
+- unified and category scores are compared side by side
+- score deltas are calculated in the browser as comparison minus primary
+- priority issue and recommendation counts are summarized for both targets
+- the comparison target is added only to the existing browser-local recent-target list
+- comparison state is not persisted server-side
+
+### Export
+
+- JSON export contains the current in-memory audit response plus export metadata
+- CSV export contains the target, unified score and category-level summary fields
+- exports are generated with browser `Blob` APIs and are not uploaded to SautiLink storage
+- Print / Save PDF uses the browser print flow and a report-focused print stylesheet
+- export actions do not re-run the primary audit
+
+### Phase 8C boundaries
+
+- no `/api/reports`, history table, saved-report table or durable comparison record is introduced
+- no database schema change is required
+- the comparison action is the only additional audit request and happens only after explicit user action
+- analyzer, scoring, SSRF, deadline, authorization and Telegram preference behavior remain unchanged
+
 ## Web ↔ Telegram bridge
 
-A future bridge should use short-lived, signed handoff identifiers rather than placing raw diagnostic state or sensitive values in Telegram callback data.
+The signed handoff bridge remains planned, but implementation is deferred while Telegram feature work is intentionally paused. When Telegram development resumes, the bridge should use short-lived, signed handoff identifiers; an opaque representation may be used internally, but raw diagnostic state or sensitive values must never be placed in Telegram callback data.
 
 Proposed flow:
 
 1. A user runs a diagnostic in Web or Telegram.
-2. The originating client requests a short-lived handoff token from Cloud Engine.
-3. The token references a minimal, allowlisted handoff payload and expires quickly.
-4. The receiving channel redeems the token through Cloud Engine and continues the workflow.
+2. The originating client requests a short-lived handoff identifier from Cloud Engine.
+3. The identifier references only a minimal, allowlisted handoff payload and expires quickly.
+4. The receiving channel redeems it through Cloud Engine and continues the workflow.
 5. Analyzer behavior remains server-defined and shared between both channels.
 
 The handoff must not expose SautiLink infrastructure, secrets, provider details, internal topology, or arbitrary callback payloads.

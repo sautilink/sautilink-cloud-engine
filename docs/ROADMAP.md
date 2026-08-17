@@ -67,8 +67,6 @@
   - responsive mobile-first homepage using the Cloud Engine Manrope typography contract
   - explicit Web + Telegram product roles over one shared analyzer/API layer
   - no analyzer, scoring, SSRF, authorization, Telegram preference, or `/api/*` contract changes
-
-## Active Web Track
 - Phase 8B: Full Audit Workspace
   - visual unified score gauge, grade and audited-target summary
   - priority-issue, recommendation, analyzer-health and duration metrics
@@ -76,11 +74,24 @@
   - Overview, Findings, Recommendations and Analyzers tabs
   - client-side severity filters and category-scoped report views
   - analyzer status cards with duration and target-facing error information
-  - copyable audit URL that performs a fresh run instead of persisting a report snapshot
+  - copyable audit URL performs a fresh run instead of persisting a report snapshot
   - shares the Phase 8A browser-local recent-target list
   - responsive desktop/tablet/mobile report layout
   - category/filter interactions add no analyzer requests
   - no analyzer, scoring, SSRF, deadline, authorization, Telegram preference, database, or `/api/*` contract changes
+
+## Active Web Track
+- Phase 8C: Compare + Export v1
+  - compare the current in-memory Full Audit with one fresh audit for a second public target
+  - unified and category score deltas calculated client-side
+  - priority issue and recommendation summaries for both targets
+  - JSON export from the current in-memory report
+  - CSV category-summary export
+  - Print / Save PDF through a report-focused browser print layout
+  - exports are browser-generated and never uploaded to a report store
+  - no server-side report history, saved comparison, or database migration
+  - comparison target may enter only the existing browser-local recent-target list
+  - no analyzer, scoring, SSRF, deadline, authorization, Telegram preference, database, or existing API contract changes
 
 ## Paused Telegram Track
 - Phase 7T: Default Experience
@@ -96,10 +107,8 @@
   - no analyzer, scoring, SSRF, authorization, or `/api/*` contract changes
 
 ## Next Web Phases
-- Phase 8C: Web ↔ Telegram handoff
-  - short-lived signed handoff IDs; no raw secrets or arbitrary callback payloads
-  - continue a diagnostic from Telegram on the web and send an eligible web result into the Telegram companion
-- Phase 8D: Compare + Export
-  - comparison of approved diagnostic snapshots
-  - export/share workflows with an explicit retention and privacy model
-- Phase 8E+: additional web-only tools and workspace capabilities where the web format provides clear product value
+- Phase 8D: Web ↔ Telegram handoff — deferred until Telegram work resumes
+  - short-lived signed/opaque handoff IDs; no raw secrets or arbitrary callback payloads
+  - continue an eligible diagnostic between Telegram and the web without forking analyzer behavior
+- Phase 8E: Shareable/saved report model only if an explicit retention, access-control and privacy design is approved
+- Phase 8F+: additional web-only tools and workspace capabilities where the web format provides clear product value
