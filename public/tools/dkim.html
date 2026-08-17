@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DKIM Checker — SautiLink Cloud Engine</title>
+  <meta name="description" content="Inspect DKIM selector, public key record, key type, and configuration status for any public domain." />
+  <link rel="canonical" href="https://cloudengine.sautilink.com/tools/dkim" />
+  <meta name="theme-color" content="#0b0f19" />
+  <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="preload" href="/assets/fonts/manrope/Manrope-Variable.woff2?v=1" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/brand/typography-manrope.css?v=1" />
+  <link rel="stylesheet" href="/tools/focused-dns-email.css" />
+</head>
+<body data-focus="dkim">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><div class="container header-inner"><a href="/" class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><span class="brand-name">SautiLink</span><span class="brand-product">Cloud Engine</span></span></a><nav class="nav" aria-label="Primary"><a href="/" class="nav-link">Workspace</a><a href="/#tools" class="nav-link">Tools</a><a href="/tools/audit" class="nav-link">Full Audit</a></nav><div class="header-actions"><a href="/tools/email" class="btn btn-secondary">Full email check</a><button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></div></div></header>
+  <main id="main" class="focused-page"><div class="container focused-layout">
+    <header class="focused-header"><p class="eyebrow">DNS &amp; Email · Focused check</p><h1>DKIM Checker</h1><p class="focused-lead">Inspect a DKIM public-key record using an explicit selector or Cloud Engine's bounded heuristic selector discovery.</p></header>
+    <form class="focused-form" id="focused-form" novalidate><label class="field-label" for="domain-input">Domain</label><div class="focused-input-row"><input id="domain-input" autocomplete="off" spellcheck="false" inputmode="url" placeholder="example.com" required /></div><div class="focus-selector-row" id="focus-selector-row"><label class="field-label field-label-spaced" for="selector-input">DKIM selector (optional)</label><div class="focused-input-row"><input id="selector-input" autocomplete="off" spellcheck="false" placeholder="selector1, google, default…" /><button type="submit" class="btn btn-primary" id="focused-submit">Check DKIM</button></div><p class="field-hint">Leave the selector empty for bounded heuristic discovery. Discovery is useful but not exhaustive.</p></div><p class="field-error" id="domain-error" role="alert" hidden></p></form>
+    <div class="tool-status" id="focused-status" role="status" aria-live="polite" hidden></div>
+    <section class="focused-results" id="focused-results" hidden><div class="result-hero"><article class="focused-card"><p class="result-kicker">DKIM result</p><div class="result-title-row"><h2><code id="result-domain">—</code></h2><span class="state-badge" id="result-badge">—</span></div><p class="result-summary" id="result-summary"></p></article><article class="focused-card context-card"><h3>Focused scope</h3><ul class="context-list"><li><span>Network work</span><strong>DKIM DNS only</strong></li><li><span>Message signatures</span><strong>Not verified</strong></li><li><span>Report storage</span><strong>None</strong></li></ul></article></div><article class="focused-card detail-card"><h2>DKIM details</h2><div id="result-details"></div></article><article class="focused-card"><p class="section-kicker">Continue investigating</p><div class="related-tools"><a class="btn btn-secondary" href="/tools/mx">MX</a><a class="btn btn-secondary" href="/tools/spf">SPF</a><a class="btn btn-secondary" href="/tools/dmarc">DMARC</a><a class="btn btn-secondary" href="/tools/nameserver">Nameservers</a><a class="btn btn-secondary" href="/tools/email">Full email check</a></div></article></section>
+  </div></main>
+  <footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><span class="brand-name">SautiLink</span> Cloud Engine</div><p class="focused-footer-note">A SautiLink Corporation product · cloudengine.sautilink.com</p><p class="footer-copy">&copy; <span id="year"></span> SautiLink Corporation.</p></div></footer>
+  <script type="module" src="/tools/focused-dns-email.js"></script>
+</body>
+</html>

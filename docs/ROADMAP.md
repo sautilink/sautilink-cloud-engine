@@ -79,19 +79,30 @@
   - responsive desktop/tablet/mobile report layout
   - category/filter interactions add no analyzer requests
   - no analyzer, scoring, SSRF, deadline, authorization, Telegram preference, database, or `/api/*` contract changes
-
-## Active Web Track
 - Phase 8C: Compare + Export v1
   - compare the current in-memory Full Audit with one fresh audit for a second public target
   - unified and category score deltas calculated client-side
   - priority issue and recommendation summaries for both targets
   - JSON export from the current in-memory report
-  - CSV category-summary export
+  - CSV category-summary export with spreadsheet-formula injection hardening
   - Print / Save PDF through a report-focused browser print layout
   - exports are browser-generated and never uploaded to a report store
   - no server-side report history, saved comparison, or database migration
   - comparison target may enter only the existing browser-local recent-target list
   - no analyzer, scoring, SSRF, deadline, authorization, Telegram preference, database, or existing API contract changes
+
+## Active Web Track
+- Phase 8D: Focused DNS & Email Tools
+  - standalone MX Record Checker
+  - standalone SPF Checker
+  - standalone DMARC Checker
+  - standalone DKIM Checker with optional selector and bounded heuristic discovery
+  - standalone Nameserver Lookup
+  - shared focused web UI and responsive Manrope styling across all five pages
+  - new allowlisted `/api/email-check` orchestration route for `mx`, `spf`, `dmarc`, and `dkim`
+  - focused route reuses the existing analyzer modules and performs only the DNS work needed for the selected check
+  - Nameserver Lookup continues to use the existing `/api/dns` contract
+  - no duplicate analyzer implementation, no scoring changes, no report history, and no database migration
 
 ## Paused Telegram Track
 - Phase 7T: Default Experience
@@ -107,8 +118,8 @@
   - no analyzer, scoring, SSRF, authorization, or `/api/*` contract changes
 
 ## Next Web Phases
-- Phase 8D: Web ↔ Telegram handoff — deferred until Telegram work resumes
-  - short-lived signed/opaque handoff IDs; no raw secrets or arbitrary callback payloads
+- Phase 8E: Web ↔ Telegram handoff — deferred until Telegram work resumes
+  - short-lived signed handoff IDs; no raw secrets or arbitrary callback payloads
   - continue an eligible diagnostic between Telegram and the web without forking analyzer behavior
-- Phase 8E: Shareable/saved report model only if an explicit retention, access-control and privacy design is approved
-- Phase 8F+: additional web-only tools and workspace capabilities where the web format provides clear product value
+- Phase 8F: Shareable/saved report model only if an explicit retention, access-control and privacy design is approved
+- Phase 8G+: additional web-only tools and workspace capabilities where the web format provides clear product value

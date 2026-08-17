@@ -21,11 +21,11 @@ export const TOOL_CATEGORIES = [
     tools: [
       { id: "dns-lookup", name: "DNS Lookup", description: "Query common DNS record types for a domain.", route: "/tools/dns", status: "available" },
       { id: "email-infra", name: "Email Infrastructure Checker", description: "Check MX, SPF, DMARC, DKIM and email security score.", route: "/tools/email", status: "available" },
-      { id: "mx", name: "MX Record Checker", description: "Check MX records.", route: "/tools/mx", status: "coming_soon" },
-      { id: "spf", name: "SPF Checker", description: "Validate SPF records.", route: "/tools/spf", status: "coming_soon" },
-      { id: "dkim", name: "DKIM Checker", description: "Inspect DKIM selectors.", route: "/tools/dkim", status: "coming_soon" },
-      { id: "dmarc", name: "DMARC Checker", description: "Review DMARC policy.", route: "/tools/dmarc", status: "coming_soon" },
-      { id: "nameserver", name: "Nameserver Lookup", description: "List nameservers.", route: "/tools/nameserver", status: "coming_soon" },
+      { id: "mx", name: "MX Record Checker", description: "Check MX records.", route: "/tools/mx", status: "available" },
+      { id: "spf", name: "SPF Checker", description: "Validate SPF records.", route: "/tools/spf", status: "available" },
+      { id: "dkim", name: "DKIM Checker", description: "Inspect DKIM selectors.", route: "/tools/dkim", status: "available" },
+      { id: "dmarc", name: "DMARC Checker", description: "Review DMARC policy.", route: "/tools/dmarc", status: "available" },
+      { id: "nameserver", name: "Nameserver Lookup", description: "List nameservers.", route: "/tools/nameserver", status: "available" },
     ],
   },
   {

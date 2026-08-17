@@ -28,11 +28,11 @@ const TOOL_CATEGORIES = [
     tools: [
       { id: "dns-lookup", name: "DNS Lookup", description: "Query common DNS record types for a domain.", route: "/tools/dns", status: "available" },
       { id: "email-infra", name: "Email Infrastructure Checker", description: "Check MX, SPF, DMARC, DKIM and email security score.", route: "/tools/email", status: "available" },
-      { id: "mx", name: "MX Record Checker", description: "Check the mail exchange records configured for a domain.", route: "/tools/mx", status: "coming_soon" },
-      { id: "spf", name: "SPF Checker", description: "Validate SPF records and policy.", route: "/tools/spf", status: "coming_soon" },
-      { id: "dkim", name: "DKIM Checker", description: "Inspect DKIM selectors and keys.", route: "/tools/dkim", status: "coming_soon" },
-      { id: "dmarc", name: "DMARC Checker", description: "Review DMARC policy and reporting setup.", route: "/tools/dmarc", status: "coming_soon" },
-      { id: "nameserver", name: "Nameserver Lookup", description: "List authoritative nameservers for a domain.", route: "/tools/nameserver", status: "coming_soon" },
+      { id: "mx", name: "MX Record Checker", description: "Check the mail exchange records configured for a domain.", route: "/tools/mx", status: "available" },
+      { id: "spf", name: "SPF Checker", description: "Validate SPF records and policy.", route: "/tools/spf", status: "available" },
+      { id: "dkim", name: "DKIM Checker", description: "Inspect DKIM selectors and keys.", route: "/tools/dkim", status: "available" },
+      { id: "dmarc", name: "DMARC Checker", description: "Review DMARC policy and reporting setup.", route: "/tools/dmarc", status: "available" },
+      { id: "nameserver", name: "Nameserver Lookup", description: "List authoritative nameservers for a domain.", route: "/tools/nameserver", status: "available" },
     ],
   },
   {
