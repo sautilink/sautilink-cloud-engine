@@ -52,7 +52,7 @@ export const TOOL_CATEGORIES = [
       { id: "hosting", name: "Hosting Provider Detector", description: "Hosting signals.", route: "/tools/hosting", status: "coming_soon" },
       { id: "rdns", name: "Reverse DNS", description: "PTR lookups for public IPv4/IPv6 addresses.", route: "/tools/rdns", status: "available" },
       { id: "http-headers", name: "HTTP Headers", description: "Response headers.", route: "/tools/headers", status: "available" },
-      { id: "server-info", name: "Server Information", description: "Server signals.", route: "/tools/server", status: "coming_soon" },
+      { id: "server-info", name: "Server Information", description: "Inspect observable server, delivery, caching, and edge/proxy response signals.", route: "/tools/server", status: "available" },
     ],
   },
 ];
