@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Website Audit — SautiLink Cloud Engine</title>
-  <meta name="description" content="Unified website audit combining security, SEO, mobile, HTTPS, DNS, and email checks." />
+  <title>Full Audit Workspace — SautiLink Cloud Engine</title>
+  <meta name="description" content="Run a unified SautiLink Cloud Engine website audit and explore security, SEO, mobile, HTTPS, DNS, email, and technical findings in a detailed visual workspace." />
   <link rel="canonical" href="https://cloudengine.sautilink.com/tools/audit" />
   <meta name="theme-color" content="#0b0f19" />
   <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
@@ -13,15 +13,23 @@
   <link rel="stylesheet" href="/assets/brand/typography-manrope.css?v=1" />
   <link rel="stylesheet" href="/tools/audit.css" />
 </head>
-<body>
+<body class="audit-shell">
   <a class="skip-link" href="#main">Skip to content</a>
-  <header class="site-header">
+
+  <header class="site-header audit-site-header">
     <div class="container header-inner">
-      <a href="/" class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><span class="brand-name">SautiLink</span><span class="brand-product">Cloud Engine</span></span></a>
+      <a href="/" class="brand" aria-label="SautiLink Cloud Engine home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <span class="brand-name">SautiLink</span>
+          <span class="brand-product">Cloud Engine</span>
+        </span>
+      </a>
       <nav class="nav" aria-label="Primary">
-        <a href="/" class="nav-link">Home</a>
+        <a href="/" class="nav-link">Workspace</a>
         <a href="/#tools" class="nav-link">Tools</a>
-        <a href="/#api" class="nav-link">API</a>
+        <a href="/tools/audit" class="nav-link active">Full Audit</a>
+        <a href="/#channel-bridge" class="nav-link">Web + Telegram</a>
       </nav>
       <div class="header-actions">
         <a href="/#tools" class="btn btn-secondary">All tools</a>
@@ -29,42 +37,191 @@
       </div>
     </div>
   </header>
-  <main id="main" class="tool-page">
-    <div class="container tool-layout">
-      <header class="tool-header">
-        <p class="eyebrow">Unified report</p>
-        <h1>Website Audit</h1>
-        <p class="tool-lead">Orchestrates existing Cloud Engine analyzers into one report. Not a Google ranking score, penetration test, or Lighthouse run.</p>
-      </header>
-      <form class="tool-form" id="audit-form" novalidate>
-        <label for="url-input" class="field-label">Website URL</label>
-        <div class="tool-input-row">
-          <input type="url" id="url-input" placeholder="https://example.com" required />
-          <button type="submit" class="btn btn-primary" id="audit-submit">Run audit</button>
+
+  <main id="main" class="audit-page">
+    <section class="audit-intro">
+      <div class="container audit-container">
+        <div class="intro-copy">
+          <p class="eyebrow">Flagship web report</p>
+          <h1>Full Audit Workspace</h1>
+          <p class="tool-lead">Run one target through Cloud Engine's existing analyzers, then explore scores, findings, recommendations, and analyzer health without chat-length limits.</p>
         </div>
-        <p class="field-hint">Public http/https only. Bounded concurrency and deadline — some analyzers may time out.</p>
-        <p class="field-error" id="url-error" hidden></p>
-      </form>
-      <div class="tool-status" id="status" hidden></div>
-      <section id="results" hidden>
-        <article class="card score-card">
-          <div class="score-hero">
-            <p class="score-kicker">Unified audit score</p>
-            <p class="score-total" id="score-total">—</p>
-            <p class="score-grade" id="score-grade"></p>
-            <p class="score-label" id="score-label"></p>
-            <div class="score-bar" id="score-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="score-bar-fill" id="score-bar-fill"></div></div>
-            <p class="score-version" id="score-version"></p>
+
+        <form class="audit-command" id="audit-form" novalidate>
+          <label for="url-input" class="field-label">Website or URL</label>
+          <div class="audit-input-row">
+            <div class="audit-input-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle>
+                <path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+              </svg>
+              <input type="url" id="url-input" inputmode="url" autocomplete="url" placeholder="example.com or https://example.com" required />
+            </div>
+            <button type="submit" class="btn btn-primary" id="audit-submit">Run Full Audit</button>
+          </div>
+          <div class="command-foot">
+            <span>Public HTTP/HTTPS only</span>
+            <span class="command-dot" aria-hidden="true"></span>
+            <span>Multiple analyzers, one report</span>
+            <span class="command-dot" aria-hidden="true"></span>
+            <span>Some checks may time out independently</span>
+          </div>
+          <p class="field-error" id="url-error" hidden></p>
+        </form>
+
+        <div class="tool-status" id="status" role="status" aria-live="polite" hidden></div>
+      </div>
+    </section>
+
+    <section class="report-section" id="results" hidden>
+      <div class="container audit-container">
+        <article class="report-hero">
+          <div class="score-panel">
+            <div class="score-ring-wrap" aria-label="Unified audit score">
+              <svg class="score-ring" viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="score-ring-track" cx="60" cy="60" r="52" pathLength="100"></circle>
+                <circle class="score-ring-progress" id="score-ring-progress" cx="60" cy="60" r="52" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"></circle>
+              </svg>
+              <div class="score-ring-copy">
+                <strong id="score-total">—</strong>
+                <span>/ <span id="score-max">100</span></span>
+              </div>
+            </div>
+            <div class="score-copy">
+              <p class="score-kicker">Unified audit score</p>
+              <div class="score-grade-line"><strong id="score-grade">—</strong><span id="score-label"></span></div>
+              <p class="score-version" id="score-version"></p>
+            </div>
+          </div>
+
+          <div class="target-panel">
+            <p class="target-label">Audited target</p>
+            <h2 id="report-domain">—</h2>
+            <p class="target-url" id="report-url">—</p>
+            <div class="target-actions">
+              <button type="button" class="btn btn-secondary" id="copy-audit-link">Copy audit link</button>
+              <a class="btn btn-secondary" id="open-target" href="#" target="_blank" rel="noopener noreferrer">Open website</a>
+            </div>
           </div>
         </article>
-        <article class="card"><h2>Categories</h2><ul class="score-cats" id="score-cats"></ul></article>
-        <article class="card"><h2>Analyzer status</h2><ul class="analyzer-list" id="analyzer-list"></ul></article>
-        <article class="card"><h2>Findings</h2><ul class="findings-list" id="findings-list"></ul></article>
-        <article class="card"><h2>Recommendations</h2><ol class="recs-list" id="recs-list"></ol></article>
-      </section>
-    </div>
+
+        <div class="summary-grid" aria-label="Audit summary">
+          <article class="summary-card">
+            <span class="summary-label">Priority issues</span>
+            <strong id="metric-priority">0</strong>
+            <small>errors + warnings</small>
+          </article>
+          <article class="summary-card">
+            <span class="summary-label">Recommendations</span>
+            <strong id="metric-recommendations">0</strong>
+            <small>actionable suggestions</small>
+          </article>
+          <article class="summary-card">
+            <span class="summary-label">Analyzers healthy</span>
+            <strong id="metric-analyzers">0 / 0</strong>
+            <small>completed successfully</small>
+          </article>
+          <article class="summary-card">
+            <span class="summary-label">Audit duration</span>
+            <strong id="metric-duration">—</strong>
+            <small>total orchestration time</small>
+          </article>
+        </div>
+
+        <section class="category-section" aria-labelledby="category-heading">
+          <div class="section-heading-row">
+            <div>
+              <p class="section-kicker">Diagnostic scope</p>
+              <h2 id="category-heading">Explore by category</h2>
+            </div>
+            <p>Choose a category to focus the report, or keep All selected for the broad picture.</p>
+          </div>
+          <div class="category-nav" id="category-nav" role="group" aria-label="Audit categories"></div>
+        </section>
+
+        <nav class="report-tabs" aria-label="Audit report sections">
+          <button type="button" class="report-tab active" data-view="overview" aria-selected="true">Overview</button>
+          <button type="button" class="report-tab" data-view="findings" aria-selected="false">Findings <span id="tab-findings-count">0</span></button>
+          <button type="button" class="report-tab" data-view="recommendations" aria-selected="false">Recommendations <span id="tab-recs-count">0</span></button>
+          <button type="button" class="report-tab" data-view="analyzers" aria-selected="false">Analyzers <span id="tab-analyzers-count">0</span></button>
+        </nav>
+
+        <section class="report-panel active" id="panel-overview" data-panel="overview">
+          <div class="overview-grid">
+            <article class="workspace-card category-detail-card">
+              <div class="card-heading-row">
+                <div>
+                  <p class="section-kicker">Selected scope</p>
+                  <h2 id="category-detail-title">All categories</h2>
+                </div>
+                <span class="scope-score" id="category-detail-score">Unified</span>
+              </div>
+              <div id="category-detail" class="category-detail"></div>
+            </article>
+
+            <article class="workspace-card priority-card">
+              <div class="card-heading-row">
+                <div>
+                  <p class="section-kicker">Needs attention</p>
+                  <h2>Priority findings</h2>
+                </div>
+                <button type="button" class="text-button" data-open-view="findings">View all</button>
+              </div>
+              <div class="finding-stack compact" id="overview-findings"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="report-panel" id="panel-findings" data-panel="findings" hidden>
+          <div class="panel-heading-row">
+            <div>
+              <p class="section-kicker">Signals & issues</p>
+              <h2>Findings</h2>
+            </div>
+            <div class="severity-filters" id="severity-filters" role="group" aria-label="Filter findings by severity">
+              <button type="button" class="filter-chip active" data-severity="all">All <span id="severity-all-count">0</span></button>
+              <button type="button" class="filter-chip" data-severity="error">Errors <span id="severity-error-count">0</span></button>
+              <button type="button" class="filter-chip" data-severity="warning">Warnings <span id="severity-warning-count">0</span></button>
+              <button type="button" class="filter-chip" data-severity="info">Info <span id="severity-info-count">0</span></button>
+              <button type="button" class="filter-chip" data-severity="success">Passed <span id="severity-success-count">0</span></button>
+            </div>
+          </div>
+          <div class="finding-stack" id="findings-list"></div>
+        </section>
+
+        <section class="report-panel" id="panel-recommendations" data-panel="recommendations" hidden>
+          <div class="panel-heading-row">
+            <div>
+              <p class="section-kicker">Action plan</p>
+              <h2>Recommendations</h2>
+            </div>
+            <p id="recommendation-scope-note">Ordered from the current audit response.</p>
+          </div>
+          <div class="recommendation-grid" id="recs-list"></div>
+        </section>
+
+        <section class="report-panel" id="panel-analyzers" data-panel="analyzers" hidden>
+          <div class="panel-heading-row">
+            <div>
+              <p class="section-kicker">Execution health</p>
+              <h2>Analyzer status</h2>
+            </div>
+            <p>Each analyzer is isolated: one timeout does not erase the rest of the report.</p>
+          </div>
+          <div class="analyzer-grid" id="analyzer-list"></div>
+        </section>
+      </div>
+    </section>
   </main>
-  <footer class="site-footer"><div class="container footer-inner"><p class="footer-copy">&copy; <span id="year"></span> SautiLink</p></div></footer>
+
+  <footer class="site-footer audit-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand"><span class="brand-name">SautiLink</span> Cloud Engine</div>
+      <p class="footer-note">A SautiLink Corporation product · cloudengine.sautilink.com</p>
+      <p class="footer-copy">&copy; <span id="year"></span> SautiLink Corporation. All rights reserved.</p>
+    </div>
+  </footer>
+
   <script type="module" src="/tools/audit.js"></script>
 </body>
 </html>
