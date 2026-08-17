@@ -10,7 +10,15 @@ import {
   formatAudit, formatDns, formatEmail, formatHeaders, formatSsl, formatWebsite,
   formatMobile, formatRobots, formatSitemap, formatHttp, formatEngineError, auditKeyboard,
 } from "./format.js";
-import { mainMenuKeyboard, helpMenuKeyboard, statusKeyboard, languageKeyboard, languageMenuText } from "./menu.js";
+import {
+  mainMenuKeyboard,
+  helpMenuKeyboard,
+  statusKeyboard,
+  languageKeyboard,
+  languageMenuText,
+  settingsKeyboard,
+  settingsMenuText,
+} from "./menu.js";
 import { isAdmin } from "./authz.js";
 import { getUsageStats, getUsageConfig } from "./usage.js";
 
@@ -33,6 +41,7 @@ export async function handleCommand(ctx, config) {
     case "help": return { text: formatHelp(locale), reply_markup: helpMenuKeyboard(locale) };
     case "about": return { text: formatAbout(locale) };
     case "id": return { text: formatId(chat, from, locale) };
+    case "settings": return { text: settingsMenuText(locale), reply_markup: settingsKeyboard(locale) };
     case "lang": {
       if (!arg) return { text: languageMenuText(locale), reply_markup: languageKeyboard(locale) };
       const selected = parseLocaleChoice(arg);
