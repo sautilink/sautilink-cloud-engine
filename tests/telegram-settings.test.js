@@ -20,8 +20,13 @@ test("settings command is registered as a cheap general command", () => {
   assert.equal(parseCommand("/settings").command, "settings");
 });
 
-test("settings callback is fixed and allowlisted", () => {
+test("settings and personalisation callbacks are fixed and allowlisted", () => {
   assert.equal(parseCallbackAction("menu:settings"), "menu:settings");
+  assert.equal(parseCallbackAction("pref:detail:compact"), "pref:detail:compact");
+  assert.equal(parseCallbackAction("pref:detail:detailed"), "pref:detail:detailed");
+  assert.equal(parseCallbackAction("pref:dev:off"), "pref:dev:off");
+  assert.equal(parseCallbackAction("pref:dev:on"), "pref:dev:on");
+  assert.equal(parseCallbackAction("pref:dev:on:123"), null);
   assert.equal(parseCallbackAction("menu:settings:123"), null);
 });
 
@@ -32,18 +37,31 @@ test("main menu keeps direct language access and adds settings", () => {
   assert.ok(callbacks.includes("menu:settings"));
 });
 
-test("settings menu shows the active English locale", () => {
-  const text = settingsMenuText("en");
+test("settings menu shows active English personalisation defaults", () => {
+  const text = settingsMenuText("en", {}, { reportDetail: "compact", developerMode: false });
   assert.match(text, /Settings/);
   assert.match(text, /Current language: .*English/);
-  const callbacks = settingsKeyboard("en").inline_keyboard.flat().map((button) => button.callback_data);
-  assert.deepEqual(callbacks, ["menu:lang", "menu:main"]);
+  assert.match(text, /Report detail: Compact/);
+  assert.match(text, /Developer Mode: Off/);
+
+  const callbacks = settingsKeyboard("en", { reportDetail: "compact", developerMode: false })
+    .inline_keyboard.flat().map((button) => button.callback_data);
+  assert.deepEqual(callbacks, [
+    "menu:lang",
+    "pref:detail:compact",
+    "pref:detail:detailed",
+    "pref:dev:off",
+    "pref:dev:on",
+    "menu:main",
+  ]);
 });
 
-test("settings menu shows the active Kiswahili locale", () => {
-  const text = settingsMenuText("sw");
+test("settings menu shows detailed developer mode in Kiswahili", () => {
+  const text = settingsMenuText("sw", {}, { reportDetail: "detailed", developerMode: true });
   assert.match(text, /Mipangilio/);
   assert.match(text, /Lugha ya sasa: .*Kiswahili/);
+  assert.match(text, /Muundo wa report: Kina/);
+  assert.match(text, /Developer Mode: Imewashwa/);
 });
 
 test("language menu explains durable persistence", () => {
