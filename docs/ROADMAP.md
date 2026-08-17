@@ -90,19 +90,25 @@
   - no server-side report history, saved comparison, or database migration
   - comparison target may enter only the existing browser-local recent-target list
   - no analyzer, scoring, SSRF, deadline, authorization, Telegram preference, database, or existing API contract changes
-
-## Active Web Track
 - Phase 8D: Focused DNS & Email Tools
-  - standalone MX Record Checker
-  - standalone SPF Checker
-  - standalone DMARC Checker
-  - standalone DKIM Checker with optional selector and bounded heuristic discovery
-  - standalone Nameserver Lookup
+  - standalone MX Record Checker, SPF Checker, DMARC Checker, DKIM Checker and Nameserver Lookup
   - shared focused web UI and responsive Manrope styling across all five pages
-  - new allowlisted `/api/email-check` orchestration route for `mx`, `spf`, `dmarc`, and `dkim`
-  - focused route reuses the existing analyzer modules and performs only the DNS work needed for the selected check
+  - allowlisted `/api/email-check` orchestration route for `mx`, `spf`, `dmarc`, and `dkim`
+  - focused route reuses existing analyzer modules and performs only the DNS work needed for the selected check
   - Nameserver Lookup continues to use the existing `/api/dns` contract
   - no duplicate analyzer implementation, no scoring changes, no report history, and no database migration
+  - CI passed 68/68 tests and Pages preview deployed successfully before merge
+
+## Active Web Track
+- Phase 8E: IP & Reverse DNS Foundation
+  - standalone IP Lookup for public domains and public IPv4/IPv6 addresses
+  - standalone Reverse DNS Lookup for public IPv4/IPv6 PTR records
+  - explicit PTR support in the shared DNS engine while keeping PTR out of default domain DNS queries
+  - IPv4 `in-addr.arpa` and IPv6 nibble-reversed `ip6.arpa` generation
+  - existing private/reserved IP helpers reused to reject blocked address ranges
+  - domain IP lookup uses A/AAAA only
+  - no ASN, geolocation, hosting-provider, reputation, or CDN attribution in this phase
+  - no browser/server target history and no database migration
 
 ## Paused Telegram Track
 - Phase 7T: Default Experience
@@ -118,8 +124,8 @@
   - no analyzer, scoring, SSRF, authorization, or `/api/*` contract changes
 
 ## Next Web Phases
-- Phase 8E: Web ↔ Telegram handoff — deferred until Telegram work resumes
+- Phase 8F: Web ↔ Telegram handoff — deferred until Telegram work resumes
   - short-lived signed handoff IDs; no raw secrets or arbitrary callback payloads
   - continue an eligible diagnostic between Telegram and the web without forking analyzer behavior
-- Phase 8F: Shareable/saved report model only if an explicit retention, access-control and privacy design is approved
-- Phase 8G+: additional web-only tools and workspace capabilities where the web format provides clear product value
+- Phase 8G: Shareable/saved report model only if an explicit retention, access-control and privacy design is approved
+- Phase 8H+: additional infrastructure and web-only tools after their external data sources, privacy boundaries, and operational costs are deliberately chosen

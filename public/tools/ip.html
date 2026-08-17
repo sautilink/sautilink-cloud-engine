@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IP Lookup — SautiLink Cloud Engine</title>
+  <meta name="description" content="Resolve a public domain to IPv4 and IPv6 addresses or inspect a public IP with reverse DNS context." />
+  <link rel="canonical" href="https://cloudengine.sautilink.com/tools/ip" />
+  <meta name="theme-color" content="#0b0f19" />
+  <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="preload" href="/assets/fonts/manrope/Manrope-Variable.woff2?v=1" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/brand/typography-manrope.css?v=1" />
+  <link rel="stylesheet" href="/tools/infrastructure.css" />
+</head>
+<body data-infra-mode="ip">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><div class="container header-inner"><a href="/" class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><span class="brand-name">SautiLink</span><span class="brand-product">Cloud Engine</span></span></a><nav class="nav" aria-label="Primary"><a href="/" class="nav-link">Workspace</a><a href="/#tools" class="nav-link">Tools</a><a href="/tools/audit" class="nav-link">Full Audit</a></nav><div class="header-actions"><a href="/tools/rdns" class="btn btn-secondary">Reverse DNS</a><button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></div></div></header>
+  <main id="main" class="infra-page"><div class="container infra-layout">
+    <header class="infra-header"><p class="eyebrow">Infrastructure · DNS foundation</p><h1>IP Lookup</h1><p class="infra-lead">Resolve a public domain to its A/AAAA addresses, or enter a public IPv4/IPv6 address to inspect its reverse-DNS context.</p></header>
+    <form class="infra-form" id="infra-form" novalidate><label class="field-label" for="infra-input">Domain or public IP</label><div class="infra-row"><input id="infra-input" autocomplete="off" spellcheck="false" placeholder="example.com or public IPv4/IPv6" required /><button type="submit" class="btn btn-primary" id="infra-submit">Look up IP</button></div><p class="field-hint">Private, reserved, documentation, loopback, multicast, and other blocked IP ranges are rejected when entered as IP targets.</p><p class="field-error" id="infra-error" role="alert" hidden></p></form>
+    <div class="tool-status" id="infra-status" role="status" aria-live="polite" hidden></div>
+    <section class="infra-results" id="infra-results" hidden><article class="infra-card"><p class="result-kicker">Lookup result</p><div class="result-head"><h2><code id="result-title">—</code></h2><span class="state-badge" id="result-badge">—</span></div><p class="summary-text" id="result-summary"></p></article><article class="infra-card"><h2>Infrastructure details</h2><div id="result-details"></div></article><article class="infra-card"><p class="result-kicker">Continue investigating</p><div class="related-tools"><a class="btn btn-secondary" href="/tools/rdns">Reverse DNS</a><a class="btn btn-secondary" href="/tools/dns">DNS Lookup</a><a class="btn btn-secondary" href="/tools/http-status">HTTP Status</a><a class="btn btn-secondary" href="/tools/headers">HTTP Headers</a></div></article></section>
+  </div></main>
+  <footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><span class="brand-name">SautiLink</span> Cloud Engine</div><p class="footer-note">A SautiLink Corporation product · cloudengine.sautilink.com</p><p class="footer-copy">&copy; <span id="year"></span> SautiLink Corporation.</p></div></footer>
+  <script type="module" src="/tools/infrastructure.js"></script>
+</body>
+</html>

@@ -25,9 +25,12 @@ export const RECORD_TYPES = {
   MX: 15,
   NS: 2,
   TXT: 16,
+  PTR: 12,
 };
 
-export const DEFAULT_TYPES = Object.keys(RECORD_TYPES);
+// PTR is supported for explicit reverse-DNS calls, but is not queried during
+// the normal domain lookup because a PTR question for a forward domain is not useful.
+export const DEFAULT_TYPES = ["A", "AAAA", "CNAME", "MX", "NS", "TXT"];
 
 /**
  * Strict domain preparation for DNS tools.

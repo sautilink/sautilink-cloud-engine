@@ -47,10 +47,10 @@ export const TOOL_CATEGORIES = [
     name: "Infrastructure",
     description: "Hosting, IP, ASN and server information.",
     tools: [
-      { id: "ip", name: "IP Lookup", description: "IP details.", route: "/tools/ip", status: "coming_soon" },
+      { id: "ip", name: "IP Lookup", description: "Resolve public domain/IP details and reverse DNS context.", route: "/tools/ip", status: "available" },
       { id: "asn", name: "ASN Lookup", description: "ASN info.", route: "/tools/asn", status: "coming_soon" },
       { id: "hosting", name: "Hosting Provider Detector", description: "Hosting signals.", route: "/tools/hosting", status: "coming_soon" },
-      { id: "rdns", name: "Reverse DNS", description: "PTR lookups.", route: "/tools/rdns", status: "coming_soon" },
+      { id: "rdns", name: "Reverse DNS", description: "PTR lookups for public IPv4/IPv6 addresses.", route: "/tools/rdns", status: "available" },
       { id: "http-headers", name: "HTTP Headers", description: "Response headers.", route: "/tools/headers", status: "available" },
       { id: "server-info", name: "Server Information", description: "Server signals.", route: "/tools/server", status: "coming_soon" },
     ],
