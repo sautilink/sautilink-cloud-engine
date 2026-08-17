@@ -1,4 +1,13 @@
 User-agent: *
 Allow: /
+Disallow: /account/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /account/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /account/
 
 Sitemap: https://cloudengine.sautilink.com/sitemap.xml
