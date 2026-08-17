@@ -73,3 +73,17 @@ Phase 7N was live-verified by saving `/lang sw` to Supabase, redeploying product
 - Supabase configuration/network/HTTP failures remain fail-open so Telegram and Cloud Engine checks continue working.
 - `/admin` reports only `Durable preferences: Active (Supabase)` or `Durable preferences: Fallback only` instead of detailed environment diagnostics.
 - Automated Node tests cover the preference store and isolate cache behavior.
+
+## Settings & Preferences (Phase 7P)
+
+Phase 7P introduces a user-facing preferences container without expanding the stored data model.
+
+- `/settings` opens the Settings screen.
+- The main menu keeps the direct **Language / Lugha** shortcut and also adds **Settings / Mipangilio**.
+- Settings shows the currently active language and links to the existing language selector.
+- Language copy now reflects the verified durable behavior: the selected language is saved and remembered across bot sessions.
+- The new Settings callback is the fixed value `menu:settings`; it carries no user IDs, URLs, secrets, or preference values.
+- The Settings callback performs normal Telegram authorization before showing the screen and clears any pending guided-input state.
+- No new Supabase columns or tables are introduced in Phase 7P.
+- Settings is intentionally extensible so future preferences can be added without changing analyzer contracts or routing.
+- Cloud Engine analyzers, scoring, SSRF controls, and `/api/*` contracts remain unchanged.
