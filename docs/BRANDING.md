@@ -34,6 +34,25 @@ Normal product UX should not explain the implementation architecture. Integratio
 
 This policy protects normal product UX from unnecessary infrastructure disclosure. It does not claim that implementation details are undiscoverable when source code or maintainer documentation is intentionally published as open source. Public source visibility and public product UX are separate concerns.
 
+## Corporate color system
+
+SautiLink Corporation web products use the same core brand palette:
+
+- **Primary Blue:** `#2563EB` — main brand/action/accent color.
+- **Light Blue:** `#60A5FA` — secondary accent, hover/highlight, and softer brand emphasis.
+- **White:** `#FFFFFF` — primary brand neutral for light surfaces, reversed text, and logo-friendly contrast.
+
+Neutral dark/light colors may still be used for backgrounds, borders, text hierarchy, code blocks, and accessibility. Product accents and deliberate brand emphasis should resolve to the SautiLink blue family rather than legacy red accents.
+
+Implementation tokens:
+
+- `--brand-primary` → `#2563EB`
+- `--brand-primary-hover` → `#1D4ED8`
+- `--brand-light` → `#60A5FA`
+- `--brand-white` → `#FFFFFF`
+
+Cloud Engine maps its existing `--accent`, `--accent-hover`, and `--accent-soft` tokens onto this corporate palette so feature styles remain compatible while the public visual identity stays consistent.
+
 ## Corporate typography
 
 SautiLink web products use a shared two-family typography system:
@@ -58,8 +77,8 @@ Web font files live under `public/assets/fonts/` and the shared mapping lives in
 
 Both families are distributed under the SIL Open Font License 1.1. Their original license files must remain alongside the vendored font assets. Do not rename or modify the font software in a way that violates Reserved Font Name restrictions.
 
-This typography contract is intended to be reused across SautiLink Corporation web products so desktop and mobile surfaces maintain a consistent visual identity.
+This typography and color contract is intended to be reused across SautiLink Corporation web products so desktop and mobile surfaces maintain a consistent visual identity.
 
 ## Regression protection
 
-Automated branding tests should fail if normal user-facing start, about, settings, or admin output reintroduces known infrastructure-vendor branding. Web typography tests should also fail if the self-hosted font assets, license files, primary/brand mappings, or page wiring are removed. New user-facing features must follow the same SautiLink-first rule.
+Automated branding tests should fail if normal user-facing start, about, settings, or admin output reintroduces known infrastructure-vendor branding. Web brand tests should also fail if the self-hosted font assets, license files, primary/brand mappings, corporate color tokens, or page wiring are removed. New user-facing features must follow the same SautiLink-first rule.
