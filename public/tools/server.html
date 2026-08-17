@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Server Information — SautiLink Cloud Engine</title>
+  <meta name="description" content="Inspect observable server, protocol, caching, redirect, cookie, and edge/proxy response signals for a public URL." />
+  <link rel="canonical" href="https://cloudengine.sautilink.com/tools/server" />
+  <meta name="theme-color" content="#0b0f19" />
+  <meta name="robots" content="index, follow" />
+  <link rel="icon" href="/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="preload" href="/assets/fonts/manrope/Manrope-Variable.woff2?v=1" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/brand/typography-manrope.css?v=1" />
+  <link rel="stylesheet" href="/tools/server.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="brand" aria-label="SautiLink Cloud Engine home"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text"><span class="brand-name">SautiLink</span><span class="brand-product">Cloud Engine</span></span></a>
+      <nav class="nav" aria-label="Primary"><a href="/" class="nav-link">Workspace</a><a href="/#tools" class="nav-link">Tools</a><a href="/tools/audit" class="nav-link">Full Audit</a></nav>
+      <div class="header-actions"><a href="/tools/headers" class="btn btn-secondary">HTTP Headers</a><button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></div>
+    </div>
+  </header>
+
+  <main id="main" class="server-page">
+    <div class="container server-layout">
+      <header class="server-header">
+        <p class="eyebrow">Infrastructure · Observable response signals</p>
+        <h1>Server Information</h1>
+        <p class="server-lead">Inspect what a public endpoint reveals through its HTTP response: protocol, server banner, redirects, timing, cache behavior, cookies, and edge/proxy hints. Cloud Engine reports observed signals without claiming infrastructure ownership.</p>
+      </header>
+
+      <form class="server-form" id="server-form" novalidate>
+        <label class="field-label" for="server-url">Public URL</label>
+        <div class="server-input-row"><input type="url" id="server-url" name="url" placeholder="https://example.com" autocomplete="off" spellcheck="false" inputmode="url" required aria-describedby="server-hint server-error" /><button type="submit" class="btn btn-primary" id="server-submit">Inspect server</button></div>
+        <p class="field-hint" id="server-hint">Public HTTP/HTTPS only. Private, local, and reserved targets remain blocked by the shared Cloud Engine request safety layer.</p>
+        <p class="field-error" id="server-error" role="alert" hidden></p>
+      </form>
+
+      <div class="tool-status" id="server-status" hidden aria-live="polite"></div>
+
+      <section class="server-results" id="server-results" hidden>
+        <article class="server-card server-summary-card">
+          <div><p class="result-kicker">Observed endpoint</p><h2><code id="result-url">—</code></h2><p class="summary-text" id="result-summary"></p></div>
+          <span class="state-badge" id="result-badge">—</span>
+        </article>
+
+        <article class="server-card"><div class="card-heading"><div><p class="result-kicker">Response fingerprint</p><h2>Server & delivery</h2></div><span class="card-note">Observed values only</span></div><dl class="signal-grid" id="server-signal-grid"></dl></article>
+
+        <article class="server-card"><div class="card-heading"><div><p class="result-kicker">Delivery path</p><h2>Edge / proxy hints</h2></div><span class="card-note">Not ownership proof</span></div><p class="section-note">These headers may indicate caching, proxying, or edge-network behavior. A header name or value alone does not prove who owns or hosts the target.</p><div id="edge-signals"></div></article>
+
+        <article class="server-card"><div class="card-heading"><div><p class="result-kicker">Browser-facing controls</p><h2>Security response signals</h2></div><a href="/tools/headers" class="text-link">Open full Headers Analyzer</a></div><dl class="signal-grid" id="security-signal-grid"></dl></article>
+
+        <article class="server-card"><div class="card-heading"><div><p class="result-kicker">Redirect visibility</p><h2>Redirect chain</h2></div></div><div id="redirect-chain"></div></article>
+
+        <article class="server-card"><p class="result-kicker">Continue investigating</p><div class="related-tools"><a class="btn btn-secondary" href="/tools/headers">HTTP Headers</a><a class="btn btn-secondary" href="/tools/http-status">HTTP Status</a><a class="btn btn-secondary" href="/tools/ip">IP Lookup</a><a class="btn btn-secondary" href="/tools/ssl">SSL / HTTPS</a></div></article>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><span class="brand-name">SautiLink</span> Cloud Engine</div><p class="footer-note">A SautiLink Corporation product · cloudengine.sautilink.com</p><p class="footer-copy">&copy; <span id="year"></span> SautiLink Corporation.</p></div></footer>
+  <script type="module" src="/tools/server.js"></script>
+</body>
+</html>
