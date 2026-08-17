@@ -473,7 +473,7 @@ function bindReportControls() {
   document.getElementById("copy-audit-link")?.addEventListener("click", copyAuditLink);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+function initAuditWorkspace() {
   document.getElementById("audit-form")?.addEventListener("submit", (event) => {
     event.preventDefault();
     runCheck(document.getElementById("url-input")?.value || "");
@@ -493,4 +493,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const prefilled = new URLSearchParams(location.search).get("url");
   if (prefilled) runCheck(prefilled);
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initAuditWorkspace, { once: true });
+} else {
+  initAuditWorkspace();
+}

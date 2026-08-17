@@ -17,10 +17,20 @@ test("audit workspace exposes web-only compare and export controls", () => {
   assert.doesNotMatch(html, /src="\/tools\/audit\.js"/);
 });
 
-test("workspace bootstrap installs the power layer before the existing audit module", () => {
+test("workspace bootstrap statically loads the audit module before installing the power layer", () => {
   const bootstrap = read("public/tools/audit-workspace.js");
+  assert.match(bootstrap, /import "\.\/audit\.js"/);
   assert.match(bootstrap, /installAuditPower\(\)/);
-  assert.match(bootstrap, /await import\("\.\/audit\.js"\)/);
+  assert.doesNotMatch(bootstrap, /await import\(/);
+});
+
+test("audit and power controls initialise even after DOMContentLoaded", () => {
+  const audit = read("public/tools/audit.js");
+  const power = read("public/tools/audit-power.js");
+  assert.match(audit, /document\.readyState === "loading"/);
+  assert.match(audit, /initAuditWorkspace\(\)/);
+  assert.match(power, /document\.readyState === "loading"/);
+  assert.match(power, /initAuditPower\(\)/);
 });
 
 test("export reuses the captured primary audit instead of re-running it", () => {

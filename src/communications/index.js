@@ -18,7 +18,10 @@ export const COMMUNICATION_CHANNELS = Object.freeze({
 export function communicationStatus(env = {}) {
   const zeptoToken = String(env.ZEPTOMAIL_SEND_TOKEN || "").trim();
   return {
-    authEmailTransport: "supabase_custom_smtp",
+    // Supabase Auth owns authentication email delivery. Its hosted SMTP
+    // configuration is external to the Pages runtime and cannot be truthfully
+    // inferred from Worker environment variables.
+    authEmailTransport: "supabase_auth",
     transactionalEmailReady: /^Zoho-enczapikey\s+/i.test(zeptoToken) || zeptoToken.length >= 20,
     transactionalEmailProvider: "zeptomail_api",
     whatsappReady: false,
