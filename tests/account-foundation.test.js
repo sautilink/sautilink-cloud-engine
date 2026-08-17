@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
+  emailOtpLength,
   normalizeUsername,
   validateEmail,
   validateFullName,
@@ -61,11 +62,15 @@ test("mutating account routes enforce same-origin requests", () => {
   assert.match(handler, /\["POST", "PATCH", "PUT", "DELETE"\]/);
 });
 
-test("signup verification is a six-digit email OTP and profile bootstrap follows verification", () => {
+test("signup verification follows the configured email OTP length and profile bootstrap follows verification", () => {
   const service = read("src/account/service.js");
-  assert.match(service, /\^\\d\{6\}\$/);
-  assert.match(service, /body: JSON\.stringify\(\{ type: "email", email: email\.email, token \}\)/);
-  assert.match(service, /const profile = await bootstrapVerifiedProfile\(user, env\)/);
+  assert.equal(emailOtpLength({}), 8);
+  assert.equal(emailOtpLength({ SUPABASE_EMAIL_OTP_LENGTH: "6" }), 6);
+  assert.equal(emailOtpLength({ SUPABASE_EMAIL_OTP_LENGTH: "10" }), 10);
+  assert.equal(emailOtpLength({ SUPABASE_EMAIL_OTP_LENGTH: "11" }), 8);
+  assert.match(service, /emailOtpLength\(env\)/);
+  assert.match(service, /new RegExp/);
+  assert.match(service, /otpLength/);
   assert.match(handler, /route === "verify"/);
   assert.match(handler, /profileReady/);
 });
@@ -93,11 +98,14 @@ test("signup keeps ecosystem email updates optional and off by default", () => {
   assert.match(signup, /optional SautiLink ecosystem product news/i);
 });
 
-test("verification UI is a six-digit code workflow with resend", () => {
-  const digitInputs = verify.match(/aria-label="Digit [1-6]"/g) || [];
-  assert.equal(digitInputs.length, 6);
+test("verification UI renders the configured OTP length dynamically with resend", () => {
+  assert.doesNotMatch(verify, /aria-label="Digit [0-9]+"/);
+  assert.match(verify, /id="verify-code"/);
+  assert.match(browser, /renderVerificationInputs\(codeContainer, otpLength\)/);
+  assert.match(browser, /slice\(0, inputs\.length\)/);
+  assert.match(browser, /code\.length !== inputs\.length/);
+  assert.match(browser, /PENDING_OTP_LENGTH_KEY/);
   assert.match(verify, /id="resend-code"/);
-  assert.match(browser, /Resend in \$\{left\}s/);
 });
 
 test("account dashboard blue check means Email verified, not public notability", () => {
@@ -115,7 +123,7 @@ test("account pages preserve the self-hosted Manrope product contract", () => {
   }
 });
 
-test("signup email template delivers the Auth six-digit token with official SautiLink branding", () => {
+test("signup email template delivers the Auth OTP token with official SautiLink branding", () => {
   assert.match(template, /\{\{ \.Token \}\}/);
   assert.match(template, /Verify your email/);
   assert.match(template, /https:\/\/sautilink\.com\/logo\.png/i);

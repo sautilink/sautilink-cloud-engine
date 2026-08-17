@@ -16,7 +16,7 @@ SautiLink Account is the shared identity foundation for Cloud Engine and future 
 1. User submits full name, username, email and password.
 2. Product-news email consent is optional and off by default.
 3. The account service starts email/password signup.
-4. The confirmation email uses `{{ .Token }}` to deliver a six-digit OTP.
+4. The confirmation email uses `{{ .Token }}` to deliver the configured email OTP. SautiLink currently uses eight digits; the application contract supports Supabase email OTP lengths from 6 to 10 digits.
 5. User enters the OTP on `/account/verify`.
 6. The server verifies the OTP and establishes an HttpOnly web session.
 7. Only after successful verification is the durable `account_profiles` row created.

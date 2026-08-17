@@ -167,6 +167,7 @@ export async function onRequest(context) {
     const communications = communicationStatus(env);
     return ok({
       available: status.publicReady && status.adminReady,
+      emailOtpLength: status.emailOtpLength,
       communications: {
         authEmailTransport: communications.authEmailTransport,
         transactionalEmailReady: communications.transactionalEmailReady,
@@ -192,7 +193,7 @@ export async function onRequest(context) {
       const code = result.reason === "username_taken" ? "USERNAME_TAKEN" : result.reason === "invalid_input" ? "INVALID_SIGNUP" : "SIGNUP_FAILED";
       return fail(code, result.message || providerMessage(result, "Unable to create this account."), result.status || 400, requestId);
     }
-    return ok({ verificationRequired: true, email: String(parsed.value?.email || "").trim().toLowerCase() }, requestId, 201);
+    return ok({ verificationRequired: true, email: String(parsed.value?.email || "").trim().toLowerCase(), otpLength: accountServiceStatus(env).emailOtpLength }, requestId, 201);
   }
 
   if (route === "verify" && method === "POST") {

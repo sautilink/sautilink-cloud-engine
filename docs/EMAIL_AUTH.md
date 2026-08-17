@@ -18,7 +18,7 @@ The Confirm signup template must include the Auth template variable:
 {{ .Token }}
 ```
 
-This produces the six-digit OTP entered on `/account/verify` and verified server-side as an email OTP. The repository reference template is `supabase/templates/confirmation.html`.
+This produces the configured email OTP entered on `/account/verify` and verified server-side as an email OTP. SautiLink currently uses eight digits. Cloud Engine accepts `SUPABASE_EMAIL_OTP_LENGTH` values from 6 to 10 and defaults to 8 so the UI and API stay aligned with Auth. The repository reference template is `supabase/templates/confirmation.html`.
 
 Recommended subject:
 
