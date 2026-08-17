@@ -1,110 +1,46 @@
-/**
- * Phase 7L — post-result Telegram actions (fixed callbacks only).
- */
+/** Phase 7L/7M — post-result Telegram actions (fixed callbacks only). */
 
 import { sendMessage } from "./telegram.js";
 import {
-  setAwaitTarget,
-  refreshDiagTarget,
-  checkAnotherPromptText,
-  diagnosticMenuText,
-  diagnosticMenuKeyboard,
-  expiredGuidedMessage,
-  DIAG_ACTIONS,
+  setAwaitTarget, refreshDiagTarget, checkAnotherPromptText, diagnosticMenuText,
+  diagnosticMenuKeyboard, expiredGuidedMessage, DIAG_ACTIONS,
 } from "./guided.js";
 import { mainMenuKeyboard, guidedAuditKeyboard } from "./menu.js";
 
-/**
- * @returns {Promise<{ handled: boolean, action?: string, reason?: string }|null>}
- * null means not a result:* action.
- */
 export async function handleResultAction(ctx) {
-  const {
-    action,
-    chatId,
-    messageId,
-    messageText,
-    config,
-    resolveDiagTarget,
-    runDiagnosticAction,
-    safeEditOrSend,
-    logCb,
-    meta,
-    from,
-    env,
-    adminUser,
-  } = ctx;
-
+  const { action, chatId, messageId, messageText, config, resolveDiagTarget, runDiagnosticAction, safeEditOrSend, logCb, meta, from, env, adminUser } = ctx;
+  const locale = ctx.locale || "en";
   if (!action || !action.startsWith("result:")) return null;
 
   if (action === "result:another") {
     setAwaitTarget(chatId);
-    await safeEditOrSend(
-      config.token,
-      chatId,
-      messageId,
-      checkAnotherPromptText(),
-      guidedAuditKeyboard()
-    );
+    await safeEditOrSend(config.token, chatId, messageId, checkAnotherPromptText(locale), guidedAuditKeyboard(locale));
     return logCb(meta, action, chatId);
   }
 
   if (action === "result:back") {
     const target = resolveDiagTarget(chatId, messageText);
     if (!target) {
-      await sendMessage(config.token, chatId, expiredGuidedMessage(), {
-        reply_markup: mainMenuKeyboard(),
-      });
+      await sendMessage(config.token, chatId, expiredGuidedMessage(locale), { reply_markup: mainMenuKeyboard(locale) });
       return logCb(meta, action, chatId, "expired");
     }
     refreshDiagTarget(chatId);
-    await safeEditOrSend(
-      config.token,
-      chatId,
-      messageId,
-      diagnosticMenuText(target.display),
-      diagnosticMenuKeyboard()
-    );
+    await safeEditOrSend(config.token, chatId, messageId, diagnosticMenuText(target.display, locale), diagnosticMenuKeyboard(locale));
     return logCb(meta, action, chatId);
   }
 
   if (action === "result:fullaudit") {
-    return runDiagnosticAction({
-      action: "diag:audit",
-      chatId,
-      messageId,
-      messageText,
-      from,
-      config,
-      env,
-      adminUser,
-      meta,
-    });
+    return runDiagnosticAction({ action: "diag:audit", chatId, messageId, messageText, from, config, env, adminUser, meta, locale });
   }
 
   if (action === "result:rerun") {
     const target = resolveDiagTarget(chatId, messageText);
     if (!target) {
-      await sendMessage(config.token, chatId, expiredGuidedMessage(), {
-        reply_markup: mainMenuKeyboard(),
-      });
+      await sendMessage(config.token, chatId, expiredGuidedMessage(locale), { reply_markup: mainMenuKeyboard(locale) });
       return logCb(meta, action, chatId, "expired");
     }
-    const last =
-      target.lastAction && DIAG_ACTIONS[target.lastAction]
-        ? target.lastAction
-        : "diag:security";
-    return runDiagnosticAction({
-      action: last,
-      chatId,
-      messageId,
-      messageText,
-      from,
-      config,
-      env,
-      adminUser,
-      meta,
-    });
+    const last = target.lastAction && DIAG_ACTIONS[target.lastAction] ? target.lastAction : "diag:security";
+    return runDiagnosticAction({ action: last, chatId, messageId, messageText, from, config, env, adminUser, meta, locale });
   }
 
   return logCb(meta, action, chatId, "unknown_result");
