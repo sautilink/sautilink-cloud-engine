@@ -28,7 +28,7 @@ Focused checks cover:
 - missing/invalid server-side durable-store configuration → bot falls back safely
 - valid Telegram numeric user ID → durable preference read/write path allowed
 - invalid/non-numeric user ID → no durable request
-- invalid locale/report-detail/developer-mode values never reach durable storage
+- invalid locale/report-detail/developer-mode/default-view values never reach durable storage
 - durable read hydrates locale and presentation caches
 - timeout/network/HTTP failure → bot remains usable
 - caches remain bounded to 500 entries and expire after 5 minutes
@@ -43,6 +43,7 @@ The Settings suite covers:
 - the main menu retains direct Language access and Settings
 - Settings shows Telegram User ID and Chat ID
 - Settings shows active English/Kiswahili locale
+- Settings shows Report Detail, Developer Mode, and Default `/start`
 - privacy copy does not claim Chat ID or checked-site history is persisted
 - public Settings output remains SautiLink-branded and vendor-neutral
 
@@ -52,11 +53,7 @@ Automated tests cover:
 
 - default presentation = Compact + Developer Mode Off
 - personalisation cache hydration/update/expiry/500-entry bound
-- fixed allowlisted callbacks:
-  - `pref:detail:compact`
-  - `pref:detail:detailed`
-  - `pref:dev:off`
-  - `pref:dev:on`
+- fixed Report Detail and Developer Mode callbacks
 - arbitrary callback suffixes are rejected
 - durable profile read maps locale, report detail, and developer mode correctly
 - durable personalisation writes require strict full values
@@ -66,28 +63,46 @@ Automated tests cover:
 - audit Compact/Detailed modes use different item limits
 - Settings callback integration persists the new value before updating the local cache/UI
 
+## Phase 7T Default Experience tests
+
+Automated tests cover:
+
+- safe default = `main`
+- cache hydration/update/expiry retains `defaultView`
+- invalid cached or durable values normalize to `main`
+- fixed callbacks only:
+  - `pref:view:main`
+  - `pref:view:quick`
+  - `pref:view:tools`
+  - `menu:tools`
+- `/start` with `main` keeps the existing branded home experience
+- `/start` with `quick` returns branded Quick Check and arms existing ephemeral guided target capture
+- `/start` with `tools` returns vendor-neutral SautiLink Tools Hub
+- Tools Hub uses only fixed existing tool/menu callbacks
+- durable writes include strict `default_view`
+- `default_view` cannot change analyzer/API/SSRF/scoring behavior
+
 Run the Node suite with:
 
 ```bash
 npm test
 ```
 
-The connected execution environment used during Phase 7S cannot resolve GitHub from the local container, so local clone-based execution is not treated as a validation signal. Branch/PR deployment plus live Telegram smoke are required before marking the phase live verified.
+GitHub Actions is the merge gate for the Node suite. Branch deployment must also succeed before merge.
 
-## Live Telegram smoke for Phase 7S
+## Live Telegram smoke for Phase 7T
 
 After production deployment:
 
-1. `/settings` → confirm defaults/current saved values are visible.
-2. Select **Detailed** → reopen `/settings`; it must still show Detailed.
-3. Run DNS or Website check → confirm more findings/records are shown than Compact.
-4. Switch to **Compact** → rerun the same target; output should be shorter while scores remain unchanged.
-5. Enable **Developer Mode** → rerun Website/HTTP/Audit; confirm additional target metadata/finding codes appear.
-6. Confirm Developer Mode output does not mention infrastructure providers, secrets, deployment topology, or SautiLink architecture.
-7. Disable Developer Mode → technical extras disappear.
-8. Redeploy production, then `/settings` again → Report Detail and Developer Mode must remain remembered.
-9. Switch language and confirm presentation preferences remain unchanged.
-10. Run Full Audit → Summary → Priorities → category view → Re-run; all views must respect the same presentation preference.
+1. `/settings` → confirm **Default /start** is visible and currently `Main Menu` unless previously changed.
+2. Select **Quick** → send `/start`; it must open **SautiLink Quick Check** and accept a domain directly.
+3. Return to Settings → select **Tools** → `/start`; it must open **SautiLink Tools Hub** with Website Tools, Infrastructure, Quick Check, Settings, and Back navigation.
+4. Select **Main** → `/start`; the existing SautiLink Cloud Engine home must return.
+5. Reopen `/settings` after each choice; the selected value must remain checked.
+6. Redeploy production, then `/start`; the last selected default view must still be remembered.
+7. Switch English/Kiswahili; default view must remain unchanged and the surrounding copy must localize.
+8. Run one DNS, Website, and Full Audit check to verify analyzers, scores, and SSRF behavior are unchanged.
+9. Verify no public start/tools/settings output mentions infrastructure vendors or architecture.
 
 ## Production regression
 
