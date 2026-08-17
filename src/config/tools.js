@@ -11,6 +11,7 @@ export const TOOL_CATEGORIES = [
       { id: "robots", name: "Robots.txt Analyzer", description: "Fetch and analyze robots.txt crawl rules.", route: "/tools/robots", status: "available" },
       { id: "sitemap", name: "Sitemap Analyzer", description: "Inspect XML sitemaps and coverage.", route: "/tools/sitemap", status: "available" },
       { id: "mobile-friendly", name: "Mobile-Friendly Analyzer", description: "Viewport, responsive signals, and mobile SEO heuristics.", route: "/tools/mobile", status: "available" },
+      { id: "cache-compression", name: "Cache & Compression Inspector", description: "Inspect observed caching, validators, variation, range, and content-encoding response signals.", route: "/tools/cache", status: "available" },
       { id: "lighthouse", name: "Lighthouse / Performance", description: "Performance, accessibility and best-practice insights.", route: "/tools/performance", status: "coming_soon" },
     ],
   },
