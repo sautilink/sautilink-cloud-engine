@@ -1,8 +1,10 @@
 name: Hotfix account OTP regression updates
 on:
   push:
-    branches: [hotfix/account-email-otp-length]
-    paths: [.github/workflows/hotfix-account-otp-tests.yml]
+    branches:
+      - hotfix/account-email-otp-length
+    paths:
+      - .github/workflows/hotfix-account-otp-tests.yml
 permissions:
   contents: write
 jobs:
@@ -16,43 +18,22 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-
-          p=Path('tests/account-foundation.test.js'); s=p.read_text()
-          s=s.replace('  normalizeUsername,\n','  emailOtpLength,\n  normalizeUsername,\n',1)
-          start=s.index('test("signup verification is a six-digit email OTP and profile bootstrap follows verification"')
-          end=s.index('\n\ntest("verified profile completion handles',start)
-          s=s[:start]+'''test("signup verification follows the configured email OTP length and profile bootstrap follows verification", () => {
-  const service = read("src/account/service.js");
-  assert.equal(emailOtpLength({}), 8);
-  assert.equal(emailOtpLength({ SUPABASE_EMAIL_OTP_LENGTH: "6" }), 6);
-  assert.equal(emailOtpLength({ SUPABASE_EMAIL_OTP_LENGTH: "10" }), 10);
-  assert.equal(emailOtpLength({ SUPABASE_EMAIL_OTP_LENGTH: "11" }), 8);
-  assert.match(service, /emailOtpLength\(env\)/);
-  assert.match(service, /new RegExp/);
-  assert.match(service, /otpLength/);
-  assert.match(service, /body: JSON\.stringify\(\{ type: "email", email: email\.email, token \}\)/);
-  assert.match(service, /const profile = await bootstrapVerifiedProfile\(user, env\)/);
-  assert.match(handler, /route === "verify"/);
-  assert.match(handler, /profileReady/);
-});'''+s[end:]
-          start=s.index('test("verification UI is a six-digit code workflow with resend"')
-          end=s.index('\n\ntest("account dashboard blue check',start)
-          s=s[:start]+'''test("verification UI renders the configured OTP length dynamically with resend", () => {
-  assert.doesNotMatch(verify, /aria-label="Digit [0-9]+"/);
-  assert.match(verify, /id="verify-code"/);
-  assert.match(browser, /renderVerificationInputs\(codeContainer, otpLength\)/);
-  assert.match(browser, /slice\(0, inputs\.length\)/);
-  assert.match(browser, /code\.length !== inputs\.length/);
-  assert.match(browser, /PENDING_OTP_LENGTH_KEY/);
-  assert.match(verify, /id="resend-code"/);
-  assert.match(browser, /Resend in \$\{left\}s/);
-});'''+s[end:]
-          s=s.replace('test("signup email template delivers the Auth six-digit token with official SautiLink branding"','test("signup email template delivers the Auth OTP token with official SautiLink branding"',1)
+          p = Path('tests/account-foundation.test.js')
+          s = p.read_text()
+          s = s.replace('  normalizeUsername,\n', '  emailOtpLength,\n  normalizeUsername,\n', 1)
+          a = s.index('test("signup verification is a six-digit email OTP and profile bootstrap follows verification"')
+          b = s.index('\n\ntest("verified profile completion handles', a)
+          replacement = 'test("signup verification follows the configured email OTP length and profile bootstrap follows verification", () => {\n  const service = read("src/account/service.js");\n  assert.equal(emailOtpLength({}), 8);\n  assert.equal(emailOtpLength({ SUPABASE_EMAIL_OTP_LENGTH: "6" }), 6);\n  assert.equal(emailOtpLength({ SUPABASE_EMAIL_OTP_LENGTH: "10" }), 10);\n  assert.equal(emailOtpLength({ SUPABASE_EMAIL_OTP_LENGTH: "11" }), 8);\n  assert.match(service, /emailOtpLength\\(env\\)/);\n  assert.match(service, /new RegExp/);\n  assert.match(service, /otpLength/);\n  assert.match(handler, /route === "verify"/);\n  assert.match(handler, /profileReady/);\n});'
+          s = s[:a] + replacement + s[b:]
+          a = s.index('test("verification UI is a six-digit code workflow with resend"')
+          b = s.index('\n\ntest("account dashboard blue check', a)
+          replacement = 'test("verification UI renders the configured OTP length dynamically with resend", () => {\n  assert.doesNotMatch(verify, /aria-label="Digit [0-9]+"/);\n  assert.match(verify, /id="verify-code"/);\n  assert.match(browser, /renderVerificationInputs\\(codeContainer, otpLength\\)/);\n  assert.match(browser, /slice\\(0, inputs\\.length\\)/);\n  assert.match(browser, /code\\.length !== inputs\\.length/);\n  assert.match(browser, /PENDING_OTP_LENGTH_KEY/);\n  assert.match(verify, /id="resend-code"/);\n});'
+          s = s[:a] + replacement + s[b:]
+          s = s.replace('test("signup email template delivers the Auth six-digit token with official SautiLink branding"', 'test("signup email template delivers the Auth OTP token with official SautiLink branding"', 1)
           p.write_text(s)
-
-          p=Path('docs/ACCOUNT.md'); s=p.read_text(); s=s.replace('4. The confirmation email uses `{{ .Token }}` to deliver a six-digit OTP.','4. The confirmation email uses `{{ .Token }}` to deliver the configured email OTP. SautiLink currently uses eight digits; the application contract supports Supabase email OTP lengths from 6 to 10 digits.',1); p.write_text(s)
-          p=Path('docs/EMAIL_AUTH.md'); s=p.read_text(); s=s.replace('This produces the six-digit OTP entered on `/account/verify` and verified server-side as an email OTP.','This produces the configured email OTP entered on `/account/verify` and verified server-side as an email OTP. SautiLink currently uses eight digits. Cloud Engine accepts `SUPABASE_EMAIL_OTP_LENGTH` values from 6 to 10 and defaults to 8 so the UI and API stay aligned with Auth.',1); p.write_text(s)
-          p=Path('docs/ROADMAP.md'); s=p.read_text(); s=s.replace('  - six-digit email OTP verification before the durable profile is created','  - configured-length email OTP verification (currently eight digits) before the durable profile is created',1); p.write_text(s)
+          p = Path('docs/ACCOUNT.md'); p.write_text(p.read_text().replace('4. The confirmation email uses `{{ .Token }}` to deliver a six-digit OTP.', '4. The confirmation email uses `{{ .Token }}` to deliver the configured email OTP. SautiLink currently uses eight digits; the application contract supports Supabase email OTP lengths from 6 to 10 digits.', 1))
+          p = Path('docs/EMAIL_AUTH.md'); p.write_text(p.read_text().replace('This produces the six-digit OTP entered on `/account/verify` and verified server-side as an email OTP.', 'This produces the configured email OTP entered on `/account/verify` and verified server-side as an email OTP. SautiLink currently uses eight digits. Cloud Engine accepts `SUPABASE_EMAIL_OTP_LENGTH` values from 6 to 10 and defaults to 8 so the UI and API stay aligned with Auth.', 1))
+          p = Path('docs/ROADMAP.md'); p.write_text(p.read_text().replace('  - six-digit email OTP verification before the durable profile is created', '  - configured-length email OTP verification (currently eight digits) before the durable profile is created', 1))
           PY
       - name: Run full tests
         run: npm test
