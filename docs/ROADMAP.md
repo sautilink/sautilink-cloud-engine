@@ -44,20 +44,23 @@
   - branding policy and automated vendor-name regression checks added
   - open technical standards remain visible where useful (DNS, HTTP, HTTPS, SSL/TLS, SPF, DMARC, DKIM, etc.)
   - no analyzer, scoring, SSRF, or `/api/*` contract changes
-
-## In progress
-- Phase 7S: Personalisation v1
+- Phase 7S: Personalisation v1 — live verified
   - durable Report Detail preference: `compact` or `detailed`
   - durable Developer Mode preference: `off` or `on`
   - defaults remain conservative: Compact + Developer Mode Off
   - Settings exposes fixed allowlisted callbacks only; no preference values are accepted from arbitrary callback payloads
   - Compact reduces findings/records shown; Detailed expands findings, recommendations, and DNS records within Telegram limits
   - Developer Mode adds target-facing technical metadata and machine finding codes only
-  - Developer Mode must never expose SautiLink infrastructure, vendors, secrets, internal topology, or architecture
+  - Developer Mode never exposes SautiLink infrastructure, vendors, secrets, internal topology, or architecture
   - presentation preferences use a bounded 5-minute per-user isolate cache plus durable fallback
   - Telegram User ID remains the durable key; Chat ID and checked-site history are not persisted in the preference profile
   - existing preference storage is extended; no new user/profile/history table is created
+  - automated CI passed 33/33 tests with zero failures
+  - production Settings behavior confirmed live and durable preference write verified in the preference store
   - no analyzer, scoring, SSRF, or `/api/*` contract changes
+
+## In progress
+- Phase 7T: define the next user-visible experience improvement
 
 ## Future
 - Phase 7T+: default landing experience and additional personalisation only when each option has real user-visible behavior and a clear persistence/privacy model
