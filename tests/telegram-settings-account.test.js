@@ -41,8 +41,8 @@ test("settings command passes live Telegram IDs into the settings view", async (
   assert.equal(result.reply_markup.inline_keyboard[0][0].callback_data, "menu:lang");
 });
 
-test("settings privacy copy does not imply IDs are stored as preferences", () => {
+test("settings privacy copy accurately describes durable preference data", () => {
   const text = settingsMenuText("en", { userId: 12345, chatId: 67890 });
-  assert.match(text, /store only your language choice/i);
-  assert.match(text, /history is not stored/i);
+  assert.match(text, /Telegram User ID as the preference key/i);
+  assert.match(text, /Chat ID and checked-site history are not stored/i);
 });
