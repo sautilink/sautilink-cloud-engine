@@ -5,6 +5,15 @@ import { t } from "./i18n/index.js";
 
 const CATEGORY_KEYS = ["security", "seo", "mobile", "infrastructure", "email", "https", "technical"];
 
+function presentationConfig(value = {}) {
+  const detailed = value.reportDetail === "detailed";
+  return {
+    detailed,
+    developerMode: value.developerMode === true,
+    itemLimit: detailed ? 8 : 3,
+  };
+}
+
 export function scoreBar(score, width = 10) {
   const n = Number(score);
   if (!Number.isFinite(n)) return "░".repeat(width);
@@ -27,13 +36,17 @@ function severityIcon(sev) {
   if (s === "info" || s === "low") return "🔵";
   return "•";
 }
-function findingLine(f) {
-  const title = (f && (f.title || f.message || f.code)) || "Finding";
-  return `${severityIcon(f && f.severity)} ${String(title).slice(0, 120)}`;
+function itemTitle(item, developerMode = false) {
+  const title = String((item && (item.title || item.message || item.code)) || "Item").slice(0, 120);
+  const code = item && item.code ? String(item.code).slice(0, 60) : "";
+  if (!developerMode || !code || code.toLowerCase() === title.toLowerCase()) return title;
+  return `${title} [${code}]`;
 }
-function recLine(r) {
-  const title = (r && (r.title || r.message || r.code)) || "Recommendation";
-  return `• ${String(title).slice(0, 120)}`;
+function findingLine(f, developerMode = false) {
+  return `${severityIcon(f && f.severity)} ${itemTitle(f, developerMode)}`;
+}
+function recLine(r, developerMode = false) {
+  return `• ${itemTitle(r, developerMode)}`;
 }
 function categoryBlock(label, scoreOrNull) {
   if (scoreOrNull == null || !Number.isFinite(Number(scoreOrNull))) return `${label}\n   n/a`;
@@ -42,7 +55,8 @@ function categoryBlock(label, scoreOrNull) {
 }
 function displayDomain(data) { return String(data.domain || data.url || "").trim() || "(unknown)"; }
 
-export function formatAuditReport(data, locale = "en") {
+export function formatAuditReport(data, locale = "en", value = {}) {
+  const presentation = presentationConfig(value);
   const domain = displayDomain(data);
   const score = data.score || {};
   const total = score.total ?? score.score;
@@ -62,11 +76,14 @@ export function formatAuditReport(data, locale = "en") {
     lines.push(categoryBlock(categoryLabel(key, locale), c.available && c.score != null ? c.score : null));
   }
   lines.push("", `⚠️ ${findings.length} ${t(locale, "audit.findings")}`);
-  for (const f of findings.slice(0, 5)) lines.push(findingLine(f));
-  if (findings.length > 5) lines.push(t(locale, "audit.more", { count: findings.length - 5 }));
+  for (const f of findings.slice(0, presentation.itemLimit)) lines.push(findingLine(f, presentation.developerMode));
+  if (findings.length > presentation.itemLimit) lines.push(t(locale, "audit.more", { count: findings.length - presentation.itemLimit }));
   lines.push("", `💡 ${recs.length} ${t(locale, "audit.recommendations")}`);
-  for (const r of recs.slice(0, 5)) lines.push(recLine(r));
-  if (recs.length > 5) lines.push(t(locale, "audit.more", { count: recs.length - 5 }));
+  for (const r of recs.slice(0, presentation.itemLimit)) lines.push(recLine(r, presentation.developerMode));
+  if (recs.length > presentation.itemLimit) lines.push(t(locale, "audit.more", { count: recs.length - presentation.itemLimit }));
+  if (presentation.developerMode) {
+    lines.push("", "🧑‍💻 Developer details", `Categories returned: ${Object.keys(cats).length}`, `Finding count: ${findings.length}`, `Recommendation count: ${recs.length}`);
+  }
   if (data.checkedAt || data.timestamp || score.checkedAt) {
     const ts = data.checkedAt || data.timestamp || score.checkedAt;
     lines.push("", t(locale, "report.checked", { time: String(ts).slice(0, 40) }));
@@ -75,7 +92,8 @@ export function formatAuditReport(data, locale = "en") {
   return truncateSafe(lines.join("\n"));
 }
 
-export function formatAuditSummary(data, locale = "en") {
+export function formatAuditSummary(data, locale = "en", value = {}) {
+  const presentation = presentationConfig(value);
   const domain = displayDomain(data);
   const score = data.score || {};
   const cats = data.categories || {};
@@ -88,10 +106,12 @@ export function formatAuditSummary(data, locale = "en") {
     lines.push(`${categoryLabel(key, locale)} ${c.available && c.score != null ? c.score : "n/a"}`);
   }
   lines.push("", `${findings.length} ${t(locale, "audit.findings")} · ${recs.length} ${t(locale, "audit.recommendations")}`);
+  if (presentation.developerMode) lines.push("", `🧑‍💻 Categories returned: ${Object.keys(cats).length}`);
   return truncateSafe(lines.join("\n"));
 }
 
-export function formatAuditPriorities(data, locale = "en") {
+export function formatAuditPriorities(data, locale = "en", value = {}) {
+  const presentation = presentationConfig(value);
   const domain = displayDomain(data);
   const findings = Array.isArray(data.findings) ? data.findings : [];
   const recs = Array.isArray(data.recommendations) ? data.recommendations : [];
@@ -100,8 +120,8 @@ export function formatAuditPriorities(data, locale = "en") {
   const lines = [t(locale, "audit.priorities"), `🌐 ${domain}`, ""];
   if (!source.length) lines.push(t(locale, "audit.none"));
   else {
-    source.slice(0, 5).forEach((item, i) => lines.push(`${i + 1}. ${String((item && (item.title || item.message || item.code)) || "Item").slice(0, 120)}`));
-    if (source.length > 5) lines.push(t(locale, "audit.more", { count: source.length - 5 }));
+    source.slice(0, presentation.itemLimit).forEach((item, i) => lines.push(`${i + 1}. ${itemTitle(item, presentation.developerMode)}`));
+    if (source.length > presentation.itemLimit) lines.push(t(locale, "audit.more", { count: source.length - presentation.itemLimit }));
   }
   lines.push("", t(locale, "audit.priority_disclaimer"));
   return truncateSafe(lines.join("\n"));
@@ -115,7 +135,8 @@ function severityRank(f) {
   return 3;
 }
 
-export function formatCategoryDetail(data, categoryKey, locale = "en") {
+export function formatCategoryDetail(data, categoryKey, locale = "en", value = {}) {
+  const presentation = presentationConfig(value);
   if (!CATEGORY_KEYS.includes(categoryKey)) return t(locale, "audit.unknown_category");
   const label = categoryLabel(categoryKey, locale);
   const domain = displayDomain(data);
@@ -128,15 +149,15 @@ export function formatCategoryDetail(data, categoryKey, locale = "en") {
   lines.push(t(locale, "report.findings"));
   if (!findings.length) lines.push(t(locale, "report.no_findings"));
   else {
-    findings.slice(0, 5).forEach((f) => lines.push(findingLine(f)));
-    if (findings.length > 5) lines.push(t(locale, "audit.more", { count: findings.length - 5 }));
+    findings.slice(0, presentation.itemLimit).forEach((f) => lines.push(findingLine(f, presentation.developerMode)));
+    if (findings.length > presentation.itemLimit) lines.push(t(locale, "audit.more", { count: findings.length - presentation.itemLimit }));
   }
   const recs = Array.isArray(cat.recommendations) ? cat.recommendations : Array.isArray(data.recommendations) ? data.recommendations.filter((r) => !r.category || String(r.category).toLowerCase() === categoryKey || String(r.area || "").toLowerCase() === categoryKey) : [];
   lines.push("", t(locale, "report.recommendations"));
   if (!recs.length) lines.push(t(locale, "report.no_recommendations"));
   else {
-    recs.slice(0, 5).forEach((r) => lines.push(recLine(r)));
-    if (recs.length > 5) lines.push(t(locale, "audit.more", { count: recs.length - 5 }));
+    recs.slice(0, presentation.itemLimit).forEach((r) => lines.push(recLine(r, presentation.developerMode)));
+    if (recs.length > presentation.itemLimit) lines.push(t(locale, "audit.more", { count: recs.length - presentation.itemLimit }));
   }
   return truncateSafe(lines.join("\n"));
 }
