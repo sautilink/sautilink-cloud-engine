@@ -15,6 +15,52 @@ import {
 
 export function truncate(text, max = MAX_TELEGRAM_TEXT) { return truncateSafe(text, max); }
 
+function presentationConfig(value = {}) {
+  const detailed = value.reportDetail === "detailed";
+  return {
+    detailed,
+    developerMode: value.developerMode === true,
+    findingLimit: detailed ? 8 : 3,
+    recordLimit: detailed ? 12 : 4,
+  };
+}
+
+function itemText(item, developerMode = false) {
+  const title = String((item && (item.title || item.message || item.code)) || "Finding").slice(0, 140);
+  const code = item && item.code ? String(item.code).slice(0, 60) : "";
+  if (!developerMode || !code || code.toLowerCase() === title.toLowerCase()) return title;
+  return `${title} [${code}]`;
+}
+
+function appendRecommendations(lines, data, locale, presentation) {
+  if (!presentation.detailed) return;
+  const score = data.score || data.security || {};
+  const recs = Array.isArray(score.recommendations)
+    ? score.recommendations
+    : Array.isArray(data.recommendations)
+      ? data.recommendations
+      : [];
+  if (!recs.length) return;
+  lines.push("", t(locale, "report.recommendations"));
+  for (const rec of recs.slice(0, presentation.findingLimit)) {
+    lines.push(`• ${itemText(rec, presentation.developerMode)}`);
+  }
+  if (recs.length > presentation.findingLimit) {
+    lines.push(t(locale, "audit.more", { count: recs.length - presentation.findingLimit }));
+  }
+}
+
+function appendDeveloperMeta(lines, data, locale, options = {}) {
+  if (!options.developerMode) return;
+  const meta = [];
+  if (options.requested && data.url) meta.push(`Requested: ${String(data.url).slice(0, 220)}`);
+  if (data.contentType) meta.push(`Content-Type: ${String(data.contentType).slice(0, 100)}`);
+  if (data.responseTimeMs != null) meta.push(t(locale, "report.time", { ms: data.responseTimeMs }));
+  if (data.redirectCount != null) meta.push(t(locale, "report.redirects", { count: data.redirectCount }));
+  if (!meta.length) return;
+  lines.push("", "🧑‍💻 Developer details", ...meta);
+}
+
 export function formatEngineError(err, locale = "en") {
   const code = err && err.code ? String(err.code) : "ERROR";
   return truncate(mapUserError(code, err && err.message, locale));
@@ -83,24 +129,32 @@ export function formatAdmin(info, locale = "en") {
   return lines.join("\n");
 }
 
-export function formatAudit(data, locale = "en") { return formatAuditReport(data, locale); }
-export function formatAuditSummaryView(data, locale = "en") { return formatAuditSummary(data, locale); }
-export function formatAuditPrioritiesView(data, locale = "en") { return formatAuditPriorities(data, locale); }
-export function formatAuditCategory(data, categoryKey, locale = "en") { return formatCategoryDetail(data, categoryKey, locale); }
+export function formatAudit(data, locale = "en", presentation = {}) { return formatAuditReport(data, locale, presentation); }
+export function formatAuditSummaryView(data, locale = "en", presentation = {}) { return formatAuditSummary(data, locale, presentation); }
+export function formatAuditPrioritiesView(data, locale = "en", presentation = {}) { return formatAuditPriorities(data, locale, presentation); }
+export function formatAuditCategory(data, categoryKey, locale = "en", presentation = {}) { return formatCategoryDetail(data, categoryKey, locale, presentation); }
 
-export function formatDns(data, locale = "en") {
+export function formatDns(data, locale = "en", value = {}) {
+  const presentation = presentationConfig(value);
   const domain = data.domain || "";
   const lines = [`DNS · ${domain}`];
   const records = data.records || data;
+  let typeCount = 0;
+  let recordCount = 0;
   for (const [type, list] of Object.entries(records)) {
     if (!Array.isArray(list) || !list.length || ["domain", "normalized", "query", "resolver"].includes(type)) continue;
+    typeCount += 1;
+    recordCount += list.length;
     lines.push(`${type}:`);
-    for (const v of list.slice(0, 8)) lines.push(`  ${v}`);
+    for (const v of list.slice(0, presentation.recordLimit)) lines.push(`  ${v}`);
+    if (list.length > presentation.recordLimit) lines.push(`  … +${list.length - presentation.recordLimit} more`);
   }
+  if (presentation.developerMode) lines.push("", `🧑‍💻 Developer details`, `Record types: ${typeCount}`, `Records returned: ${recordCount}`);
   return truncate(lines.join("\n"));
 }
 
-export function formatEmail(data, locale = "en") {
+export function formatEmail(data, locale = "en", value = {}) {
+  const presentation = presentationConfig(value);
   const domain = data.domain || "";
   const score = data.score || {};
   const lines = [`${t(locale, "menu.email").replace(/^✉️\s*/, "")} · ${domain}`, t(locale, "report.score", { score: score.total ?? "—", max: score.max ?? 100, grade: score.grade || "" }), ""];
@@ -108,22 +162,30 @@ export function formatEmail(data, locale = "en") {
   if (data.spf) lines.push(`SPF: ${data.spf.status || (data.spf.found ? "found" : "n/a")}`);
   if (data.dmarc) lines.push(`DMARC: ${data.dmarc.status || (data.dmarc.found ? "found" : "n/a")}`);
   if (data.dkim) lines.push(`DKIM: ${data.dkim.status || (data.dkim.found ? "found" : "n/a")}${data.dkim.selector ? ` (${data.dkim.selector})` : ""}`);
-  const findings = (score.findings || data.findings || []).slice(0, 5);
+  const findings = (score.findings || data.findings || []);
   if (findings.length) {
     lines.push("", t(locale, "report.findings"));
-    for (const f of findings) lines.push(`• ${f.title || f.code}`);
+    for (const f of findings.slice(0, presentation.findingLimit)) lines.push(`• ${itemText(f, presentation.developerMode)}`);
+    if (findings.length > presentation.findingLimit) lines.push(t(locale, "audit.more", { count: findings.length - presentation.findingLimit }));
   }
+  appendRecommendations(lines, data, locale, presentation);
   return truncate(lines.join("\n"));
 }
 
-export function formatHeaders(data, locale = "en") {
+export function formatHeaders(data, locale = "en", value = {}) {
+  const presentation = presentationConfig(value);
   const sec = data.security || data.score || {};
   const lines = [t(locale, "report.http_headers"), data.finalUrl || data.url || "", t(locale, "report.security_score", { score: sec.score ?? sec.total ?? "—", grade: sec.grade || "" }), ""];
-  for (const f of (sec.findings || []).slice(0, 6)) lines.push(`• ${f.title || f.code}`);
+  const findings = Array.isArray(sec.findings) ? sec.findings : [];
+  for (const f of findings.slice(0, presentation.findingLimit)) lines.push(`• ${itemText(f, presentation.developerMode)}`);
+  if (findings.length > presentation.findingLimit) lines.push(t(locale, "audit.more", { count: findings.length - presentation.findingLimit }));
+  appendRecommendations(lines, { ...data, score: sec }, locale, presentation);
+  appendDeveloperMeta(lines, data, locale, { developerMode: presentation.developerMode, requested: true });
   return truncate(lines.join("\n"));
 }
 
-export function formatSsl(data, locale = "en") {
+export function formatSsl(data, locale = "en", value = {}) {
+  const presentation = presentationConfig(value);
   const score = data.score || {};
   const a = data.analysis || {};
   const https = a.https || {};
@@ -135,6 +197,13 @@ export function formatSsl(data, locale = "en") {
     `HTTPS: ${https.available ? t(locale, "report.available") : t(locale, "report.not_available")}`,
     `HSTS: ${hsts.present ? `${t(locale, "report.yes")} (max-age=${hsts.maxAge ?? "?"})` : t(locale, "report.no")}`,
   ];
+  const findings = Array.isArray(score.findings) ? score.findings : Array.isArray(data.findings) ? data.findings : [];
+  if (presentation.detailed && findings.length) {
+    lines.push("", t(locale, "report.findings"));
+    for (const f of findings.slice(0, presentation.findingLimit)) lines.push(`• ${itemText(f, presentation.developerMode)}`);
+  }
+  appendRecommendations(lines, data, locale, presentation);
+  appendDeveloperMeta(lines, data, locale, { developerMode: presentation.developerMode });
   return truncate(lines.join("\n"));
 }
 
@@ -148,7 +217,8 @@ function seoFieldText(field) {
   return "";
 }
 
-export function formatWebsite(data, locale = "en") {
+export function formatWebsite(data, locale = "en", value = {}) {
+  const presentation = presentationConfig(value);
   const score = data.score || {};
   const seo = data.seo || {};
   const title = seoFieldText(seo.title).slice(0, 80);
@@ -159,32 +229,52 @@ export function formatWebsite(data, locale = "en") {
     t(locale, "report.title", { title: title || "—" }),
     t(locale, "report.status", { status: data.status ?? "—" }),
   ];
-  for (const f of (score.findings || []).slice(0, 5)) lines.push(`• ${f.title || f.code || "finding"}`);
+  const findings = Array.isArray(score.findings) ? score.findings : [];
+  for (const f of findings.slice(0, presentation.findingLimit)) lines.push(`• ${itemText(f, presentation.developerMode)}`);
+  if (findings.length > presentation.findingLimit) lines.push(t(locale, "audit.more", { count: findings.length - presentation.findingLimit }));
+  appendRecommendations(lines, data, locale, presentation);
+  appendDeveloperMeta(lines, data, locale, { developerMode: presentation.developerMode, requested: true });
   return truncate(lines.join("\n"));
 }
 
-export function formatMobile(data, locale = "en") {
+export function formatMobile(data, locale = "en", value = {}) {
+  const presentation = presentationConfig(value);
   const score = data.score || {};
   const lines = [t(locale, "report.mobile"), data.finalUrl || data.url || "", t(locale, "report.score", { score: score.total ?? "—", max: 100, grade: score.grade || "" })];
-  for (const f of (score.findings || []).slice(0, 5)) lines.push(`• ${f.title || f.code}`);
+  const findings = Array.isArray(score.findings) ? score.findings : [];
+  for (const f of findings.slice(0, presentation.findingLimit)) lines.push(`• ${itemText(f, presentation.developerMode)}`);
+  if (findings.length > presentation.findingLimit) lines.push(t(locale, "audit.more", { count: findings.length - presentation.findingLimit }));
+  appendRecommendations(lines, data, locale, presentation);
+  appendDeveloperMeta(lines, data, locale, { developerMode: presentation.developerMode, requested: true });
   return truncate(lines.join("\n"));
 }
 
-export function formatRobots(data, locale = "en") {
+export function formatRobots(data, locale = "en", value = {}) {
+  const presentation = presentationConfig(value);
   const score = data.score || {};
   const lines = ["robots.txt", data.robotsUrl || data.url || "", t(locale, "report.status", { status: data.status ?? "—" }), t(locale, "report.score", { score: score.total ?? "—", max: 100, grade: score.grade || "" })];
-  for (const f of (score.findings || []).slice(0, 5)) lines.push(`• ${f.title || f.code}`);
+  const findings = Array.isArray(score.findings) ? score.findings : [];
+  for (const f of findings.slice(0, presentation.findingLimit)) lines.push(`• ${itemText(f, presentation.developerMode)}`);
+  if (findings.length > presentation.findingLimit) lines.push(t(locale, "audit.more", { count: findings.length - presentation.findingLimit }));
+  appendRecommendations(lines, data, locale, presentation);
+  appendDeveloperMeta(lines, data, locale, { developerMode: presentation.developerMode, requested: true });
   return truncate(lines.join("\n"));
 }
 
-export function formatSitemap(data, locale = "en") {
+export function formatSitemap(data, locale = "en", value = {}) {
+  const presentation = presentationConfig(value);
   const score = data.score || {};
   const lines = [t(locale, "report.sitemap"), data.url || "", t(locale, "report.score", { score: score.total ?? "—", max: 100, grade: score.grade || "" })];
-  for (const f of (score.findings || []).slice(0, 5)) lines.push(`• ${f.title || f.code}`);
+  const findings = Array.isArray(score.findings) ? score.findings : [];
+  for (const f of findings.slice(0, presentation.findingLimit)) lines.push(`• ${itemText(f, presentation.developerMode)}`);
+  if (findings.length > presentation.findingLimit) lines.push(t(locale, "audit.more", { count: findings.length - presentation.findingLimit }));
+  appendRecommendations(lines, data, locale, presentation);
+  appendDeveloperMeta(lines, data, locale, { developerMode: presentation.developerMode, requested: true });
   return truncate(lines.join("\n"));
 }
 
-export function formatHttp(data, locale = "en") {
+export function formatHttp(data, locale = "en", value = {}) {
+  const presentation = presentationConfig(value);
   const lines = [
     t(locale, "report.http_status"),
     data.finalUrl || data.url || "",
@@ -193,6 +283,12 @@ export function formatHttp(data, locale = "en") {
     t(locale, "report.redirects", { count: data.redirectCount ?? 0 }),
     t(locale, "report.time", { ms: data.responseTimeMs ?? "—" }),
   ];
+  if (presentation.developerMode && data.url && data.finalUrl && data.url !== data.finalUrl) {
+    lines.push("", "🧑‍💻 Developer details", `Requested: ${String(data.url).slice(0, 220)}`);
+    if (data.contentType) lines.push(`Content-Type: ${String(data.contentType).slice(0, 100)}`);
+  } else if (presentation.developerMode && data.contentType) {
+    lines.push("", "🧑‍💻 Developer details", `Content-Type: ${String(data.contentType).slice(0, 100)}`);
+  }
   return truncate(lines.join("\n"));
 }
 
