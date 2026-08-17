@@ -20,6 +20,15 @@ function durableLocale(value) {
   return raw === "en" || raw === "sw" ? raw : null;
 }
 
+function durableReportDetail(value) {
+  const raw = String(value ?? "").trim().toLowerCase();
+  return raw === "compact" || raw === "detailed" ? raw : null;
+}
+
+function durableDeveloperMode(value) {
+  return typeof value === "boolean" ? value : null;
+}
+
 async function request(env, path, options = {}) {
   const cfg = config(env);
   if (!cfg.configured) return { ok: false, reason: "not_configured" };
@@ -45,12 +54,12 @@ async function request(env, path, options = {}) {
   }
 }
 
-export async function readLocalePreference(userId, env) {
+export async function readUserPreferences(userId, env) {
   const started = Date.now();
   const id = telegramId(userId);
   if (!id) {
     logTelegram({
-      event: "telegram_preference_read",
+      event: "telegram_preference_profile_read",
       status: "skipped",
       error_code: "invalid_user_id",
       duration_ms: Date.now() - started,
@@ -60,12 +69,12 @@ export async function readLocalePreference(userId, env) {
 
   const result = await request(
     env,
-    `telegram_user_preferences?telegram_user_id=eq.${id}&select=locale&limit=1`,
+    `telegram_user_preferences?telegram_user_id=eq.${id}&select=locale,report_detail,developer_mode&limit=1`,
     { method: "GET", headers: { Accept: "application/json" } }
   );
   if (!result.ok) {
     logTelegram({
-      event: "telegram_preference_read",
+      event: "telegram_preference_profile_read",
       status: "fallback",
       error_code: result.reason,
       duration_ms: Date.now() - started,
@@ -75,22 +84,41 @@ export async function readLocalePreference(userId, env) {
 
   try {
     const rows = await result.response.json();
-    const locale = durableLocale(rows && rows[0] && rows[0].locale);
+    const row = rows && rows[0];
+    if (!row) {
+      logTelegram({
+        event: "telegram_preference_profile_read",
+        status: "miss",
+        duration_ms: Date.now() - started,
+      });
+      return null;
+    }
+
+    const profile = {
+      locale: durableLocale(row.locale),
+      reportDetail: durableReportDetail(row.report_detail) || "compact",
+      developerMode: durableDeveloperMode(row.developer_mode) === true,
+    };
     logTelegram({
-      event: "telegram_preference_read",
-      status: locale ? "hit" : "miss",
+      event: "telegram_preference_profile_read",
+      status: "hit",
       duration_ms: Date.now() - started,
     });
-    return locale;
+    return profile;
   } catch {
     logTelegram({
-      event: "telegram_preference_read",
+      event: "telegram_preference_profile_read",
       status: "fallback",
       error_code: "invalid_response",
       duration_ms: Date.now() - started,
     });
     return null;
   }
+}
+
+export async function readLocalePreference(userId, env) {
+  const profile = await readUserPreferences(userId, env);
+  return profile && profile.locale ? profile.locale : null;
 }
 
 export async function writeLocalePreference(userId, locale, env) {
@@ -119,6 +147,50 @@ export async function writeLocalePreference(userId, locale, env) {
 
   logTelegram({
     event: "telegram_preference_write",
+    status: result.ok ? "ok" : "fallback",
+    error_code: result.ok ? undefined : result.reason,
+    duration_ms: Date.now() - started,
+  });
+  return result.ok;
+}
+
+export async function writePresentationPreferences(userId, preferences, env) {
+  const started = Date.now();
+  const id = telegramId(userId);
+  const locale = durableLocale(preferences && preferences.locale);
+  const reportDetail = durableReportDetail(preferences && preferences.reportDetail);
+  const developerMode = durableDeveloperMode(preferences && preferences.developerMode);
+
+  let errorCode = null;
+  if (!id) errorCode = "invalid_user_id";
+  else if (!locale) errorCode = "invalid_locale";
+  else if (!reportDetail) errorCode = "invalid_report_detail";
+  else if (developerMode == null) errorCode = "invalid_developer_mode";
+
+  if (errorCode) {
+    logTelegram({
+      event: "telegram_personalisation_write",
+      status: "skipped",
+      error_code: errorCode,
+      duration_ms: Date.now() - started,
+    });
+    return false;
+  }
+
+  const result = await request(env, "telegram_user_preferences?on_conflict=telegram_user_id", {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify({
+      telegram_user_id: id,
+      locale,
+      report_detail: reportDetail,
+      developer_mode: developerMode,
+      updated_at: new Date().toISOString(),
+    }),
+  });
+
+  logTelegram({
+    event: "telegram_personalisation_write",
     status: result.ok ? "ok" : "fallback",
     error_code: result.ok ? undefined : result.reason,
     duration_ms: Date.now() - started,
