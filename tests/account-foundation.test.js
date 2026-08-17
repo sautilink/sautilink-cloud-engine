@@ -118,7 +118,8 @@ test("account pages preserve the self-hosted Manrope product contract", () => {
 test("signup email template delivers the Auth six-digit token with official SautiLink branding", () => {
   assert.match(template, /\{\{ \.Token \}\}/);
   assert.match(template, /Verify your email/);
-  assert.match(template, /raw\.githubusercontent\.com\/sautilink\/sautilink\/bd4ba79b05989c1a8b68d40f0e368c17f3d33a92\/assets\/logo\.png/i);
+  assert.match(template, /https:\/\/sautilink\.com\/logo\.png/i);
+  assert.doesNotMatch(template, /raw\.githubusercontent\.com/i);
   assert.match(template, /Never share this verification code or your password/i);
   assert.match(template, /Official SautiLink email addresses use the <strong>@sautilink\.com<\/strong> domain/i);
   assert.match(template, /noreply@sautilink\.com/i);
