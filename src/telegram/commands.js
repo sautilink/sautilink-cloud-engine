@@ -6,6 +6,7 @@ import { parseLocaleChoice, setLocaleOverride, t } from "./i18n/index.js";
 import { localizeValidationMessage } from "./i18n/validation.js";
 import { preferenceStorageConfigured } from "./preferences.js";
 import { getPresentationPreferences } from "./personalisation.js";
+import { setAwaitTarget } from "./guided.js";
 import {
   formatHelp, formatStart, formatAbout, formatStatus, formatId, formatAdmin,
   formatAudit, formatDns, formatEmail, formatHeaders, formatSsl, formatWebsite,
@@ -19,6 +20,10 @@ import {
   languageMenuText,
   settingsKeyboard,
   settingsMenuText,
+  toolsHomeKeyboard,
+  toolsHomeText,
+  quickStartText,
+  guidedAuditKeyboard,
 } from "./menu.js";
 import { isAdmin } from "./authz.js";
 import { getUsageStats, getUsageConfig } from "./usage.js";
@@ -39,7 +44,16 @@ export async function handleCommand(ctx, config) {
   const presentation = getPresentationPreferences(from && from.id);
 
   switch (command) {
-    case "start": return { text: formatStart(locale), reply_markup: mainMenuKeyboard(locale) };
+    case "start": {
+      if (presentation.defaultView === "quick") {
+        setAwaitTarget(chat && chat.id);
+        return { text: quickStartText(locale), reply_markup: guidedAuditKeyboard(locale) };
+      }
+      if (presentation.defaultView === "tools") {
+        return { text: toolsHomeText(locale), reply_markup: toolsHomeKeyboard(locale) };
+      }
+      return { text: formatStart(locale), reply_markup: mainMenuKeyboard(locale) };
+    }
     case "help": return { text: formatHelp(locale), reply_markup: helpMenuKeyboard(locale) };
     case "about": return { text: formatAbout(locale) };
     case "id": return { text: formatId(chat, from, locale) };
