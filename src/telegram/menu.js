@@ -50,22 +50,25 @@ export function settingsMenuText(locale = "en", profile = {}) {
   const currentLanguage = t(locale, locale === "sw" ? "lang.swahili" : "lang.english");
   const userId = profile.userId != null ? String(profile.userId) : t(locale, "report.unavailable");
   const chatId = profile.chatId != null ? String(profile.chatId) : t(locale, "report.unavailable");
+  const sw = locale === "sw";
 
   return [
     t(locale, "settings.title"),
     "",
     t(locale, "settings.body"),
     "",
-    t(locale, "settings.account_title"),
-    t(locale, "settings.user_id", { id: userId }),
-    t(locale, "settings.chat_id", { id: chatId }),
+    sw ? "👤 Akaunti" : "👤 Account",
+    sw ? `• User ID: ${userId}` : `• User ID: ${userId}`,
+    sw ? `• Chat ID: ${chatId}` : `• Chat ID: ${chatId}`,
     "",
-    t(locale, "settings.personalisation_title"),
+    sw ? "🎛 Ubinafsishaji" : "🎛 Personalisation",
     t(locale, "settings.current_language", { language: currentLanguage }),
-    t(locale, "settings.language_saved"),
+    sw ? "• Hali: Imehifadhiwa" : "• Status: Saved",
     "",
-    t(locale, "settings.privacy_title"),
-    t(locale, "settings.privacy_summary"),
+    sw ? "🔒 Faragha" : "🔒 Privacy",
+    sw
+      ? "• Tunahifadhi chaguo la lugha pekee; hatuhifadhi historia ya tovuti ulizokagua kwenye preference profile."
+      : "• We store only your language choice; checked-site history is not stored in your preference profile.",
     "",
     t(locale, "settings.choose"),
   ].join("\n");
