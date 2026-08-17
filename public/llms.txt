@@ -1,0 +1,20 @@
+# SautiLink Cloud Engine
+
+SautiLink Cloud Engine is a public web diagnostics workspace by SautiLink Corporation for website, DNS, email, SSL, HTTP, security-header, infrastructure, robots.txt and sitemap analysis.
+
+Canonical home: https://cloudengine.sautilink.com/
+FAQ: https://cloudengine.sautilink.com/faq
+Full Audit: https://cloudengine.sautilink.com/tools/audit
+DNS Lookup: https://cloudengine.sautilink.com/tools/dns
+Email Security: https://cloudengine.sautilink.com/tools/email
+Website Analysis: https://cloudengine.sautilink.com/tools/website
+SSL Analysis: https://cloudengine.sautilink.com/tools/ssl
+HTTP Status: https://cloudengine.sautilink.com/tools/http-status
+
+SautiLink Corporation: https://sautilink.com/
+Privacy Policy: https://sautilink.com/privacy
+Terms: https://sautilink.com/terms
+SautiNote: https://sautilink.com/sautinote
+Telegram companion: https://t.me/sautilinkcloud_bot
+
+Public pages may be crawled and cited subject to robots.txt. Account, verification and authenticated account pages are not intended for indexing.
