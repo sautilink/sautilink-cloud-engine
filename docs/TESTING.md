@@ -35,9 +35,37 @@ After deployment:
 6. Test invalid URL/protocol messaging in Kiswahili
 7. Switch back with `/lang en` and repeat a basic audit
 
+## Phase 7N durable preferences
+
+Focused checks should cover:
+
+- missing `SUPABASE_URL` or `SUPABASE_SECRET_KEY` → preference storage reports not configured and bot falls back safely
+- malformed Supabase URL or secret format → no outbound preference request
+- valid Telegram numeric user ID + `en`/`sw` → durable read/write path allowed
+- invalid/non-numeric user ID → no database request
+- invalid locale input never reaches durable storage
+- read with no matching row → Telegram `language_code`, then English fallback
+- read success → durable locale hydrates the isolate cache
+- write success → explicit `/lang` choice is upserted by Telegram user ID
+- timeout/network/HTTP failure → bot remains usable and explicit local choice still applies in the current isolate
+- cache remains bounded to 500 entries and expires after 5 minutes
+- no secret value appears in callback data, user-visible output, or logs
+
+## Live Telegram smoke for Phase 7N
+
+Production validation completed:
+
+1. Cloudflare runtime confirmed `SUPABASE_URL` and `SUPABASE_SECRET_KEY` were present and valid via admin boolean-only diagnostics.
+2. `/lang sw` returned the Kiswahili UI.
+3. Supabase row was confirmed with the Telegram numeric user ID and `locale = 'sw'`.
+4. Production was redeployed to clear isolate-local preference state.
+5. Without sending `/lang sw` again, `/start` opened directly in Kiswahili, confirming durable read/hydration from Supabase.
+6. Language menu remained available and functional.
+
 ## Production regression
 
 - valid tool APIs remain HTTP 200
 - webhook GET remains 405
 - webhook POST with bad secret remains 401
 - Cloud Engine schemas and scoring are unchanged
+- Supabase preference failure must never block analyzer/API execution

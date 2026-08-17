@@ -35,16 +35,32 @@ Supported locales:
 - `en` — English (default and universal fallback)
 - `sw` — Kiswahili
 
-Locale resolution order:
-
-1. Explicit isolate-local override for the chat, if present and not expired.
-2. Telegram `from.language_code`: `sw-*` → `sw`, `en-*` → `en`.
-3. English fallback for all other/missing values.
-
 Users can switch with `/lang en`, `/lang sw`, `/lang english`, `/lang swahili`, `/lang kiswahili`, or the **Language / Lugha** main-menu button.
-
-Explicit preferences are isolate-local, bounded (max 500 chats) and expire after 24 hours. They are not durable across isolate changes/recycles; the bot safely falls back to Telegram `language_code` and then English. No DB/KV/Durable Objects are used for Phase 7M.
 
 Localization changes Telegram presentation only: menus, prompts, loading/errors, report labels, audit categories, grade explanations, and navigation. Domains, URLs, scores, HTTP codes, DNS records, headers, SPF/DMARC values, and arbitrary analyzer findings/recommendations remain language-neutral/pass-through.
 
-Callback data remains fixed and language-neutral. New callbacks are only `menu:lang`, `lang:en`, and `lang:sw`.
+Callback data remains fixed and language-neutral. Language callbacks are only `menu:lang`, `lang:en`, and `lang:sw`.
+
+## Durable language preferences (Phase 7N)
+
+Explicit language choices are durable through Supabase while a bounded isolate-local cache keeps normal bot interactions fast.
+
+Locale resolution order:
+
+1. Explicit isolate-local override for the chat, if present and not expired.
+2. Durable Supabase preference for the Telegram numeric user ID, if one exists.
+3. Telegram `from.language_code`: `sw-*` → `sw`, `en-*` → `en`.
+4. English fallback for all other/missing values.
+
+Storage behavior:
+
+- Table: `public.telegram_user_preferences`
+- Durable key: Telegram numeric user ID
+- Stored preference: allowlisted locale (`en` or `sw`)
+- Metadata: `created_at` and `updated_at`
+- Isolate cache: max 500 entries, 5-minute TTL
+- Server access: `SUPABASE_URL` + `SUPABASE_SECRET_KEY`
+- Supabase timeout/network/config failures fail open to cached/Telegram/English fallback behavior
+- No usernames, display names, checked targets, diagnostic results, or browsing history are stored for language preferences
+
+Phase 7N was live-verified by saving `/lang sw` to Supabase, redeploying production to clear isolate state, then confirming `/start` still opened in Kiswahili from the durable preference.
