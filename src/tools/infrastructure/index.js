@@ -1,7 +1,11 @@
-/**
- * Infrastructure tools module (foundation placeholder).
- * Implementations land in Phase 5.
- */
+/** Infrastructure tool exports. */
+
+export {
+  preparePublicIp,
+  reverseDnsName,
+  reverseDnsLookup,
+  lookupIp,
+} from "./ip.js";
 
 export function notImplemented(toolName) {
   return {
