@@ -199,6 +199,7 @@
 .api-strip { padding: 4rem 0; }
 .api-strip .api-card { max-width: none; display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center; }
 .api-strip .api-card p { margin-bottom: 0; }
+.api-strip .api-result { grid-column: 1 / -1; margin-top: 0; }
 
 .home-footer { margin-top: 0; }
 
