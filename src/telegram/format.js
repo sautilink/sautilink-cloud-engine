@@ -2,6 +2,7 @@
 
 import { MAX_TELEGRAM_TEXT } from "./config.js";
 import { formatHelpFromRegistry } from "./registry.js";
+import { t } from "./i18n/index.js";
 import {
   formatAuditReport,
   formatAuditSummary,
@@ -12,179 +13,122 @@ import {
   truncateSafe,
 } from "./audit_report.js";
 
-export function truncate(text, max = MAX_TELEGRAM_TEXT) {
-  return truncateSafe(text, max);
-}
+export function truncate(text, max = MAX_TELEGRAM_TEXT) { return truncateSafe(text, max); }
 
-export function formatEngineError(err) {
+export function formatEngineError(err, locale = "en") {
   const code = err && err.code ? String(err.code) : "ERROR";
-  return truncate(mapUserError(code, err && err.message));
+  return truncate(mapUserError(code, err && err.message, locale));
 }
 
-function mapUserError(code, message) {
+function mapUserError(code, message, locale) {
   switch (code) {
     case "PRIVATE_ADDRESS_BLOCKED":
-    case "SSRF_BLOCKED":
-      return "🔒 Private or local addresses are not allowed.";
-    case "CREDENTIALS_NOT_ALLOWED":
-      return "⚠️ Invalid URL.\n\nURLs must not contain usernames or passwords.";
+    case "SSRF_BLOCKED": return t(locale, "error.private");
+    case "CREDENTIALS_NOT_ALLOWED": return t(locale, "error.credentials");
     case "INVALID_URL":
-    case "INVALID_DOMAIN":
-      return "⚠️ Please provide a valid public domain or URL.";
-    case "RATE_LIMITED":
-      return "🚦 Temporarily rate-limited. Please try again shortly.";
+    case "INVALID_DOMAIN": return t(locale, "error.invalid_public");
+    case "RATE_LIMITED": return t(locale, "error.rate");
     case "ENGINE_TIMEOUT":
-    case "REQUEST_TIMEOUT":
-      return "⏳ The check took too long. Please try again.";
-    case "ENGINE_NETWORK":
-      return "⚠️ Could not reach Cloud Engine. Please try again.";
-    case "BOT_NOT_CONFIGURED":
-      return "⚠️ This bot is not fully configured yet.";
-    default:
-      return (
-        "⚠️ Something went wrong.\n" +
-        (message ? String(message).slice(0, 180) : "Please try again.")
-      );
+    case "REQUEST_TIMEOUT": return t(locale, "error.timeout");
+    case "ENGINE_NETWORK": return t(locale, "error.network");
+    case "BOT_NOT_CONFIGURED": return t(locale, "error.not_configured");
+    default: return t(locale, "error.generic", { message: message ? String(message).slice(0, 180) : locale === "sw" ? "Tafadhali jaribu tena." : "Please try again." });
   }
 }
 
-export function formatTimeout() {
-  return "⏳ The check took too long. Please try again.";
+export function formatTimeout(locale = "en") { return t(locale, "error.timeout"); }
+export function formatHelp(locale = "en") { return formatHelpFromRegistry(locale); }
+
+export function formatStart(locale = "en") {
+  return ["🚀 SautiLink Cloud Engine", "", t(locale, "start.body"), "", t(locale, "start.try"), "/audit example.com", "", t(locale, "start.help")].join("\n");
 }
 
-export function formatHelp() {
-  return formatHelpFromRegistry();
+export function formatAbout(locale = "en") {
+  return ["ℹ️ SautiLink Cloud Engine", "", t(locale, "about.body"), "", t(locale, "about.disclaimer"), "", "https://cloudengine.sautilink.com"].join("\n");
 }
 
-export function formatStart() {
-  return [
-    "🚀 SautiLink Cloud Engine",
-    "",
-    "Website, DNS, email, security and infrastructure checks from Telegram.",
-    "",
-    "Try:",
-    "/audit example.com",
-    "",
-    "Use /help to see all available tools.",
-  ].join("\n");
-}
-
-export function formatAbout() {
-  return [
-    "ℹ️ SautiLink Cloud Engine",
-    "",
-    "Automated website, DNS, email, HTTPS, and SEO configuration checks.",
-    "",
-    "This is a configuration assessment — not a ranking score or penetration test.",
-    "",
-    "https://cloudengine.sautilink.com",
-  ].join("\n");
-}
-
-export function formatStatus(ok, data) {
-  if (!ok) return "Status: unavailable";
+export function formatStatus(ok, data, locale = "en") {
+  if (!ok) return t(locale, "status.unavailable");
   const s = data && data.status ? data.status : "ok";
   const v = data && data.version ? data.version : "";
-  return [`🟢 Cloud Engine status: ${s}`, v ? `Version: ${v}` : ""]
-    .filter(Boolean)
-    .join("\n");
+  return [t(locale, "status.ok", { status: s }), v ? t(locale, "status.version", { version: v }) : ""].filter(Boolean).join("\n");
 }
 
-export function formatId(chat, from) {
-  const lines = ["Your Telegram IDs"];
-  if (chat && chat.id != null) lines.push(`Chat: ${chat.id}`);
-  if (from && from.id != null) lines.push(`User: ${from.id}`);
-  if (from && from.username) lines.push(`Username: @${from.username}`);
+export function formatId(chat, from, locale = "en") {
+  const lines = [t(locale, "id.title")];
+  if (chat && chat.id != null) lines.push(t(locale, "id.chat", { id: chat.id }));
+  if (from && from.id != null) lines.push(t(locale, "id.user", { id: from.id }));
+  if (from && from.username) lines.push(t(locale, "id.username", { username: from.username }));
   return lines.join("\n");
 }
 
-export function formatAdmin(info) {
-  const lines = ["Admin"];
-  if (info && info.role) lines.push(`Role: ${info.role}`);
-  if (info && info.note) lines.push(String(info.note));
+export function formatAdmin(info, locale = "en") {
+  const lines = [t(locale, "admin.title"), "", `${info && info.engineOk ? "🟢" : "🔴"} Engine: ${info && info.engineOk ? "Operational" : "Unavailable"}`, "", "Bot:", "• Webhook: Active (secret required)", "• Usage protection: Active (isolate-local)", "• Deduplication: Active (isolate-local)", "• Cooldown: Active (isolate-local)", "", "Runtime:"];
+  if (info) {
+    lines.push(`• Local tracked chats: ${info.trackedChats ?? 0}/${info.maxTracked ?? 500}`);
+    lines.push(`• Window: ${info.windowSeconds ?? 60}s`);
+    lines.push(`• Expensive limit: ${info.expensiveLimit ?? 5}`);
+    lines.push(`• Cheap limit: ${info.cheapLimit ?? 20}`);
+  }
+  lines.push("", "Cloudflare edge rate limiting remains the global control.");
   return lines.join("\n");
 }
 
-export function formatAudit(data) {
-  return formatAuditReport(data);
-}
+export function formatAudit(data, locale = "en") { return formatAuditReport(data, locale); }
+export function formatAuditSummaryView(data, locale = "en") { return formatAuditSummary(data, locale); }
+export function formatAuditPrioritiesView(data, locale = "en") { return formatAuditPriorities(data, locale); }
+export function formatAuditCategory(data, categoryKey, locale = "en") { return formatCategoryDetail(data, categoryKey, locale); }
 
-export function formatAuditSummaryView(data) {
-  return formatAuditSummary(data);
-}
-
-export function formatAuditPrioritiesView(data) {
-  return formatAuditPriorities(data);
-}
-
-export function formatAuditCategory(data, categoryKey) {
-  return formatCategoryDetail(data, categoryKey);
-}
-
-export function formatDns(data) {
+export function formatDns(data, locale = "en") {
   const domain = data.domain || "";
   const lines = [`DNS · ${domain}`];
   const records = data.records || data;
   for (const [type, list] of Object.entries(records)) {
-    if (!Array.isArray(list) || !list.length) continue;
-    if (["domain", "normalized", "query", "resolver"].includes(type)) continue;
+    if (!Array.isArray(list) || !list.length || ["domain", "normalized", "query", "resolver"].includes(type)) continue;
     lines.push(`${type}:`);
     for (const v of list.slice(0, 8)) lines.push(`  ${v}`);
   }
   return truncate(lines.join("\n"));
 }
 
-export function formatEmail(data) {
+export function formatEmail(data, locale = "en") {
   const domain = data.domain || "";
   const score = data.score || {};
-  const lines = [
-    `Email · ${domain}`,
-    `Score: ${score.total ?? "—"}/${score.max ?? 100} — ${score.grade || ""}`,
-    "",
-  ];
+  const lines = [`${t(locale, "menu.email").replace(/^✉️\s*/, "")} · ${domain}`, t(locale, "report.score", { score: score.total ?? "—", max: score.max ?? 100, grade: score.grade || "" }), ""];
   if (data.mx) lines.push(`MX: ${data.mx.status || (data.mx.found ? "found" : "n/a")}`);
   if (data.spf) lines.push(`SPF: ${data.spf.status || (data.spf.found ? "found" : "n/a")}`);
   if (data.dmarc) lines.push(`DMARC: ${data.dmarc.status || (data.dmarc.found ? "found" : "n/a")}`);
-  if (data.dkim)
-    lines.push(
-      `DKIM: ${data.dkim.status || (data.dkim.found ? "found" : "n/a")}${data.dkim.selector ? ` (${data.dkim.selector})` : ""}`
-    );
+  if (data.dkim) lines.push(`DKIM: ${data.dkim.status || (data.dkim.found ? "found" : "n/a")}${data.dkim.selector ? ` (${data.dkim.selector})` : ""}`);
   const findings = (score.findings || data.findings || []).slice(0, 5);
   if (findings.length) {
-    lines.push("", "Findings:");
+    lines.push("", t(locale, "report.findings"));
     for (const f of findings) lines.push(`• ${f.title || f.code}`);
   }
   return truncate(lines.join("\n"));
 }
 
-export function formatHeaders(data) {
+export function formatHeaders(data, locale = "en") {
   const sec = data.security || data.score || {};
-  const lines = [
-    "HTTP Headers",
-    data.finalUrl || data.url || "",
-    `Security score: ${sec.score ?? sec.total ?? "—"}/100 — ${sec.grade || ""}`,
-    "",
-  ];
+  const lines = [t(locale, "report.http_headers"), data.finalUrl || data.url || "", t(locale, "report.security_score", { score: sec.score ?? sec.total ?? "—", grade: sec.grade || "" }), ""];
   for (const f of (sec.findings || []).slice(0, 6)) lines.push(`• ${f.title || f.code}`);
   return truncate(lines.join("\n"));
 }
 
-export function formatSsl(data) {
+export function formatSsl(data, locale = "en") {
   const score = data.score || {};
   const a = data.analysis || {};
   const https = a.https || {};
   const hsts = a.hsts || {};
   const lines = [
-    "HTTPS / HSTS",
+    t(locale, "report.https_hsts"),
     data.url || "",
-    `Score: ${score.total ?? "—"}/100 — ${score.grade || ""}`,
-    `HTTPS: ${https.available ? "available" : "not available"}`,
-    `HSTS: ${hsts.present ? `yes (max-age=${hsts.maxAge ?? "?"})` : "no"}`,
+    t(locale, "report.score", { score: score.total ?? "—", max: 100, grade: score.grade || "" }),
+    `HTTPS: ${https.available ? t(locale, "report.available") : t(locale, "report.not_available")}`,
+    `HSTS: ${hsts.present ? `${t(locale, "report.yes")} (max-age=${hsts.maxAge ?? "?"})` : t(locale, "report.no")}`,
   ];
   return truncate(lines.join("\n"));
 }
 
-/** Extract display text from SEO field that may be a string or { value }. */
 function seoFieldText(field) {
   if (field == null) return "";
   if (typeof field === "string") return field;
@@ -195,73 +139,53 @@ function seoFieldText(field) {
   return "";
 }
 
-export function formatWebsite(data) {
+export function formatWebsite(data, locale = "en") {
   const score = data.score || {};
   const seo = data.seo || {};
   const title = seoFieldText(seo.title).slice(0, 80);
   const lines = [
-    "Website SEO",
+    t(locale, "report.website_seo"),
     data.finalUrl || data.url || "",
-    `Score: ${score.total ?? "—"}/100 — ${score.grade || ""}`,
-    `Title: ${title || "—"}`,
-    `Status: ${data.status ?? "—"}`,
+    t(locale, "report.score", { score: score.total ?? "—", max: 100, grade: score.grade || "" }),
+    t(locale, "report.title", { title: title || "—" }),
+    t(locale, "report.status", { status: data.status ?? "—" }),
   ];
-  for (const f of (score.findings || []).slice(0, 5)) {
-    lines.push(`• ${f.title || f.code || "finding"}`);
-  }
+  for (const f of (score.findings || []).slice(0, 5)) lines.push(`• ${f.title || f.code || "finding"}`);
   return truncate(lines.join("\n"));
 }
 
-export function formatMobile(data) {
+export function formatMobile(data, locale = "en") {
   const score = data.score || {};
-  const lines = [
-    "Mobile heuristics",
-    data.finalUrl || data.url || "",
-    `Score: ${score.total ?? "—"}/100 — ${score.grade || ""}`,
-  ];
+  const lines = [t(locale, "report.mobile"), data.finalUrl || data.url || "", t(locale, "report.score", { score: score.total ?? "—", max: 100, grade: score.grade || "" })];
   for (const f of (score.findings || []).slice(0, 5)) lines.push(`• ${f.title || f.code}`);
   return truncate(lines.join("\n"));
 }
 
-export function formatRobots(data) {
+export function formatRobots(data, locale = "en") {
   const score = data.score || {};
-  const lines = [
-    "robots.txt",
-    data.robotsUrl || data.url || "",
-    `Status: ${data.status ?? "—"}`,
-    `Score: ${score.total ?? "—"}/100`,
-  ];
+  const lines = ["robots.txt", data.robotsUrl || data.url || "", t(locale, "report.status", { status: data.status ?? "—" }), t(locale, "report.score", { score: score.total ?? "—", max: 100, grade: score.grade || "" })];
   for (const f of (score.findings || []).slice(0, 5)) lines.push(`• ${f.title || f.code}`);
   return truncate(lines.join("\n"));
 }
 
-export function formatSitemap(data) {
+export function formatSitemap(data, locale = "en") {
   const score = data.score || {};
-  const lines = [
-    "Sitemap",
-    data.url || "",
-    `Score: ${score.total ?? "—"}/100 — ${score.grade || ""}`,
-  ];
+  const lines = [t(locale, "report.sitemap"), data.url || "", t(locale, "report.score", { score: score.total ?? "—", max: 100, grade: score.grade || "" })];
   for (const f of (score.findings || []).slice(0, 5)) lines.push(`• ${f.title || f.code}`);
   return truncate(lines.join("\n"));
 }
 
-export function formatHttp(data) {
+export function formatHttp(data, locale = "en") {
   const lines = [
-    "HTTP status",
+    t(locale, "report.http_status"),
     data.finalUrl || data.url || "",
-    `Status: ${data.status ?? "—"} ${data.statusText || ""}`,
-    `Protocol: ${data.protocol || "—"}`,
-    `Redirects: ${data.redirectCount ?? 0}`,
-    `Time: ${data.responseTimeMs ?? "—"} ms`,
+    t(locale, "report.status", { status: `${data.status ?? "—"} ${data.statusText || ""}`.trim() }),
+    t(locale, "report.protocol", { protocol: data.protocol || "—" }),
+    t(locale, "report.redirects", { count: data.redirectCount ?? 0 }),
+    t(locale, "report.time", { ms: data.responseTimeMs ?? "—" }),
   ];
   return truncate(lines.join("\n"));
 }
 
-export function auditKeyboard() {
-  return auditReportKeyboard();
-}
-
-export function auditDetailKeyboard() {
-  return auditBackKeyboard();
-}
+export function auditKeyboard(locale = "en") { return auditReportKeyboard(locale); }
+export function auditDetailKeyboard(locale = "en") { return auditBackKeyboard(locale); }
