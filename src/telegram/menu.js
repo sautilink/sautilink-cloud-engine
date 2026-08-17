@@ -1,149 +1,130 @@
-/** Stateless interactive menus — fixed callback_data only. */
+import { t } from "./i18n/index.js";
 
-export function mainMenuKeyboard() {
+export function mainMenuKeyboard(locale = "en") {
   return {
     inline_keyboard: [
-      [{ text: "🔎 Check a Website", callback_data: "tool:audit" }],
+      [{ text: t(locale, "menu.check_website"), callback_data: "tool:audit" }],
       [
-        { text: "🌐 Website Tools", callback_data: "menu:website" },
-        { text: "📡 Infrastructure", callback_data: "menu:infrastructure" },
+        { text: t(locale, "menu.website_tools"), callback_data: "menu:website" },
+        { text: t(locale, "menu.infrastructure"), callback_data: "menu:infrastructure" },
       ],
       [
-        { text: "ℹ️ About", callback_data: "menu:about" },
-        { text: "🟢 Status", callback_data: "menu:status" },
+        { text: t(locale, "menu.about"), callback_data: "menu:about" },
+        { text: t(locale, "menu.status"), callback_data: "menu:status" },
       ],
-      [{ text: "❓ Help", callback_data: "menu:help" }],
+      [
+        { text: t(locale, "menu.language"), callback_data: "menu:lang" },
+        { text: t(locale, "menu.help"), callback_data: "menu:help" },
+      ],
     ],
   };
 }
 
-export function websiteMenuKeyboard() {
+export function languageKeyboard(locale = "en") {
   return {
     inline_keyboard: [
-      [{ text: "🔎 Check a Website", callback_data: "tool:audit" }],
+      [
+        { text: t(locale, "lang.english"), callback_data: "lang:en" },
+        { text: t(locale, "lang.swahili"), callback_data: "lang:sw" },
+      ],
+      [{ text: t(locale, "menu.back"), callback_data: "menu:main" }],
+    ],
+  };
+}
+
+export function languageMenuText(locale = "en") {
+  return [t(locale, "lang.title"), "", t(locale, "lang.prompt"), "", t(locale, "lang.note")].join("\n");
+}
+
+export function websiteMenuKeyboard(locale = "en") {
+  return {
+    inline_keyboard: [
+      [{ text: t(locale, "menu.check_website"), callback_data: "tool:audit" }],
       [
         { text: "🔍 SEO", callback_data: "tool:website" },
-        { text: "📱 Mobile", callback_data: "tool:mobile" },
+        { text: t(locale, "menu.mobile"), callback_data: "tool:mobile" },
       ],
       [
         { text: "🛡 Headers", callback_data: "tool:headers" },
         { text: "🔐 SSL", callback_data: "tool:ssl" },
       ],
       [
-        { text: "🤖 Robots", callback_data: "tool:robots" },
-        { text: "🗺 Sitemap", callback_data: "tool:sitemap" },
+        { text: t(locale, "menu.robots"), callback_data: "tool:robots" },
+        { text: t(locale, "menu.sitemap"), callback_data: "tool:sitemap" },
       ],
-      [{ text: "⬅️ Back", callback_data: "menu:main" }],
+      [{ text: t(locale, "menu.back"), callback_data: "menu:main" }],
     ],
   };
 }
 
-export function infrastructureMenuKeyboard() {
+export function infrastructureMenuKeyboard(locale = "en") {
   return {
     inline_keyboard: [
       [
-        { text: "🌐 DNS", callback_data: "tool:dns" },
-        { text: "✉️ Email", callback_data: "tool:email" },
+        { text: t(locale, "menu.dns"), callback_data: "tool:dns" },
+        { text: t(locale, "menu.email"), callback_data: "tool:email" },
       ],
       [{ text: "📡 HTTP Status", callback_data: "tool:http" }],
-      [{ text: "⬅️ Back", callback_data: "menu:main" }],
+      [{ text: t(locale, "menu.back"), callback_data: "menu:main" }],
     ],
   };
 }
 
-export function backToMainKeyboard() {
-  return { inline_keyboard: [[{ text: "⬅️ Back", callback_data: "menu:main" }]] };
+export function backToMainKeyboard(locale = "en") {
+  return { inline_keyboard: [[{ text: t(locale, "menu.back"), callback_data: "menu:main" }]] };
 }
 
-export function statusKeyboard() {
+export function statusKeyboard(locale = "en") {
+  return {
+    inline_keyboard: [[
+      { text: t(locale, "menu.refresh"), callback_data: "status:refresh" },
+      { text: t(locale, "menu.back"), callback_data: "menu:main" },
+    ]],
+  };
+}
+
+export function helpMenuKeyboard(locale = "en") {
   return {
     inline_keyboard: [
-      [
-        { text: "🔄 Refresh", callback_data: "status:refresh" },
-        { text: "⬅️ Back", callback_data: "menu:main" },
-      ],
+      [{ text: t(locale, "menu.open_tools"), callback_data: "menu:main" }],
+      [{ text: t(locale, "menu.back"), callback_data: "menu:main" }],
     ],
   };
 }
 
-export function helpMenuKeyboard() {
-  return {
-    inline_keyboard: [
-      [{ text: "📋 Open Tool Menu", callback_data: "menu:main" }],
-      [{ text: "⬅️ Back", callback_data: "menu:main" }],
-    ],
-  };
+export function toolPromptKeyboard(parentMenu, locale = "en") {
+  const back = parentMenu === "infrastructure" ? "menu:infrastructure" : parentMenu === "website" ? "menu:website" : "menu:main";
+  return { inline_keyboard: [[{ text: t(locale, "menu.back"), callback_data: back }]] };
 }
 
-export function toolPromptKeyboard(parentMenu) {
-  const back =
-    parentMenu === "infrastructure"
-      ? "menu:infrastructure"
-      : parentMenu === "website"
-        ? "menu:website"
-        : "menu:main";
-  return { inline_keyboard: [[{ text: "⬅️ Back", callback_data: back }]] };
+export function guidedAuditKeyboard(locale = "en") {
+  return { inline_keyboard: [[{ text: t(locale, "menu.back"), callback_data: "menu:main" }]] };
 }
 
-export function guidedAuditKeyboard() {
-  return {
-    inline_keyboard: [[{ text: "⬅️ Back", callback_data: "menu:main" }]],
-  };
+export function mainMenuText(locale = "en") {
+  return ["🚀 SautiLink Cloud Engine", "", t(locale, "main.body"), "", t(locale, "main.choose"), t(locale, "main.try")].join("\n");
 }
 
-export function mainMenuText() {
-  return [
-    "🚀 SautiLink Cloud Engine",
-    "",
-    "Website, DNS, email, security and infrastructure checks.",
-    "",
-    "Choose a tool below or use /help.",
-    "Try: Check a Website, then send example.com",
-  ].join("\n");
+export function websiteMenuText(locale = "en") {
+  return [t(locale, "website.title"), "", t(locale, "website.body")].join("\n");
 }
 
-export function websiteMenuText() {
-  return [
-    "🌐 Website Tools",
-    "",
-    "Pick a tool. For a full check, use Check a Website and send the address.",
-  ].join("\n");
+export function infrastructureMenuText(locale = "en") {
+  return [t(locale, "infra.title"), "", t(locale, "infra.body")].join("\n");
 }
 
-export function infrastructureMenuText() {
-  return [
-    "📡 Infrastructure",
-    "",
-    "DNS, email, and HTTP checks. Select a tool to see usage.",
-  ].join("\n");
-}
-
-export function toolPrompt(tool) {
+export function toolPrompt(tool, locale = "en") {
   const map = {
-    // audit is handled as guided flow in bot.js — keep fallback text aligned
-    audit: {
-      parent: "website",
-      text: [
-        "🔎 Check a Website",
-        "",
-        "Send the website address you want to check.",
-        "",
-        "Example: example.com",
-        "Or: https://example.com",
-      ].join("\n"),
-    },
-    website: { parent: "website", text: "🔍 Website SEO\n\nSend:\n/website example.com" },
-    mobile: { parent: "website", text: "📱 Mobile heuristics\n\nSend:\n/mobile example.com" },
-    headers: { parent: "website", text: "🛡 Security Headers\n\nSend:\n/headers example.com" },
-    ssl: { parent: "website", text: "🔐 SSL / HTTPS\n\nSend:\n/ssl example.com" },
-    robots: { parent: "website", text: "🤖 Robots.txt\n\nSend:\n/robots example.com" },
-    sitemap: {
-      parent: "website",
-      text: "🗺 Sitemap.xml\n\nSend:\n/sitemap https://example.com/sitemap.xml",
-    },
-    dns: { parent: "infrastructure", text: "🌐 DNS Lookup\n\nSend:\n/dns example.com" },
-    email: { parent: "infrastructure", text: "✉️ Email infrastructure\n\nSend:\n/email example.com" },
-    http: { parent: "infrastructure", text: "📡 HTTP Status\n\nSend:\n/http example.com" },
+    audit: { parent: "website", text: [t(locale, "guided.title"), "", t(locale, "guided.prompt"), "", t(locale, "guided.example"), t(locale, "guided.or")].join("\n") },
+    website: { parent: "website", text: `🔍 ${t(locale, "report.website_seo")}\n\n/website example.com` },
+    mobile: { parent: "website", text: `${t(locale, "menu.mobile")}\n\n/mobile example.com` },
+    headers: { parent: "website", text: `${t(locale, "report.http_headers")}\n\n/headers example.com` },
+    ssl: { parent: "website", text: `🔐 SSL / HTTPS\n\n/ssl example.com` },
+    robots: { parent: "website", text: `${t(locale, "menu.robots")}\n\n/robots example.com` },
+    sitemap: { parent: "website", text: `${t(locale, "menu.sitemap")}\n\n/sitemap https://example.com/sitemap.xml` },
+    dns: { parent: "infrastructure", text: `${t(locale, "menu.dns")}\n\n/dns example.com` },
+    email: { parent: "infrastructure", text: `${t(locale, "menu.email")}\n\n/email example.com` },
+    http: { parent: "infrastructure", text: `${t(locale, "report.http_status")}\n\n/http example.com` },
   };
   return map[tool] || null;
 }
