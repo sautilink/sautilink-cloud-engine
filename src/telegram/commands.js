@@ -3,6 +3,7 @@
 import { callCloudEngine } from "./engine.js";
 import { normalizeUrlArg, normalizeDomainArg } from "./normalize.js";
 import { parseLocaleChoice, setLocaleOverride, t } from "./i18n/index.js";
+import { localizeValidationMessage } from "./i18n/validation.js";
 import {
   formatHelp, formatStart, formatAbout, formatStatus, formatId, formatAdmin,
   formatAudit, formatDns, formatEmail, formatHeaders, formatSsl, formatWebsite,
@@ -12,9 +13,12 @@ import { mainMenuKeyboard, helpMenuKeyboard, statusKeyboard, languageKeyboard, l
 import { isAdmin } from "./authz.js";
 import { getUsageStats, getUsageConfig } from "./usage.js";
 
-function requireArg(arg, usage) {
-  if (!arg) return { errorText: `Usage: ${usage}` };
+function requireArg(arg, usage, locale) {
+  if (!arg) return { errorText: `${locale === "sw" ? "Matumizi" : "Usage"}: ${usage}` };
   return { arg };
+}
+function invalid(n, usage, locale) {
+  return `⚠️ ${localizeValidationMessage(n.message, locale)}\n${locale === "sw" ? "Matumizi" : "Usage"}: ${usage}`;
 }
 
 export async function handleCommand(ctx, config) {
@@ -47,53 +51,53 @@ export async function handleCommand(ctx, config) {
       return { text: formatAdmin({ engineOk: health.ok, trackedChats: stats.trackedChats, maxTracked: stats.maxTracked, windowSeconds: cfg.windowSeconds, expensiveLimit: cfg.expensiveLimit, cheapLimit: cfg.cheapLimit }, locale) };
     }
     case "audit": {
-      const r = requireArg(arg, "/audit <url>"); if (r.errorText) return { text: r.errorText };
-      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /audit <url>` };
+      const usage = "/audit <url>"; const r = requireArg(arg, usage, locale); if (r.errorText) return { text: r.errorText };
+      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: invalid(n, usage, locale) };
       return run(base, "/api/audit", { url: n.url }, formatAudit, locale, true, { reply_markup: auditKeyboard(locale) });
     }
     case "dns": {
-      const r = requireArg(arg, "/dns <domain>"); if (r.errorText) return { text: r.errorText };
-      const n = normalizeDomainArg(r.arg); if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /dns <domain>` };
+      const usage = "/dns <domain>"; const r = requireArg(arg, usage, locale); if (r.errorText) return { text: r.errorText };
+      const n = normalizeDomainArg(r.arg); if (!n.ok) return { text: invalid(n, usage, locale) };
       return run(base, "/api/dns", { domain: n.domain }, formatDns, locale, true);
     }
     case "email": {
-      const r = requireArg(arg, "/email <domain>"); if (r.errorText) return { text: r.errorText };
-      const n = normalizeDomainArg(r.arg); if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /email <domain>` };
+      const usage = "/email <domain>"; const r = requireArg(arg, usage, locale); if (r.errorText) return { text: r.errorText };
+      const n = normalizeDomainArg(r.arg); if (!n.ok) return { text: invalid(n, usage, locale) };
       return run(base, "/api/email", { domain: n.domain }, formatEmail, locale, true);
     }
     case "headers": {
-      const r = requireArg(arg, "/headers <url>"); if (r.errorText) return { text: r.errorText };
-      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /headers <url>` };
+      const usage = "/headers <url>"; const r = requireArg(arg, usage, locale); if (r.errorText) return { text: r.errorText };
+      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: invalid(n, usage, locale) };
       return run(base, "/api/headers", { url: n.url }, formatHeaders, locale, true);
     }
     case "ssl": {
-      const r = requireArg(arg, "/ssl <url>"); if (r.errorText) return { text: r.errorText };
-      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /ssl <url>` };
+      const usage = "/ssl <url>"; const r = requireArg(arg, usage, locale); if (r.errorText) return { text: r.errorText };
+      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: invalid(n, usage, locale) };
       return run(base, "/api/ssl", { url: n.url }, formatSsl, locale, true);
     }
     case "website": {
-      const r = requireArg(arg, "/website <url>"); if (r.errorText) return { text: r.errorText };
-      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /website <url>` };
+      const usage = "/website <url>"; const r = requireArg(arg, usage, locale); if (r.errorText) return { text: r.errorText };
+      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: invalid(n, usage, locale) };
       return run(base, "/api/website", { url: n.url }, formatWebsite, locale, true);
     }
     case "mobile": {
-      const r = requireArg(arg, "/mobile <url>"); if (r.errorText) return { text: r.errorText };
-      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /mobile <url>` };
+      const usage = "/mobile <url>"; const r = requireArg(arg, usage, locale); if (r.errorText) return { text: r.errorText };
+      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: invalid(n, usage, locale) };
       return run(base, "/api/mobile", { url: n.url }, formatMobile, locale, true);
     }
     case "robots": {
-      const r = requireArg(arg, "/robots <url>"); if (r.errorText) return { text: r.errorText };
-      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /robots <url>` };
+      const usage = "/robots <url>"; const r = requireArg(arg, usage, locale); if (r.errorText) return { text: r.errorText };
+      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: invalid(n, usage, locale) };
       return run(base, "/api/robots", { url: n.url }, formatRobots, locale, true);
     }
     case "sitemap": {
-      const r = requireArg(arg, "/sitemap <url>"); if (r.errorText) return { text: r.errorText };
-      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /sitemap <url>` };
+      const usage = "/sitemap <url>"; const r = requireArg(arg, usage, locale); if (r.errorText) return { text: r.errorText };
+      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: invalid(n, usage, locale) };
       return run(base, "/api/sitemap", { url: n.url }, formatSitemap, locale, true);
     }
     case "http": {
-      const r = requireArg(arg, "/http <url>"); if (r.errorText) return { text: r.errorText };
-      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: `⚠️ ${n.message}\nUsage: /http <url>` };
+      const usage = "/http <url>"; const r = requireArg(arg, usage, locale); if (r.errorText) return { text: r.errorText };
+      const n = normalizeUrlArg(r.arg); if (!n.ok) return { text: invalid(n, usage, locale) };
       return run(base, "/api/http-status", { url: n.url }, formatHttp, locale, true);
     }
     default: return { text: t(locale, "error.unknown_command") };
