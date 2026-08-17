@@ -1,0 +1,64 @@
+name: Hotfix Manrope Cache
+
+on:
+  push:
+    branches: [hotfix-manrope-cache]
+    paths:
+      - ".github/workflows/hotfix-manrope-cache.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  hotfix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: hotfix-manrope-cache
+
+      - name: Bust stale typography cache
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cp public/assets/brand/typography.css public/assets/brand/typography-manrope.css
+
+          python3 <<'PY'
+          from pathlib import Path
+
+          for path in Path('public').rglob('*.html'):
+              text = path.read_text(encoding='utf-8')
+              text = text.replace('/assets/brand/typography.css', '/assets/brand/typography-manrope.css?v=1')
+              text = text.replace('/assets/fonts/manrope/Manrope-Variable.woff2"', '/assets/fonts/manrope/Manrope-Variable.woff2?v=1"')
+              path.write_text(text, encoding='utf-8')
+
+          for filename in ['tests/brand-typography.test.js', 'tests/web-experience.test.js']:
+              path = Path(filename)
+              if not path.exists():
+                  continue
+              text = path.read_text(encoding='utf-8')
+              text = text.replace('public/assets/brand/typography.css', 'public/assets/brand/typography-manrope.css')
+              text = text.replace('/assets/brand/typography\\.css', '/assets/brand/typography-manrope\\.css\\?v=1')
+              text = text.replace('/assets/brand/typography.css', '/assets/brand/typography-manrope.css?v=1')
+              path.write_text(text, encoding='utf-8')
+          PY
+
+          cat >> public/_headers <<'HDR'
+
+/assets/brand/typography-manrope.css
+  Cache-Control: public, max-age=0, must-revalidate
+
+/assets/fonts/manrope/*
+  Cache-Control: public, max-age=31536000, immutable
+HDR
+
+          npm test
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public tests
+          git commit -m "Force fresh Manrope typography assets"
+          git push origin hotfix-manrope-cache
