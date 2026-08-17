@@ -54,10 +54,10 @@ const TOOL_CATEGORIES = [
     name: "Infrastructure",
     description: "Hosting, IP, ASN and server information.",
     tools: [
-      { id: "ip", name: "IP Lookup", description: "Resolve and inspect IP address details.", route: "/tools/ip", status: "coming_soon" },
+      { id: "ip", name: "IP Lookup", description: "Resolve public domain/IP details and reverse DNS context.", route: "/tools/ip", status: "available" },
       { id: "asn", name: "ASN Lookup", description: "Find Autonomous System information.", route: "/tools/asn", status: "coming_soon" },
       { id: "hosting", name: "Hosting Provider Detector", description: "Identify likely hosting or cloud provider.", route: "/tools/hosting", status: "coming_soon" },
-      { id: "rdns", name: "Reverse DNS", description: "Perform reverse DNS (PTR) lookups.", route: "/tools/rdns", status: "coming_soon" },
+      { id: "rdns", name: "Reverse DNS", description: "PTR lookups for public IPv4/IPv6 addresses.", route: "/tools/rdns", status: "available" },
       { id: "http-headers", name: "HTTP Headers", description: "Fetch and analyze response headers.", route: "/tools/headers", status: "available" },
       { id: "server-info", name: "Server Information", description: "Gather basic server and technology signals.", route: "/tools/server", status: "coming_soon" },
     ],
