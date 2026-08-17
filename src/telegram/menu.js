@@ -58,8 +58,8 @@ export function settingsMenuText(locale = "en", profile = {}) {
     t(locale, "settings.body"),
     "",
     sw ? "👤 Akaunti" : "👤 Account",
-    sw ? `• User ID: ${userId}` : `• User ID: ${userId}`,
-    sw ? `• Chat ID: ${chatId}` : `• Chat ID: ${chatId}`,
+    `• User ID: ${userId}`,
+    `• Chat ID: ${chatId}`,
     "",
     sw ? "🎛 Ubinafsishaji" : "🎛 Personalisation",
     t(locale, "settings.current_language", { language: currentLanguage }),
@@ -67,8 +67,8 @@ export function settingsMenuText(locale = "en", profile = {}) {
     "",
     sw ? "🔒 Faragha" : "🔒 Privacy",
     sw
-      ? "• Tunahifadhi chaguo la lugha pekee; hatuhifadhi historia ya tovuti ulizokagua kwenye preference profile."
-      : "• We store only your language choice; checked-site history is not stored in your preference profile.",
+      ? "• Supabase huhifadhi Telegram User ID kama kitambulisho cha preference pamoja na lugha. Chat ID na historia ya tovuti ulizokagua hazihifadhiwi kwenye preference profile."
+      : "• Supabase stores your Telegram User ID as the preference key together with your language. Chat ID and checked-site history are not stored in the preference profile.",
     "",
     t(locale, "settings.choose"),
   ].join("\n");
