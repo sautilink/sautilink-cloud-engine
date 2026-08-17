@@ -43,6 +43,7 @@ const TOOL_CATEGORIES = [
       { id: "blacklist", name: "Blacklist Checker", description: "Check domain/IP against common blacklists.", route: "/tools/blacklist", status: "coming_soon" },
       { id: "ssl", name: "SSL/TLS & HTTPS Analyzer", description: "Observable HTTPS, redirects, and HSTS (not full cert audit).", route: "/tools/ssl", status: "available" },
       { id: "security-headers", name: "HTTP Headers Analyzer", description: "Review HTTP security headers and configuration score.", route: "/tools/headers", status: "available" },
+      { id: "cors-cookie", name: "CORS & Cookie Inspector", description: "Inspect observed CORS response headers and cookie security metadata.", route: "/tools/cors", status: "available" },
       { id: "port-scanner", name: "Basic Port Scanner", description: "Check common open ports (carefully rate-limited).", route: "/tools/ports", status: "coming_soon" },
       { id: "waf", name: "WAF Detector", description: "Detect presence of a Web Application Firewall.", route: "/tools/waf", status: "coming_soon" },
       { id: "cloudflare", name: "Cloudflare Detector", description: "Detect proxying and related edge-network signals.", route: "/tools/cloudflare", status: "coming_soon" },
