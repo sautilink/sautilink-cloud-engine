@@ -6,6 +6,7 @@ import {
   readOwnProfile,
   refreshSession,
   resendSignupCode,
+  setupVerifiedProfile,
   signUpAccount,
   updateOwnProfile,
   usernameAvailable,
@@ -223,6 +224,18 @@ export async function onRequest(context) {
     if (!result.ok) return fail("PROFILE_UNAVAILABLE", "Unable to load your SautiLink Account profile.", result.status || 500, requestId, session.cookies);
     const profile = Array.isArray(result.body) ? result.body[0] || null : null;
     return ok({ profile }, requestId, 200, session.cookies);
+  }
+
+  if (route === "profile/setup" && method === "POST") {
+    const session = await authenticatedSession(request, env);
+    if (!session.ok) return fail("NOT_AUTHENTICATED", "Sign in to continue.", 401, requestId, session.cookies);
+    const parsed = await bodyJson(request);
+    if (!parsed.ok) return fail("INVALID_REQUEST", "Invalid profile setup request.", 400, requestId, session.cookies);
+    const result = await setupVerifiedProfile(session.user, parsed.value, env);
+    if (!result.ok) {
+      return fail(result.reason === "username_taken" ? "USERNAME_TAKEN" : "PROFILE_SETUP_FAILED", result.message || "Unable to finish your profile.", result.status || 400, requestId, session.cookies);
+    }
+    return ok({ profileReady: true }, requestId, 201, session.cookies);
   }
 
   if (route === "profile" && method === "PATCH") {
