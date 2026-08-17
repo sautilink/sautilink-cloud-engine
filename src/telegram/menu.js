@@ -46,14 +46,29 @@ export function settingsKeyboard(locale = "en") {
   };
 }
 
-export function settingsMenuText(locale = "en") {
+export function settingsMenuText(locale = "en", profile = {}) {
   const currentLanguage = t(locale, locale === "sw" ? "lang.swahili" : "lang.english");
+  const userId = profile.userId != null ? String(profile.userId) : t(locale, "report.unavailable");
+  const chatId = profile.chatId != null ? String(profile.chatId) : t(locale, "report.unavailable");
+  const sw = locale === "sw";
+
   return [
     t(locale, "settings.title"),
     "",
     t(locale, "settings.body"),
     "",
+    sw ? "👤 Akaunti" : "👤 Account",
+    `• User ID: ${userId}`,
+    `• Chat ID: ${chatId}`,
+    "",
+    sw ? "🎛 Ubinafsishaji" : "🎛 Personalisation",
     t(locale, "settings.current_language", { language: currentLanguage }),
+    sw ? "• Hali: Imehifadhiwa" : "• Status: Saved",
+    "",
+    sw ? "🔒 Faragha" : "🔒 Privacy",
+    sw
+      ? "• Supabase huhifadhi Telegram User ID kama kitambulisho cha preference pamoja na lugha. Chat ID na historia ya tovuti ulizokagua hazihifadhiwi kwenye preference profile."
+      : "• Supabase stores your Telegram User ID as the preference key together with your language. Chat ID and checked-site history are not stored in the preference profile.",
     "",
     t(locale, "settings.choose"),
   ].join("\n");
