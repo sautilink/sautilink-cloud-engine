@@ -136,10 +136,10 @@ test("account pages preserve the self-hosted Manrope product contract", () => {
   }
 });
 
-test("account entry points link SautiLink privacy and terms", () => {
+test("account entry points link Cloud Engine privacy and terms", () => {
   for (const html of [signup, login, verify, dashboard]) {
-    assert.match(html, /https:\/\/sautilink\.com\/privacy/i);
-    assert.match(html, /https:\/\/sautilink\.com\/terms/i);
+    assert.match(html, /href="\/privacy"/i);
+    assert.match(html, /href="\/terms"/i);
   }
 });
 

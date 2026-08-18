@@ -3,7 +3,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-OWPK02FasJRkiTH2Tfx80vGxVJZJNawAll7qdxItaFA=' 'sha256-F8zgrOJoyDw/4EaIvgF+3MnI+Yr6np1GJvdcTixQDpY='; style-src 'self'; img-src 'self' data: https://sautilink.com; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-OWPK02FasJRkiTH2Tfx80vGxVJZJNawAll7qdxItaFA=' 'sha256-pc6013YHB1MIzWlcU1QiFMx+Mjzxjl5gRQsfIF6MMpQ='; style-src 'self'; img-src 'self' data: https://sautilink.com; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
 
 /api/*
   X-Content-Type-Options: nosniff

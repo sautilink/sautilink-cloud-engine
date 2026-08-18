@@ -67,8 +67,9 @@ The browser may provide immediate feedback, but the server remains authoritative
 
 Whenever a surface describes SautiLink web/app data handling, account creation or account access, link the relevant terms directly:
 
-- Privacy Policy: `https://sautilink.com/privacy`
-- Terms: `https://sautilink.com/terms`
+- Privacy Policy: `https://cloudengine.sautilink.com/privacy`
+- Terms: `https://cloudengine.sautilink.com/terms`
+- Account & Data Deletion: `https://cloudengine.sautilink.com/account-deletion`
 
 Do not render Privacy Policy or Terms as non-clickable text when they are presented as legal references.
 

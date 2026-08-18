@@ -12,8 +12,9 @@ SSL Analysis: https://cloudengine.sautilink.com/tools/ssl
 HTTP Status: https://cloudengine.sautilink.com/tools/http-status
 
 SautiLink Corporation: https://sautilink.com/
-Privacy Policy: https://sautilink.com/privacy
-Terms: https://sautilink.com/terms
+Privacy Policy: https://cloudengine.sautilink.com/privacy
+Terms: https://cloudengine.sautilink.com/terms
+Account and data deletion: https://cloudengine.sautilink.com/account-deletion
 SautiNote: https://sautilink.com/sautinote
 Telegram companion: https://t.me/sautilinkcloud_bot
 
