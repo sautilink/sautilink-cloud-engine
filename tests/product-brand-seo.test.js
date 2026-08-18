@@ -38,8 +38,9 @@ test("Cloud Engine uses the official SautiLink logo in shared product chrome", (
 
 test("homepage exposes real Telegram, legal and SautiLink ecosystem destinations", () => {
   assert.match(home, /https:\/\/t\.me\/sautilinkcloud_bot/i);
-  assert.match(home, /https:\/\/sautilink\.com\/privacy/i);
-  assert.match(home, /https:\/\/sautilink\.com\/terms/i);
+  assert.match(home, /href="\/privacy"/i);
+  assert.match(home, /href="\/terms"/i);
+  assert.match(home, /href="\/account-deletion"/i);
   assert.match(home, /https:\/\/sautilink\.com\/sautinote/i);
   assert.match(home, /https:\/\/facebook\.com\/sautilink/i);
   assert.match(home, /https:\/\/tiktok\.com\/@sautilink/i);
@@ -82,7 +83,7 @@ test("FAQ is indexable and exposes FAQ structured data", () => {
   assert.match(faq, /What is SautiLink Cloud Engine\?/);
   assert.match(faq, /href="\/faq\.css"/);
   assert.doesNotMatch(faq, /<style>/i);
-  assert.match(faq, /https:\/\/sautilink\.com\/privacy/i);
+  assert.match(faq, /href="\/privacy"/i);
   assert.match(faq, /https:\/\/t\.me\/sautilinkcloud_bot/i);
   assert.match(sitemap, /https:\/\/cloudengine\.sautilink\.com\/faq/);
 });
@@ -102,7 +103,11 @@ test("search and AI discovery rules allow public crawling while protecting accou
   assert.match(robots, /Sitemap: https:\/\/cloudengine\.sautilink\.com\/sitemap\.xml/);
   assert.match(llms, /SautiLink Cloud Engine/);
   assert.match(llms, /https:\/\/cloudengine\.sautilink\.com\/faq/);
-  assert.match(llms, /https:\/\/sautilink\.com\/privacy/);
+  assert.match(llms, /https:\/\/cloudengine\.sautilink\.com\/privacy/);
+  assert.match(llms, /https:\/\/cloudengine\.sautilink\.com\/account-deletion/);
+  assert.match(sitemap, /https:\/\/cloudengine\.sautilink\.com\/privacy/);
+  assert.match(sitemap, /https:\/\/cloudengine\.sautilink\.com\/terms/);
+  assert.match(sitemap, /https:\/\/cloudengine\.sautilink\.com\/account-deletion/);
 });
 
 test("homepage provides Organization, WebSite and WebApplication structured data", () => {
