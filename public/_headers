@@ -19,6 +19,18 @@
 /assets/brand/cloud-engine-share.png
   Cache-Control: public, max-age=86400
 
+/assets/brand/launch-splash.css
+  Cache-Control: public, max-age=86400
+
+/assets/brand/launch-splash.js
+  Cache-Control: public, max-age=86400
+
+/site.webmanifest
+  Cache-Control: public, max-age=0, must-revalidate
+
+/sw.js
+  Cache-Control: no-cache
+
 /favicon/*
   Cache-Control: public, max-age=86400
 
