@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="audit"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutLongLabel="@string/shortcut_audit"
+        android:shortcutShortLabel="@string/shortcut_audit_short">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="https://cloudengine.sautilink.com/tools/audit"
+            android:targetClass="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:targetPackage="com.sautilink.cloudengine" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="dns"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutLongLabel="@string/shortcut_dns"
+        android:shortcutShortLabel="@string/shortcut_dns_short">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="https://cloudengine.sautilink.com/tools/dns"
+            android:targetClass="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:targetPackage="com.sautilink.cloudengine" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="ssl"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutLongLabel="@string/shortcut_ssl"
+        android:shortcutShortLabel="@string/shortcut_ssl_short">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="https://cloudengine.sautilink.com/tools/ssl"
+            android:targetClass="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:targetPackage="com.sautilink.cloudengine" />
+    </shortcut>
+</shortcuts>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="launch_url" translatable="false">https://cloudengine.sautilink.com/?source=android-app</string>
+    <string name="provider_authority" translatable="false">com.sautilink.cloudengine.fileprovider</string>
+    <string name="asset_statements" translatable="false">[{\"relation\":[\"delegate_permission/common.handle_all_urls\"],\"target\":{\"namespace\":\"web\",\"site\":\"https://cloudengine.sautilink.com\"}}]</string>
+    <string name="shortcut_audit">Full website audit</string>
+    <string name="shortcut_audit_short">Audit</string>
+    <string name="shortcut_dns">DNS lookup</string>
+    <string name="shortcut_dns_short">DNS</string>
+    <string name="shortcut_ssl">SSL checker</string>
+    <string name="shortcut_ssl_short">SSL</string>
+</resources>
