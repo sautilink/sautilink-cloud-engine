@@ -41,6 +41,11 @@ Console and replace the placeholder in `assetlinks.template.json`. Publish the
 completed file as `public/.well-known/assetlinks.json`. The fingerprint must be
 the **App signing key certificate**, not merely the upload key certificate.
 
+The currently deployed Asset Links file also contains the certificate for the
+first CI test APK. Keep that fingerprint until the test package is retired, and
+add the Play App Signing fingerprint as a second value instead of replacing it
+during internal testing.
+
 The public endpoint must return HTTP 200, JSON content, and no redirect:
 
 `https://cloudengine.sautilink.com/.well-known/assetlinks.json`

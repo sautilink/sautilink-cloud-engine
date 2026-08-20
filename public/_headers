@@ -31,6 +31,10 @@
 /sw.js
   Cache-Control: no-cache
 
+/.well-known/assetlinks.json
+  Cache-Control: public, max-age=300, must-revalidate
+  Access-Control-Allow-Origin: *
+
 /favicon/*
   Cache-Control: public, max-age=86400
 

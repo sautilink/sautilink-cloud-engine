@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.sautilink.cloudengine",
+      "sha256_cert_fingerprints": [
+        "06:5D:78:44:80:83:FD:4D:8B:15:67:AB:6F:98:A6:07:6F:60:D8:2E:DC:F5:EF:29:7E:D0:98:FB:C1:D4:11:A6"
+      ]
+    }
+  }
+]
