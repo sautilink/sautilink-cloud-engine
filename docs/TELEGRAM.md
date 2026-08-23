@@ -128,3 +128,10 @@ Fixed preference callbacks:
 The Help menu may open the same Tools Hub through fixed callback `menu:tools`. No URL, Telegram ID, provider name, secret, or arbitrary value is placed in callback data.
 
 `default_view` affects presentation/navigation only. It does not change analyzers, scoring, authorization, SSRF validation, API routes, usage accounting, or stored browsing data.
+
+## Service previews and support commands
+
+- `/vpn` presents the bilingual coming-soon notice for the planned free SautiLink VPN profile service. The notice names planned SSH, Trojan, WebSocket, and other supported connection protocols without distributing configuration files before launch.
+- `/proxy` presents the bilingual coming-soon notice for the planned free, verified Telegram proxy list and explains the future one-tap **Connect to Proxy** flow. It does not show a connection button until an active proxy is actually available.
+- `/contact` opens fixed HTTPS buttons for three support agents, Ivy Network as Bot Partner, and SautiLink HQ. Agent presence is described as variable because the bot cannot reliably verify live Telegram presence.
+- All three commands are public, argument-free, and classified as cheap commands. `/admin` remains private and is not advertised to public users.

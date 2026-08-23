@@ -102,6 +102,42 @@ export function formatAbout(locale = "en") {
   return ["ℹ️ SautiLink Cloud Engine", "", t(locale, "about.body"), "", t(locale, "about.disclaimer"), "", ownership, architecture, "", "https://cloudengine.sautilink.com", "https://sautilink.com"].join("\n");
 }
 
+export function formatVpn(locale = "en") {
+  return [
+    t(locale, "vpn.title"),
+    "",
+    t(locale, "vpn.status"),
+    "",
+    t(locale, "vpn.body"),
+    "",
+    t(locale, "vpn.purpose"),
+    "",
+    `⚠️ ${t(locale, "vpn.warning")}`,
+  ].join("\n");
+}
+
+export function formatProxy(locale = "en") {
+  return [
+    t(locale, "proxy.title"),
+    "",
+    t(locale, "proxy.status"),
+    "",
+    t(locale, "proxy.body"),
+    "",
+    `🔒 ${t(locale, "proxy.warning")}`,
+  ].join("\n");
+}
+
+export function formatContact(locale = "en") {
+  return [
+    t(locale, "contact.title"),
+    "",
+    t(locale, "contact.body"),
+    "",
+    `🔒 ${t(locale, "contact.security")}`,
+  ].join("\n");
+}
+
 export function formatStatus(ok, data, locale = "en") {
   if (!ok) return t(locale, "status.unavailable");
   const s = data && data.status ? data.status : "ok";
