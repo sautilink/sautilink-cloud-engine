@@ -9,7 +9,7 @@ const css = read("public/tools/cache.css");
 const publicRegistry = read("public/app.js");
 const serverRegistry = read("src/config/tools.js");
 
-test("Cache and Compression Inspector is a responsive Manrope web tool", () => {
+test("Cache and Compression Inspector is a responsive Inter web tool", () => {
   assert.match(html, /<h1>Cache &amp; Compression Inspector<\/h1>/);
   assert.match(html, /typography-manrope\.css\?v=1/);
   assert.match(html, /not a synthetic performance benchmark/i);

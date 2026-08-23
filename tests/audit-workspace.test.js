@@ -47,11 +47,11 @@ test("Audit workspace exposes target actions without persisting report state", (
   assert.doesNotMatch(js, /sessionStorage\.setItem|indexedDB|\/api\/reports/i);
 });
 
-test("Audit workspace remains responsive and uses the Cloud Engine Manrope contract", () => {
+test("Audit workspace remains responsive and uses the SautiLink Inter contract", () => {
   const html = read("public/tools/audit.html");
   const css = read("public/tools/audit.css");
   assert.match(html, /typography-manrope\.css\?v=1/);
-  assert.match(html, /Manrope-Variable\.woff2\?v=1/);
+  assert.match(html, /InterVariable\.woff2\?v=1/);
   assert.match(css, /@media \(max-width: 980px\)/);
   assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /@media \(max-width: 560px\)/);

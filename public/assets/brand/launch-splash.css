@@ -91,7 +91,7 @@ html[data-launch-splash="skip"] .sl-launch-splash { display: none; }
 .sl-launch-product {
   margin: 0;
   color: var(--sl-launch-text);
-  font-family: "Manrope", "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(.83rem, 2vw, .96rem);
   font-weight: 760;
   letter-spacing: .11em;
@@ -118,7 +118,7 @@ html[data-launch-splash="skip"] .sl-launch-splash { display: none; }
 
 .sl-launch-signature span,
 .sl-launch-signature strong {
-  font-family: "Manrope", "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
   font-weight: 760;
 }
 

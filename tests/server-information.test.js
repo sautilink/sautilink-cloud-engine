@@ -10,7 +10,7 @@ const css = read("public/tools/server.css");
 const publicRegistry = read("public/app.js");
 const serverRegistry = read("src/config/tools.js");
 
-test("Server Information is a first-class responsive Manrope web tool", () => {
+test("Server Information is a first-class responsive Inter web tool", () => {
   assert.match(html, /<h1>Server Information<\/h1>/);
   assert.match(html, /typography-manrope\.css\?v=1/);
   assert.match(html, /server\.css/);

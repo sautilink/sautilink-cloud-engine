@@ -13,7 +13,7 @@ This document records the reusable product-shell decisions introduced during the
 
 ## Typography and color
 
-Cloud Engine uses the self-hosted Manrope variable family through `/assets/brand/typography-manrope.css`.
+Cloud Engine uses the self-hosted Inter variable family from the SautiLink corporate web brand system. The existing `/assets/brand/typography-manrope.css` path is retained only to avoid changing stable page wiring.
 
 Canonical product colors:
 

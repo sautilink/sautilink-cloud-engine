@@ -6,6 +6,8 @@ const read = (path) => readFileSync(path, "utf8");
 
 test("Cloud Engine homepage is a web workspace, not a stale bot placeholder landing page", () => {
   const html = read("public/index.html");
+  assert.doesNotMatch(html, /SautiLink Cloud Engine · Web diagnostics/);
+  assert.match(html, /<div class="hero-copy">\s*<h1>Inspect the web with/);
   assert.match(html, /Web Diagnostics Workspace/);
   assert.match(html, /id="audit-launch-form"/);
   assert.match(html, /id="tool-search"/);
@@ -25,11 +27,11 @@ test("homepage launches Full Audit through the existing audit route and keeps re
   assert.doesNotMatch(app, /fetch\([^\n]*recentTargets|\/api\/.*history/i);
 });
 
-test("web workspace preserves the Cloud Engine Manrope contract and responsive shell", () => {
+test("web workspace preserves the SautiLink Inter contract and responsive shell", () => {
   const html = read("public/index.html");
   const css = read("public/home.css");
-  assert.equal(existsSync("public/assets/fonts/manrope/Manrope-Variable.woff2"), true);
-  assert.match(html, /\/assets\/fonts\/manrope\/Manrope-Variable\.woff2/);
+  assert.equal(existsSync("public/assets/fonts/inter/InterVariable.woff2"), true);
+  assert.match(html, /\/assets\/fonts\/inter\/InterVariable\.woff2/);
   assert.match(css, /@media \(max-width: 720px\)/);
   assert.match(css, /@media \(max-width: 520px\)/);
 });

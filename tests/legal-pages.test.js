@@ -18,7 +18,7 @@ test("legal pages use Cloud Engine metadata and the shared product UI", () => {
   assert.match(deletion, /<title>Delete Your Account &amp; Data — SautiLink Cloud Engine<\/title>/);
 
   for (const page of legalPages) {
-    assert.match(page, /Manrope-Variable\.woff2\?v=1/);
+    assert.match(page, /InterVariable\.woff2\?v=1/);
     assert.match(page, /typography-manrope\.css\?v=1/);
     assert.match(page, /href="\/legal\.css\?v=1"/);
     assert.match(page, /src="\/legal\.js\?v=1"/);
