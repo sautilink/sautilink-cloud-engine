@@ -185,6 +185,21 @@ export function backToMainKeyboard(locale = "en") {
   return { inline_keyboard: [[{ text: t(locale, "menu.back"), callback_data: "menu:main" }]] };
 }
 
+export function contactKeyboard(locale = "en") {
+  return {
+    inline_keyboard: [
+      [
+        { text: t(locale, "contact.agent_1"), url: "https://t.me/drcharlestz" },
+        { text: t(locale, "contact.agent_2"), url: "https://t.me/suzytz" },
+      ],
+      [{ text: t(locale, "contact.agent_3"), url: "https://t.me/mrxafrica" }],
+      [{ text: t(locale, "contact.partner"), url: "https://www.ivynetwork.co.uk" }],
+      [{ text: t(locale, "contact.hq"), url: "https://sautilink.com/contact" }],
+      [{ text: t(locale, "menu.back"), callback_data: "menu:main" }],
+    ],
+  };
+}
+
 export function statusKeyboard(locale = "en") {
   return {
     inline_keyboard: [[

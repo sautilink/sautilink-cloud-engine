@@ -8,7 +8,7 @@ import { preferenceStorageConfigured } from "./preferences.js";
 import { getPresentationPreferences } from "./personalisation.js";
 import { setAwaitTarget } from "./guided.js";
 import {
-  formatHelp, formatStart, formatAbout, formatStatus, formatId, formatAdmin,
+  formatHelp, formatStart, formatAbout, formatVpn, formatProxy, formatContact, formatStatus, formatId, formatAdmin,
   formatAudit, formatDns, formatEmail, formatHeaders, formatSsl, formatWebsite,
   formatMobile, formatRobots, formatSitemap, formatHttp, formatEngineError, auditKeyboard,
 } from "./format.js";
@@ -24,6 +24,7 @@ import {
   toolsHomeText,
   quickStartText,
   guidedAuditKeyboard,
+  contactKeyboard,
 } from "./menu.js";
 import { isAdmin } from "./authz.js";
 import { getUsageStats, getUsageConfig } from "./usage.js";
@@ -56,6 +57,9 @@ export async function handleCommand(ctx, config) {
     }
     case "help": return { text: formatHelp(locale), reply_markup: helpMenuKeyboard(locale) };
     case "about": return { text: formatAbout(locale) };
+    case "vpn": return { text: formatVpn(locale) };
+    case "proxy": return { text: formatProxy(locale) };
+    case "contact": return { text: formatContact(locale), reply_markup: contactKeyboard(locale) };
     case "id": return { text: formatId(chat, from, locale) };
     case "settings": return {
       text: settingsMenuText(locale, { chatId: chat && chat.id, userId: from && from.id }, presentation),
