@@ -40,7 +40,7 @@ test("five focused web tools share one responsive UI implementation", () => {
     assert.match(html, new RegExp(`data-focus="${id}"`));
     assert.match(html, /\/tools\/focused-dns-email\.css/);
     assert.match(html, /\/tools\/focused-dns-email\.js/);
-    assert.match(html, /Manrope-Variable\.woff2/);
+    assert.match(html, /InterVariable\.woff2/);
   }
 
   const css = read("public/tools/focused-dns-email.css");

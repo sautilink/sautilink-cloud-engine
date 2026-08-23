@@ -9,7 +9,7 @@ const css = read("public/tools/cors.css");
 const publicRegistry = read("public/app.js");
 const serverRegistry = read("src/config/tools.js");
 
-test("CORS and Cookie Inspector is a responsive Manrope web tool", () => {
+test("CORS and Cookie Inspector is a responsive Inter web tool", () => {
   assert.match(html, /<h1>CORS &amp; Cookie Inspector<\/h1>/);
   assert.match(html, /typography-manrope\.css\?v=1/);
   assert.match(html, /Passive observation/);

@@ -55,27 +55,27 @@ Cloud Engine maps its existing `--accent`, `--accent-hover`, and `--accent-soft`
 
 ## Cloud Engine typography
 
-**Manrope is the official SautiLink Cloud Engine product font** across web and native app surfaces. This is an intentional Cloud Engine product-level typography decision and should not be automatically replaced by typography choices used by other SautiLink products.
+**Inter is the official SautiLink Cloud Engine product font** across web surfaces, matching the SautiLink corporate website.
 
-- **Manrope**
+- **Inter**
   - Used for normal page content, headings, navigation, buttons, forms, cards, reports, settings, brand names, product labels, footer branding, and copyright/signature surfaces.
-  - The official variable weight range is `200–800`.
-  - The web build self-hosts an optimized WOFF2 generated from the official variable font source.
-  - Future iOS and Android app builds should bundle the same Manrope variable family as the primary product font. Platform system fonts are fallbacks, not the Cloud Engine brand font.
+  - The official variable weight range is `100–900`, with normal and italic variable files.
+  - The web build self-hosts the same WOFF2 assets used by `sautilink.com`.
+  - Future iOS and Android app builds should bundle the same Inter variable family as the primary product font. Platform system fonts are fallbacks, not the Cloud Engine brand font.
   - Brand distinction should come from weight, scale, spacing, color, layout, and the SautiLink Cloud Engine identity rather than a secondary typeface.
 
 Implementation tokens:
 
-- `--font-primary` → Manrope
+- `--font-primary` → Inter
 - `--font` → `--font-primary` for compatibility with the existing shared stylesheet
-- `[data-brand-font]` remains supported for semantic brand markup but resolves to Manrope like the rest of the product UI.
+- `[data-brand-font]` remains supported for semantic brand markup but resolves to Inter like the rest of the product UI.
 
-The web font lives under `public/assets/fonts/manrope/` and the shared mapping lives in `public/assets/brand/typography.css`. Pages must self-host the font rather than depending on a runtime request to an external font stylesheet/provider. Form controls explicitly inherit Manrope so mobile browsers do not silently fall back to a different UI family.
+The web font lives under `public/assets/fonts/inter/` and the shared mapping lives in `public/assets/brand/typography.css`. Pages must self-host the font rather than depending on a runtime request to an external font stylesheet/provider. Form controls explicitly inherit Inter so mobile browsers do not silently fall back to a different UI family. The legacy `typography-manrope.css` filename remains in page wiring for compatibility, but its active family is Inter.
 
 Technical values where character alignment materially improves readability—such as code-like output, raw DNS records, hashes, or similar diagnostics—may use a monospace rendering. That is a functional technical treatment, not a secondary Cloud Engine brand font.
 
-Manrope is distributed under the SIL Open Font License 1.1. The original license file must remain alongside the vendored web font asset.
+Inter is distributed under the SIL Open Font License 1.1. The original license file must remain alongside the vendored web font assets.
 
 ## Regression protection
 
-Automated branding tests should fail if normal user-facing start, about, settings, or admin output reintroduces known infrastructure-vendor branding. Web typography tests should also fail if the self-hosted Manrope asset, license file, `200–800` variable mapping, corporate color tokens, app typography contract, or page wiring are removed. They should reject Inter, Lora, Zalando Sans SemiExpanded, and external font-provider dependencies from the Cloud Engine product UI.
+Automated branding tests should fail if normal user-facing start, about, settings, or admin output reintroduces known infrastructure-vendor branding. Web typography tests should also fail if the self-hosted Inter assets, license file, `100–900` variable mapping, corporate color tokens, app typography contract, or page wiring are removed. They should reject Manrope, Lora, Zalando Sans SemiExpanded, and external font-provider dependencies from the Cloud Engine product UI.

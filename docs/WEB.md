@@ -27,7 +27,7 @@ Phase 8A turns the homepage from a marketing/tool-directory page into a workspac
 - live engine health indicator
 - browser-local recent targets, limited to five entries
 - explicit Web + Telegram product positioning
-- responsive mobile-first layout using the Cloud Engine Manrope typography contract
+- responsive mobile-first layout using the SautiLink Inter typography contract
 
 ### Browser-local recent targets
 

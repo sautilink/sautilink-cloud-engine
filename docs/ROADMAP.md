@@ -64,7 +64,7 @@
   - quick-launch shortcuts and searchable tool workspace
   - live engine health status
   - browser-local recent targets only, maximum five, clearable and never written to durable storage
-  - responsive mobile-first homepage using the Cloud Engine Manrope typography contract
+  - responsive mobile-first homepage using the SautiLink Inter typography contract
   - explicit Web + Telegram product roles over one shared analyzer/API layer
   - no analyzer, scoring, SSRF, authorization, Telegram preference, or `/api/*` contract changes
 - Phase 8B: Full Audit Workspace
@@ -92,7 +92,7 @@
   - no analyzer, scoring, SSRF, deadline, authorization, Telegram preference, database, or existing API contract changes
 - Phase 8D: Focused DNS & Email Tools
   - standalone MX Record Checker, SPF Checker, DMARC Checker, DKIM Checker and Nameserver Lookup
-  - shared focused web UI and responsive Manrope styling across all five pages
+  - shared focused web UI and responsive Inter styling across all five pages
   - allowlisted `/api/email-check` orchestration route for `mx`, `spf`, `dmarc`, and `dkim`
   - focused route reuses existing analyzer modules and performs only the DNS work needed for the selected check
   - Nameserver Lookup continues to use the existing `/api/dns` contract

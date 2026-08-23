@@ -47,12 +47,12 @@ test("IP and reverse DNS APIs keep request guards, caching, and shared helpers",
   assert.match(rdnsApi, /reverseDnsLookup/);
 });
 
-test("IP and reverse DNS pages share a responsive Manrope UI", () => {
+test("IP and reverse DNS pages share a responsive Inter UI", () => {
   for (const id of ["ip", "rdns"]) {
     const path = `public/tools/${id}.html`;
     assert.equal(existsSync(path), true);
     const html = read(path);
-    assert.match(html, /Manrope-Variable\.woff2/);
+    assert.match(html, /InterVariable\.woff2/);
     assert.match(html, /\/tools\/infrastructure\.css/);
     assert.match(html, /\/tools\/infrastructure\.js/);
   }

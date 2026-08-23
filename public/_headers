@@ -40,3 +40,6 @@
 
 /assets/fonts/manrope/*
   Cache-Control: public, max-age=31536000, immutable
+
+/assets/fonts/inter/*
+  Cache-Control: public, max-age=31536000, immutable

@@ -128,9 +128,9 @@ test("account dashboard blue badge means Email verified, not public notability",
   assert.match(browser, /securityState\.textContent = me\.emailVerified \? "Verified" : "Unverified"/);
 });
 
-test("account pages preserve the self-hosted Manrope product contract", () => {
+test("account pages preserve the self-hosted Inter product contract", () => {
   for (const html of accountPages) {
-    assert.match(html, /Manrope-Variable\.woff2\?v=1/);
+    assert.match(html, /InterVariable\.woff2\?v=1/);
     assert.match(html, /typography-manrope\.css\?v=1/);
     assert.doesNotMatch(html, /fonts\.googleapis|fonts\.gstatic/i);
   }
