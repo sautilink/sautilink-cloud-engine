@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const binary = (path) => readFileSync(new URL(`../${path}`, import.meta.url));
@@ -28,10 +28,22 @@ function jsonLdBlocks(html) {
   return [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((match) => match[1]);
 }
 
-test("Cloud Engine uses the official SautiLink logo in shared product chrome", () => {
-  assert.match(shell, /https:\/\/sautilink\.com\/logo\.png/i);
-  assert.match(home, /https:\/\/sautilink\.com\/logo\.png/i);
-  assert.match(faq, /https:\/\/sautilink\.com\/logo\.png/i);
+test("every Cloud Engine page uses the verified self-hosted SautiLink logo in its header and footer", () => {
+  const path = "public/assets/brand/sautilink-logo.png";
+  assert.deepEqual(pngDimensions(path), { width: 656, height: 316 });
+  assert.equal(createHash("sha256").update(binary(path)).digest("hex"), "a025a51ff675d607ea2277746fdfea39eca187b867cda9828b376b5eeb99aba3");
+  const pages = readdirSync(new URL("../public/", import.meta.url), { recursive: true })
+    .filter((path) => path.endsWith(".html"))
+    .map((path) => ({ path, html: read(`public/${path}`) }))
+    .filter(({ html }) => html.includes('data-product-design="ios"'));
+  assert.equal(pages.length, 29);
+  for (const { path, html } of pages) {
+    assert.match(html, /<header class="site-header[^>]*>[\s\S]*?<img class="brand-mark" src="\/assets\/brand\/sautilink-logo\.png"/, path);
+    assert.match(html, /<footer class="site-footer[^>]*>[\s\S]*?<img class="product-footer-logo" src="\/assets\/brand\/sautilink-logo\.png"/, path);
+    assert.match(html, /ios-ui\.css\?v=20261017-2/, path);
+    assert.doesNotMatch(html, /https:\/\/sautilink\.com\/logo\.png/i, path);
+  }
+  assert.doesNotMatch(shell, /https:\/\/sautilink\.com\/logo\.png/i);
   assert.match(headers, /img-src 'self' data: https:\/\/sautilink\.com/);
   assert.doesNotMatch(home, /raw\.githubusercontent\.com/i);
 });
@@ -114,6 +126,6 @@ test("homepage provides Organization, WebSite and WebApplication structured data
   assert.match(home, /"@type": "Organization"/);
   assert.match(home, /"@type": "WebSite"/);
   assert.match(home, /"@type": "WebApplication"/);
-  assert.match(home, /"logo": "https:\/\/sautilink\.com\/logo\.png"/);
+  assert.match(home, /"logo": "https:\/\/cloudengine\.sautilink\.com\/assets\/brand\/sautilink-logo\.png"/);
   assert.match(home, /"applicationCategory": "DeveloperApplication"/);
 });

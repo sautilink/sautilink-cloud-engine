@@ -5,7 +5,7 @@ This document records the reusable product-shell decisions introduced during the
 ## Product identity
 
 - Corporate identity: SautiLink Corporation.
-- Corporate logo: `https://sautilink.com/logo.png`.
+- Corporate logo: `/assets/brand/sautilink-logo.png`, a byte-identical local copy of the official SautiLink repository asset.
 - Product name remains a secondary label such as `Cloud Engine` or `Account`.
 - Cloud Engine product mark: `/assets/brand/product-mark.svg`.
 - Do not replace the SautiLink corporate identity with a generic product glyph in the primary header.
@@ -112,7 +112,7 @@ Cloud Engine keeps first-party product assets in the repository:
 - `/favicon/icon-192.png`
 - `/favicon/icon-512.png`
 
-The corporate SautiLink logo remains owned by the SautiLink corporate site and is referenced through the first-party `sautilink.com` URL.
+The corporate SautiLink logo is served from `/assets/brand/sautilink-logo.png` in this product. Use the official repository asset unchanged; do not recreate the mark. Explicit header and footer image elements keep the logo independent of cross-origin delivery and CSS background loading.
 
 ## Search and machine discovery
 
@@ -138,7 +138,7 @@ The visual reference is established consumer technology rather than a generic AI
 
 ## Light public presentation — October 17, 2026
 
-All 29 app-facing HTML routes load `/assets/brand/ios-ui.css?v=20261017-1` after their existing stylesheets and identify the presentation with `data-product-design="ios"` on the body. The domain-verification HTML file is not a product page and stays unchanged. The shared layer provides white and neutral surfaces, readable success/warning/error states, responsive forms and reports, grouped footers and continuous legal-document layouts.
+All 29 app-facing HTML routes load `/assets/brand/ios-ui.css?v=20261017-2` after their existing stylesheets and identify the presentation with `data-product-design="ios"` on the body. The domain-verification HTML file is not a product page and stays unchanged. The shared layer provides white and neutral surfaces, readable success/warning/error states, responsive forms and reports, grouped footers and continuous legal-document layouts.
 
 The homepage audit form is the primary action. An original decorative cloud illustration is served in two WebP sizes; it does not represent a real report or service-health result. The available-tool counts and health indicator continue to use their existing client behavior.
 
