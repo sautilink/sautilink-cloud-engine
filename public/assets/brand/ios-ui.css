@@ -69,7 +69,7 @@ body[data-product-design="ios"] .site-header {
 }
 .site-header .header-inner { gap: 20px; }
 body[data-product-design="ios"] .brand { gap: 8px; }
-body[data-product-design="ios"] .brand-mark { width: 104px; height: 34px; }
+body[data-product-design="ios"] .brand-mark { display: block; width: 76px; height: auto; object-fit: contain; background: none !important; }
 body[data-product-design="ios"] .brand-text { display: flex; }
 body[data-product-design="ios"] .brand-product {
   display: block;
@@ -449,7 +449,7 @@ body[data-product-design="ios"] .social-link:hover { color: var(--text); backgro
   body[data-product-design="ios"] .product-footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px; }
 }
 @media (max-width: 520px) {
-  body[data-product-design="ios"] .brand-mark { width: 82px; }
+  body[data-product-design="ios"] .brand-mark { width: 68px; }
   body[data-product-design="ios"] .brand-product { font-size: 11px; padding-left: 8px; }
   body[data-product-design="ios"] .header-inner { gap: 8px; }
   body[data-product-design="ios"] .header-actions { gap: 2px; }
@@ -476,7 +476,7 @@ body[data-product-design="ios"] .social-link:hover { color: var(--text); backgro
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 @media (max-width: 360px) {
-  body[data-product-design="ios"] .brand-mark { width: 72px; }
+  body[data-product-design="ios"] .brand-mark { width: 64px; }
   body[data-product-design="ios"] .header-actions .btn { padding-inline: 10px; }
 }
 @media print {
