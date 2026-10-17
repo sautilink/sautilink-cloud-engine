@@ -20,7 +20,9 @@ Canonical product colors:
 - Primary blue: `#2563EB`
 - Primary hover: `#1D4ED8`
 - Light blue: `#60A5FA`
-- Dark product background: `#0B0F19`
+- Public page background: `#FFFFFF`
+- Neutral public surface: `#F5F5F7`
+- Primary public text: `#1D1D1F`
 - White: `#FFFFFF`
 
 Use neutral surfaces and borders to create hierarchy. Avoid oversized decorative gradients, floating decorative cards and visual effects that compete with the product task.
@@ -35,7 +37,7 @@ The shared header should:
 4. place the most important account/product action at the right;
 5. collapse navigation cleanly on smaller screens.
 
-The reusable styling lives in `/assets/brand/product-shell.css`.
+The reusable brand chrome lives in `/assets/brand/product-shell.css`. The current public presentation is supplied by the versioned `/assets/brand/ios-ui.css` layer loaded after page styles.
 
 ## Account entry pattern
 
@@ -47,7 +49,7 @@ Account login, signup and verification use a two-column desktop layout:
 - mobile form inputs use at least 16px text to avoid browser zoom behavior;
 - optional explanatory benefit cards may be hidden on small screens to keep authentication focused.
 
-The account polish layer lives in `/account/account-polish.css`.
+The account layout and polish layers live in `/account/account.css` and `/account/account-polish.css`. The shared `ios-ui.css` layer updates their visual surfaces while preserving the account forms and clients.
 
 ### Username availability
 
@@ -132,3 +134,22 @@ Account, verification and authenticated surfaces should not be search-index targ
 ## Design principle
 
 The visual reference is established consumer technology rather than a generic AI dashboard. Prioritize familiar hierarchy, stable spacing, clear status language, purposeful controls and responsive behavior. Distinctiveness should come from SautiLink identity and product usefulness, not decorative novelty.
+
+
+## Light public presentation — October 17, 2026
+
+All 29 app-facing HTML routes load `/assets/brand/ios-ui.css?v=20261017-1` after their existing stylesheets and identify the presentation with `data-product-design="ios"` on the body. The domain-verification HTML file is not a product page and stays unchanged. The shared layer provides white and neutral surfaces, readable success/warning/error states, responsive forms and reports, grouped footers and continuous legal-document layouts.
+
+The homepage audit form is the primary action. An original decorative cloud illustration is served in two WebP sizes; it does not represent a real report or service-health result. The available-tool counts and health indicator continue to use their existing client behavior.
+
+The versioned `/assets/brand/ios-ui.js?v=20261017-1` helper adds Escape/outside-click navigation dismissal, a mobile legal-contents disclosure, and FAQ search across questions and answers. Clearing search restores the reader's disclosure choices. Answers support fragment links. Search stays disabled until its enhancement initializes, while the underlying native questions remain readable without JavaScript. Existing page clients retain ownership of menu toggles except on the FAQ, which has no diagnostic client.
+
+### Functional and copy boundaries
+
+Existing form markup, diagnostic clients, account clients, policy document bodies and effective dates remain unchanged. The presentation helper does not call an API or read account credentials. Device-local data clearing remains owned by the existing legal client. Geographic origin slogans are not part of product copy; company address information belongs in formal controller/contact sections, rather than every footer.
+
+### Cache versions and verification
+
+The current service worker caches asset requests by URL. When changing either shared presentation file after release, change its version query in every HTML reference. Keep existing compatibility stylesheets and clients available; presentation releases do not require changing the service worker.
+
+Run `npm test` for the source and behavioral checks. `tests/ios-ui-interactions.test.js` exercises help search, disclosure state and menu dismissal using DOM event doubles. Preserve form markup and policy bodies when changing presentation. Homepage and FAQ JSON-LD blocks are explicitly hashed by the strict Content Security Policy, so their script bytes must remain aligned with those hashes. Rendered Safari/iPhone review is a separate check; source checks do not substitute for visual verification.
