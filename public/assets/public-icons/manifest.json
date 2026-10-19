@@ -624,97 +624,97 @@
     {
       "name": "briefcase-0-1",
       "library": "huge",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\huge\\briefcase-0-1.js",
+      "file": "huge/briefcase-0-1.js",
       "sha256": "9884f179a526d14e27d0ea2ee0c81340591392af0cc203890d3ac75f71cc6861"
     },
     {
       "name": "megaphone-0-1",
       "library": "huge",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\huge\\megaphone-0-1.js",
+      "file": "huge/megaphone-0-1.js",
       "sha256": "8ef27c7c5d619d45a7abf75b03ee427e64dc2ccfdc0f39cd9e26e7d3dc59d51e"
     },
     {
       "name": "target-0-1",
       "library": "huge",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\huge\\target-0-1.js",
+      "file": "huge/target-0-1.js",
       "sha256": "849e4416b14fd8908b405855baf21487ad78e220b3419b7843574c1dba2039e3"
     },
     {
       "name": "paint-brush-0-1",
       "library": "huge",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\huge\\paint-brush-0-1.js",
+      "file": "huge/paint-brush-0-1.js",
       "sha256": "03f72f9accb3a62378d616cefae8da69496bcf0c6babbb9721c542d9199331da"
     },
     {
       "name": "book-open-0-1",
       "library": "huge",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\huge\\book-open-0-1.js",
+      "file": "huge/book-open-0-1.js",
       "sha256": "04f9ef48a6f925f2caf45c3ccfb86966326917fd9c9160ab835c81f9e1b8005a"
     },
     {
       "name": "wifi-0-1",
       "library": "huge",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\huge\\wifi-0-1.js",
+      "file": "huge/wifi-0-1.js",
       "sha256": "725a516ddfc141c8c47b7e3200539a6e79bc6511f07d860a086b1c4640d86b56"
     },
     {
       "name": "copy",
       "library": "huge",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\huge\\copy.js",
+      "file": "huge/copy.js",
       "sha256": "2578f33f1fbd9764eb6c1d678b3f0efd94df1271a7aa1bf4db0b228fd3df27fa"
     },
     {
       "name": "printer",
       "library": "huge",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\huge\\printer.js",
+      "file": "huge/printer.js",
       "sha256": "5828d972159513609732888bc1efe3382e1bc0a404447f150c3c031ab5427493"
     },
     {
       "name": "clock-0-1",
       "library": "huge",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\huge\\clock-0-1.js",
+      "file": "huge/clock-0-1.js",
       "sha256": "922ee64912e2305d965d12a8a4b5acd6c960ca24eda24775c3dfeeca6c257afe"
     },
     {
       "name": "code",
       "library": "huge",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\huge\\code.js",
+      "file": "huge/code.js",
       "sha256": "d7d628cbb46d6bfbe6041e6998573ee94f8770f1a70f9dedfc9a27e088261dd3"
     },
     {
       "name": "server",
       "library": "huge",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\huge\\server.js",
+      "file": "huge/server.js",
       "sha256": "00d3536a116e2a881f98e145e985d2936dbc81fef1c059c29fe302ac26487fac"
     },
     {
       "name": "arrow-up-right-0-1",
       "library": "huge",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\huge\\arrow-up-right-0-1.js",
+      "file": "huge/arrow-up-right-0-1.js",
       "sha256": "416a5932c3dd6092b13b9aefac265a03d51121d4c90afc00b84a68f455c8db25"
     },
     {
       "name": "lucide:network",
       "library": "lucide",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\lucide\\network.js",
+      "file": "lucide/network.js",
       "sha256": "a280419e9936080be201ae3e210f5f451dd8943ac62471db21d7fea03917e0db"
     },
     {
       "name": "lucide:smartphone",
       "library": "lucide",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\lucide\\smartphone.js",
+      "file": "lucide/smartphone.js",
       "sha256": "f096144559a86654c818b3d27a9385d70829d262841a386f0d3e436fc02d5e2e"
     },
     {
       "name": "lucide:external-link",
       "library": "lucide",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\lucide\\external-link.js",
+      "file": "lucide/external-link.js",
       "sha256": "cfce7de5ec4e5a47a179ced81b9cf4bc09cbbc4f426c86535fc1c0ef383da1ee"
     },
     {
       "name": "lucide:monitor",
       "library": "lucide",
-      "file": "C:\\Users\\Dr_ Charles\\Documents\\Codex\\2026-10-19\\sa\\work\\animateicons-upstream\\package\\dist\\lucide\\monitor.js",
+      "file": "lucide/monitor.js",
       "sha256": "dde2756b670881ad9eedefe8647d1bd41a59afbe3393879cfe64ca1d349c8e51"
     }
   ]
