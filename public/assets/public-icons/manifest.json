@@ -1,0 +1,721 @@
+{
+  "package": "@animateicons/vanilla",
+  "version": "0.1.0",
+  "repository": "https://github.com/Avijit07x/animateicons",
+  "integrity": "sha512-o556Pw+B4OGShwhCBNiAs58e0yUXwb4cSipfy803Mf+UVmkSa+NV8Wmv8ZhdkDF7B6A7cl7E9jVbnHGBhRC59w==",
+  "iconCount": 89,
+  "names": [
+    "activity",
+    "add-0-1",
+    "analytics-0-1",
+    "arrow-left-0-2",
+    "arrow-right-0-2",
+    "attachment-0-1",
+    "bookmark",
+    "calendar-0-1",
+    "camera-0-1",
+    "cancel-0-1",
+    "check",
+    "chevron-down",
+    "chevron-left",
+    "chevron-right",
+    "compass-0-1",
+    "corner-up-left",
+    "delete-0-2",
+    "download",
+    "edit-0-2",
+    "eye",
+    "file-0-1",
+    "flag-0-1",
+    "full-screen",
+    "globe-0-2",
+    "heart",
+    "help-circle",
+    "home-0-1",
+    "id-verified",
+    "image-0-1",
+    "location-0-1",
+    "lock-keyhole",
+    "logout-0-1",
+    "lucide:cloud",
+    "lucide:hash",
+    "lucide:picture-in-picture",
+    "lucide:pin",
+    "lucide:router",
+    "mail-0-1",
+    "menu-0-1",
+    "message-0-1",
+    "mic-0-1",
+    "money-bag-0-1",
+    "moon-0-1",
+    "more-horizontal",
+    "more-vertical",
+    "notification",
+    "pause",
+    "play",
+    "refresh-0-1",
+    "repeat",
+    "sautilink:justice-scale",
+    "search",
+    "security-block",
+    "send",
+    "settings-0-1",
+    "share-0-1",
+    "shield-check",
+    "sun-0-1",
+    "text-bold",
+    "text-font",
+    "text-italic",
+    "text-strikethrough",
+    "text-underline",
+    "thumbs-down",
+    "thumbs-up",
+    "upload-0-1",
+    "user",
+    "user-add-0-1",
+    "user-group",
+    "video-0-1",
+    "volume-high",
+    "volume-off",
+    "wifi-off-0-1",
+    "briefcase-0-1",
+    "megaphone-0-1",
+    "target-0-1",
+    "paint-brush-0-1",
+    "book-open-0-1",
+    "wifi-0-1",
+    "copy",
+    "printer",
+    "clock-0-1",
+    "code",
+    "server",
+    "arrow-up-right-0-1",
+    "lucide:network",
+    "lucide:smartphone",
+    "lucide:external-link",
+    "lucide:monitor"
+  ],
+  "runtimeSha256": "9f32b5aea0b4559fe1f87fbb373aac09e49b0886fc47ed56eb667eba90ed7c44",
+  "sourceRuntime": {
+    "upstream": "dist/index.js",
+    "file": "upstream/runtime.js",
+    "sha256": "269c8f0cdf18e5163b2695403eb8ff5c8d214ebf574841ef1a53108e327b6475"
+  },
+  "originalIcons": [
+    {
+      "name": "activity",
+      "upstream": "dist/chunk-EYGNF76V.js",
+      "file": "data/activity.js",
+      "sha256": "d9f814586b491a56380349d1ed49fa3b130a7ee1671dc74ad8ce8d6c20664eb0",
+      "library": "huge"
+    },
+    {
+      "name": "add-0-1",
+      "upstream": "dist/chunk-OZTSOMK5.js",
+      "file": "data/add-0-1.js",
+      "sha256": "1c2943bdd988031038ab5c9b19edce742bce8519ac8392125430bc6597ec5061",
+      "library": "huge"
+    },
+    {
+      "name": "analytics-0-1",
+      "upstream": "dist/chunk-YNHYTESW.js",
+      "file": "data/analytics-0-1.js",
+      "sha256": "81a10d4aeb0c11e69724a8ddbd13a4ec8a534a76807ff6cd095ef2ab2b40d587",
+      "library": "huge"
+    },
+    {
+      "name": "arrow-left-0-2",
+      "upstream": "dist/chunk-ORBVQKXP.js",
+      "file": "data/arrow-left-0-2.js",
+      "sha256": "87103d33f2c4dbd8e64caaa51c5e233dcc32e7990e24cf2159c1fbeb1d249930",
+      "library": "huge"
+    },
+    {
+      "name": "arrow-right-0-2",
+      "upstream": "dist/chunk-5J2N757P.js",
+      "file": "data/arrow-right-0-2.js",
+      "sha256": "d99a23ab4bfe728b8b2aa823f2dfac32e2955b6af36199a1a92bf401828fd7b1",
+      "library": "huge"
+    },
+    {
+      "name": "attachment-0-1",
+      "upstream": "dist/chunk-45H34FW3.js",
+      "file": "data/attachment-0-1.js",
+      "sha256": "b6e0db15d7e6651e67a95786308cfb453933e6baf9010f7cf274daabb17bd0a2",
+      "library": "huge"
+    },
+    {
+      "name": "bookmark",
+      "upstream": "dist/chunk-ZHHPYD6G.js",
+      "file": "data/bookmark.js",
+      "sha256": "d5cb16f08084263dd3eae191974eb59eb10d131b4c53eaac2ffefda397867a32",
+      "library": "huge"
+    },
+    {
+      "name": "calendar-0-1",
+      "upstream": "dist/chunk-3PTTGGIU.js",
+      "file": "data/calendar-0-1.js",
+      "sha256": "dc02d6af7fca82cba65b1f1513f061859ac47e84ffdc60f3e65fabbe68569a68",
+      "library": "huge"
+    },
+    {
+      "name": "camera-0-1",
+      "upstream": "dist/chunk-RZGJMDX6.js",
+      "file": "data/camera-0-1.js",
+      "sha256": "26e0f78470fc395496c3e41944be842bd83acbed59747a9448d7138f990a6fd7",
+      "library": "huge"
+    },
+    {
+      "name": "cancel-0-1",
+      "upstream": "dist/chunk-ANCKQA6I.js",
+      "file": "data/cancel-0-1.js",
+      "sha256": "f480a3b7eb7f385cda78a191a461a1ff7472ff91b0ce079d7f1d4832c5b296ea",
+      "library": "huge"
+    },
+    {
+      "name": "check",
+      "upstream": "dist/chunk-TEANZTVQ.js",
+      "file": "data/check.js",
+      "sha256": "3a176a6991eebaca220f81f7a9cca1b129c921f90333fc8fb54862ecc4d85e10",
+      "library": "huge"
+    },
+    {
+      "name": "chevron-down",
+      "upstream": "dist/chunk-ZA76BOW3.js",
+      "file": "data/chevron-down.js",
+      "sha256": "490caf2a13ace5b0f5b55466807a57d2e557d9aa9d662b134e311a2fc626ecbb",
+      "library": "huge"
+    },
+    {
+      "name": "chevron-left",
+      "upstream": "dist/chunk-HB26O4SC.js",
+      "file": "data/chevron-left.js",
+      "sha256": "1b3a11991ea7ccec41a7d215eb19007ca86f7591d7ac6f421ec8d93fd220ac06",
+      "library": "huge"
+    },
+    {
+      "name": "chevron-right",
+      "upstream": "dist/chunk-ISHZPHLW.js",
+      "file": "data/chevron-right.js",
+      "sha256": "0fcb7f36ec63a8ba6a2d0a2b3401d3e9a2c652e3f32d162bad5974b7150a6713",
+      "library": "huge"
+    },
+    {
+      "name": "compass-0-1",
+      "upstream": "dist/chunk-SEBMQAKY.js",
+      "file": "data/compass-0-1.js",
+      "sha256": "e1e6348fc7a1298984e37616c16ae54fa6f6e09636550981f50ac9e13771f0d5",
+      "library": "huge"
+    },
+    {
+      "name": "corner-up-left",
+      "upstream": "dist/chunk-YYZNR3DJ.js",
+      "file": "data/corner-up-left.js",
+      "sha256": "6414b323612fb34726f07172526cb553249a6a4929817ff449989f4ac80f424c",
+      "library": "huge"
+    },
+    {
+      "name": "delete-0-2",
+      "upstream": "dist/chunk-2LDUUNA3.js",
+      "file": "data/delete-0-2.js",
+      "sha256": "25af212b0e6cbc32a8a705d348312701bd25efc123dace2842966a973e41068f",
+      "library": "huge"
+    },
+    {
+      "name": "download",
+      "upstream": "dist/chunk-IFXW2KT2.js",
+      "file": "data/download.js",
+      "sha256": "025189a0e2b9314a0def9e4467146cbcbe53b72f4e27182a35f3335e81ae78f4",
+      "library": "huge"
+    },
+    {
+      "name": "edit-0-2",
+      "upstream": "dist/chunk-2J65PEGH.js",
+      "file": "data/edit-0-2.js",
+      "sha256": "ee4fd84d35b728ecf4b04b2857645028fa7cef2e778c023f3892b457bea01e25",
+      "library": "huge"
+    },
+    {
+      "name": "eye",
+      "upstream": "dist/chunk-AUPU3W55.js",
+      "file": "data/eye.js",
+      "sha256": "7155779462935589da2c85e863c81a0fd2e0ff72fb28c11541d5166e2f2e35ca",
+      "library": "huge"
+    },
+    {
+      "name": "file-0-1",
+      "upstream": "dist/chunk-JQ4LE6WB.js",
+      "file": "data/file-0-1.js",
+      "sha256": "ecb2f56ef102b03cad97693c52bb2f44c6556cf8fb32cf9f7a3468615a8b0ce8",
+      "library": "huge"
+    },
+    {
+      "name": "flag-0-1",
+      "upstream": "dist/chunk-ML4L7IZW.js",
+      "file": "data/flag-0-1.js",
+      "sha256": "e66ffb44fe3e1b358a5ba0045237609b9f9de6985a36ef2529476e2c4740767c",
+      "library": "huge"
+    },
+    {
+      "name": "full-screen",
+      "upstream": "dist/chunk-LTTZDDFY.js",
+      "file": "data/full-screen.js",
+      "sha256": "e5685b0365925138a124ebdd147ba9ef58d05d1ef7ee390a6e9b291613dc9d73",
+      "library": "huge"
+    },
+    {
+      "name": "globe-0-2",
+      "upstream": "dist/chunk-3QPKTA2K.js",
+      "file": "data/globe-0-2.js",
+      "sha256": "6aad6ab70582d40286177c70a9a84409dd886f555831fec4a3de44bb6627a952",
+      "library": "huge"
+    },
+    {
+      "name": "heart",
+      "upstream": "dist/chunk-422JA5PS.js",
+      "file": "data/heart.js",
+      "sha256": "04d497348cc0ba7dcfde2f2c48e13d04622e9c969cbc043c43c4f45ddebd9b76",
+      "library": "huge"
+    },
+    {
+      "name": "help-circle",
+      "upstream": "dist/chunk-IZHBPZFX.js",
+      "file": "data/help-circle.js",
+      "sha256": "e11d2b7bd17473106ba9df6c9bdfe8500704fd23804946c9972ed62b6c7e3762",
+      "library": "huge"
+    },
+    {
+      "name": "home-0-1",
+      "upstream": "dist/chunk-NTQGYVGI.js",
+      "file": "data/home-0-1.js",
+      "sha256": "e6f7123cdc09aeeeef9ba6d2188fd21f48b4ad878929b6a86170f24d47d4410a",
+      "library": "huge"
+    },
+    {
+      "name": "id-verified",
+      "upstream": "dist/chunk-WYCFKINB.js",
+      "file": "data/id-verified.js",
+      "sha256": "9bb3ac791aa704c949ad88ce8cbf2d72962c421f0709abfa5041b941e43d4d2f",
+      "library": "huge"
+    },
+    {
+      "name": "image-0-1",
+      "upstream": "dist/chunk-NCQE4Q64.js",
+      "file": "data/image-0-1.js",
+      "sha256": "064b5b38180a0698ed0ea2bb7d9f790e86f37c075f81b1c73163fd1600d55e5f",
+      "library": "huge"
+    },
+    {
+      "name": "location-0-1",
+      "upstream": "dist/chunk-6RMVMQJY.js",
+      "file": "data/location-0-1.js",
+      "sha256": "4cd2e8ba0204cfe8f3d6be31bffbceaa4b53445929370fd52ececa96b4ec98a5",
+      "library": "huge"
+    },
+    {
+      "name": "lock-keyhole",
+      "upstream": "dist/chunk-472DKJR2.js",
+      "file": "data/lock-keyhole.js",
+      "sha256": "0af7c710fa126186352d281cdec5c468ce0bcaa64a3c5f6f42ee02187213882a",
+      "library": "huge"
+    },
+    {
+      "name": "logout-0-1",
+      "upstream": "dist/chunk-2DUFUOPQ.js",
+      "file": "data/logout-0-1.js",
+      "sha256": "f1b30199cddc8d26a51b6bbb282f46eccb4862f97d46a63170e11431d7ea4b36",
+      "library": "huge"
+    },
+    {
+      "name": "lucide:cloud",
+      "upstreamName": "cloud",
+      "library": "lucide",
+      "upstream": "dist/chunk-ONROIEWG.js",
+      "file": "data/lucide-cloud.js",
+      "sha256": "fa3d908efeb5377cad15ff2323ca48f86779cc02f964fb9f086abbc106fcd27c"
+    },
+    {
+      "name": "lucide:hash",
+      "upstreamName": "hash",
+      "library": "lucide",
+      "upstream": "dist/chunk-KP2INXKS.js",
+      "file": "data/lucide-hash.js",
+      "sha256": "d9ecfb2e275022932782edf37ff691fdbf2827701a4ebb861501acd7eb11830f"
+    },
+    {
+      "name": "lucide:picture-in-picture",
+      "upstreamName": "picture-in-picture",
+      "library": "lucide",
+      "upstream": "dist/chunk-6ZZDEPXO.js",
+      "file": "data/lucide-picture-in-picture.js",
+      "sha256": "fad1f12f8c2bc3ea76461a31f56f1faa09da2b1ad47af21d8729b8122fe6151e"
+    },
+    {
+      "name": "lucide:pin",
+      "upstreamName": "pin",
+      "library": "lucide",
+      "upstream": "dist/chunk-QK2KPWJY.js",
+      "file": "data/lucide-pin.js",
+      "sha256": "98c6f9731d635b08a74be3610e67631aa02ff089b9bb4e25c7118177b37ca93b"
+    },
+    {
+      "name": "lucide:router",
+      "upstreamName": "router",
+      "library": "lucide",
+      "upstream": "dist/chunk-W7GGZ62N.js",
+      "file": "data/lucide-router.js",
+      "sha256": "b9268ede7a131ebe0193787cf25540215f418ea61742a40b4eac8f3f12d7f175"
+    },
+    {
+      "name": "mail-0-1",
+      "upstream": "dist/chunk-TKFLFMCU.js",
+      "file": "data/mail-0-1.js",
+      "sha256": "3c3cade193abca3e5e8a6688a366ce438137ad81db8e24773929a1069332cc71",
+      "library": "huge"
+    },
+    {
+      "name": "menu-0-1",
+      "upstream": "dist/chunk-BHK5X5NB.js",
+      "file": "data/menu-0-1.js",
+      "sha256": "8104608ca12d15d7b6bb83aa3e88bad12bd1319175928136c7482c0fb48ef982",
+      "library": "huge"
+    },
+    {
+      "name": "message-0-1",
+      "upstream": "dist/chunk-X6B4CDA5.js",
+      "file": "data/message-0-1.js",
+      "sha256": "76efbed066a88a40cb3ef6a30d40f3fafa2229c45efc3f74745f7152fee4e9f2",
+      "library": "huge"
+    },
+    {
+      "name": "mic-0-1",
+      "upstream": "dist/chunk-RZIHH2FC.js",
+      "file": "data/mic-0-1.js",
+      "sha256": "fcd7d208a67497c3ce7d877311facc8c3c17f89c2e97c9e6b91de956af006efc",
+      "library": "huge"
+    },
+    {
+      "name": "money-bag-0-1",
+      "upstream": "dist/chunk-WP2GXQWN.js",
+      "file": "data/money-bag-0-1.js",
+      "sha256": "d446d01dfe9a1a653a6797c1fea0c45dd31e71556dd35138566608a747768785",
+      "library": "huge"
+    },
+    {
+      "name": "moon-0-1",
+      "upstream": "dist/chunk-2FWI2BLV.js",
+      "file": "data/moon-0-1.js",
+      "sha256": "8318134c795c21f0c266de6b697210967729e5b60d2972ce0665c8febeacaed8",
+      "library": "huge"
+    },
+    {
+      "name": "more-horizontal",
+      "upstream": "dist/chunk-PQVSFTE6.js",
+      "file": "data/more-horizontal.js",
+      "sha256": "095f3fe2856e77949b80eda072f2ec2920c6ae61283c6bbd348aef1f11c1386d",
+      "library": "huge"
+    },
+    {
+      "name": "more-vertical",
+      "upstream": "dist/chunk-SNSQJBHA.js",
+      "file": "data/more-vertical.js",
+      "sha256": "ebc770b0c684af2700ac7b7cd7cfe783ab8a82f94d6cdac9dcb61e6d68f769c6",
+      "library": "huge"
+    },
+    {
+      "name": "notification",
+      "upstream": "dist/chunk-NLMTI7P5.js",
+      "file": "data/notification.js",
+      "sha256": "78e507faf04ffe9591fc98016eb4f2cdcca4672d0127479597bb2bbfb29b67f5",
+      "library": "huge"
+    },
+    {
+      "name": "pause",
+      "upstream": "dist/chunk-YCADF2OC.js",
+      "file": "data/pause.js",
+      "sha256": "f63ba9d3c2540c4e79e656ccb56523749dda28dfcb6975c763bb022be2119af5",
+      "library": "huge"
+    },
+    {
+      "name": "play",
+      "upstream": "dist/chunk-BGACR3YM.js",
+      "file": "data/play.js",
+      "sha256": "fd76ffbb47bf5674cd189c8f88c14980b94938345770a4a7aca34aa0daf39d91",
+      "library": "huge"
+    },
+    {
+      "name": "refresh-0-1",
+      "upstream": "dist/chunk-EMK45HN2.js",
+      "file": "data/refresh-0-1.js",
+      "sha256": "2c10043368fd5d4cb82d571f1a9c1729bd7ee2f374699a70c8fae9e56f1188e3",
+      "library": "huge"
+    },
+    {
+      "name": "repeat",
+      "upstream": "dist/chunk-DVFUL452.js",
+      "file": "data/repeat.js",
+      "sha256": "44325ba09abd9852e447d2bac6675bc83be01482c226614589cd7eaf49bb5b32",
+      "library": "huge"
+    },
+    {
+      "name": "sautilink:justice-scale",
+      "upstreamName": "justice-scale",
+      "library": "sautilink",
+      "origin": "SautiLink app/index.html, appeals navigation SVG; animated locally",
+      "file": "data/sautilink-justice-scale.js",
+      "sha256": "612b4ce357d776305bffe8330becbd4caf1302a235a533811d8acd6f100252cb"
+    },
+    {
+      "name": "search",
+      "upstream": "dist/chunk-VCOJLC24.js",
+      "file": "data/search.js",
+      "sha256": "26bca02a27708ecd622540d1415253e756796091c10d3e1765d84c075c01baf1",
+      "library": "huge"
+    },
+    {
+      "name": "security-block",
+      "upstream": "dist/chunk-PUO7WFCT.js",
+      "file": "data/security-block.js",
+      "sha256": "cb940cef3e859d6c9ca8639afadc9256b27a59b22db9a2dc2256c1c5966177b4",
+      "library": "huge"
+    },
+    {
+      "name": "send",
+      "upstream": "dist/chunk-4753VFO7.js",
+      "file": "data/send.js",
+      "sha256": "f146422e185eaf3062701cdb3f8f2d705cdef31607658a8b3e57619ddfd6341f",
+      "library": "huge"
+    },
+    {
+      "name": "settings-0-1",
+      "upstream": "dist/chunk-TMWKNE5W.js",
+      "file": "data/settings-0-1.js",
+      "sha256": "24bcf7796098edb7750cd911408acdaa0d9de472b83733a757f7be29156f4d3b",
+      "library": "huge"
+    },
+    {
+      "name": "share-0-1",
+      "upstream": "dist/chunk-YXUMMO5F.js",
+      "file": "data/share-0-1.js",
+      "sha256": "55a8065fe99a95f5b9c388f25a7a1e32daf7b2b7bf4714916f2b29f27466276d",
+      "library": "huge"
+    },
+    {
+      "name": "shield-check",
+      "upstream": "dist/chunk-HQMR5RG5.js",
+      "file": "data/shield-check.js",
+      "sha256": "da11f82f8ec9a4049aad6b113ffb75bf020c65bff4f7acb8e85e80fe09236150",
+      "library": "huge"
+    },
+    {
+      "name": "sun-0-1",
+      "upstream": "dist/chunk-D2EIC36F.js",
+      "file": "data/sun-0-1.js",
+      "sha256": "a315cbd091675bfc7a9e6658c6f13325e1a1bd363de87392ff257306a0e79ea9",
+      "library": "huge"
+    },
+    {
+      "name": "text-bold",
+      "upstream": "dist/chunk-C5ZNMPQC.js",
+      "file": "data/text-bold.js",
+      "sha256": "8ed409d7cc99232f5f2ca9c5c4ff44fa18e31f17a96bac79759b15d62fac378a",
+      "library": "huge"
+    },
+    {
+      "name": "text-font",
+      "upstream": "dist/chunk-LGP6U5CH.js",
+      "file": "data/text-font.js",
+      "sha256": "a9b06630f522d28572d3934ea8e695f86a3f1421983e9287a68a849b4928287e",
+      "library": "huge"
+    },
+    {
+      "name": "text-italic",
+      "upstream": "dist/chunk-XZDZLU5R.js",
+      "file": "data/text-italic.js",
+      "sha256": "4e0919cde002df5d52ae6c7dc010c7e3affe7e460737cbb8415be2f9ad777bc6",
+      "library": "huge"
+    },
+    {
+      "name": "text-strikethrough",
+      "upstream": "dist/chunk-5KYURYP7.js",
+      "file": "data/text-strikethrough.js",
+      "sha256": "45ef877325f0dd165edc797ea1c3b3f69cfa7e09172796ccac4925094ecae86e",
+      "library": "huge"
+    },
+    {
+      "name": "text-underline",
+      "upstream": "dist/chunk-GCUSPRXS.js",
+      "file": "data/text-underline.js",
+      "sha256": "5fa0c3d04e470287109efd502f4f65d81aafb8b29419bd1dd97607691d735400",
+      "library": "huge"
+    },
+    {
+      "name": "thumbs-down",
+      "upstream": "dist/chunk-D2K33AYZ.js",
+      "file": "data/thumbs-down.js",
+      "sha256": "c88f15777bb5690d69a420c50d1f8ae6e7c6e68180b429b59676d56f41aa88b9",
+      "library": "huge"
+    },
+    {
+      "name": "thumbs-up",
+      "upstream": "dist/chunk-F655RGLX.js",
+      "file": "data/thumbs-up.js",
+      "sha256": "543cf5348b10b69d9b3df184d58a305547b81d15913b8881e4427b16c1b53ffe",
+      "library": "huge"
+    },
+    {
+      "name": "upload-0-1",
+      "upstream": "dist/chunk-BLPAIDD3.js",
+      "file": "data/upload-0-1.js",
+      "sha256": "1dcdb339c1a3333925afcb9490ab202115179cce40c3ba1a099774766b177a22",
+      "library": "huge"
+    },
+    {
+      "name": "user",
+      "upstream": "dist/chunk-64QLUTTU.js",
+      "file": "data/user.js",
+      "sha256": "3a8b3bfc4f32fcc749835aa5e7b15f6826ead9454b9e3108840f5b544b75e533",
+      "library": "huge"
+    },
+    {
+      "name": "user-add-0-1",
+      "upstream": "dist/chunk-VRGMYWSU.js",
+      "file": "data/user-add-0-1.js",
+      "sha256": "0090e3e02819e69cfc6a9e9636cedd30c348e81f5e73e5d8c5dc3973e6ec9d01",
+      "library": "huge"
+    },
+    {
+      "name": "user-group",
+      "upstream": "dist/chunk-IVH5KQJK.js",
+      "file": "data/user-group.js",
+      "sha256": "f75e85410f3cf46de44066f67c74d74374737299c94a3a1b004400969e2272b5",
+      "library": "huge"
+    },
+    {
+      "name": "video-0-1",
+      "upstream": "dist/chunk-ZN4VWFCR.js",
+      "file": "data/video-0-1.js",
+      "sha256": "7a69cf181eebd23fe2b798718f1026fa7874a4432658264a247a0b57a586dfc4",
+      "library": "huge"
+    },
+    {
+      "name": "volume-high",
+      "upstream": "dist/chunk-TC76FG7Q.js",
+      "file": "data/volume-high.js",
+      "sha256": "de621cd97b747c17f41c1e2a62cbc2d862d8966765944284423ea96e2ad296df",
+      "library": "huge"
+    },
+    {
+      "name": "volume-off",
+      "upstream": "dist/chunk-VST34H2H.js",
+      "file": "data/volume-off.js",
+      "sha256": "c307eb472db1ec3743dd309545c0abb77c4513d54ad6ba6eb40384ea090b0a59",
+      "library": "huge"
+    },
+    {
+      "name": "wifi-off-0-1",
+      "upstream": "dist/chunk-TY6H3B53.js",
+      "file": "data/wifi-off-0-1.js",
+      "sha256": "0cb66e7f48bd54286bcf7ea2ed4a4c98df5e26b2e0e05ed6b0fd4c9402147ca1",
+      "library": "huge"
+    }
+  ],
+  "additionalIcons": [
+    {
+      "name": "briefcase-0-1",
+      "library": "huge",
+      "file": "huge/briefcase-0-1.js",
+      "sha256": "9884f179a526d14e27d0ea2ee0c81340591392af0cc203890d3ac75f71cc6861"
+    },
+    {
+      "name": "megaphone-0-1",
+      "library": "huge",
+      "file": "huge/megaphone-0-1.js",
+      "sha256": "8ef27c7c5d619d45a7abf75b03ee427e64dc2ccfdc0f39cd9e26e7d3dc59d51e"
+    },
+    {
+      "name": "target-0-1",
+      "library": "huge",
+      "file": "huge/target-0-1.js",
+      "sha256": "849e4416b14fd8908b405855baf21487ad78e220b3419b7843574c1dba2039e3"
+    },
+    {
+      "name": "paint-brush-0-1",
+      "library": "huge",
+      "file": "huge/paint-brush-0-1.js",
+      "sha256": "03f72f9accb3a62378d616cefae8da69496bcf0c6babbb9721c542d9199331da"
+    },
+    {
+      "name": "book-open-0-1",
+      "library": "huge",
+      "file": "huge/book-open-0-1.js",
+      "sha256": "04f9ef48a6f925f2caf45c3ccfb86966326917fd9c9160ab835c81f9e1b8005a"
+    },
+    {
+      "name": "wifi-0-1",
+      "library": "huge",
+      "file": "huge/wifi-0-1.js",
+      "sha256": "725a516ddfc141c8c47b7e3200539a6e79bc6511f07d860a086b1c4640d86b56"
+    },
+    {
+      "name": "copy",
+      "library": "huge",
+      "file": "huge/copy.js",
+      "sha256": "2578f33f1fbd9764eb6c1d678b3f0efd94df1271a7aa1bf4db0b228fd3df27fa"
+    },
+    {
+      "name": "printer",
+      "library": "huge",
+      "file": "huge/printer.js",
+      "sha256": "5828d972159513609732888bc1efe3382e1bc0a404447f150c3c031ab5427493"
+    },
+    {
+      "name": "clock-0-1",
+      "library": "huge",
+      "file": "huge/clock-0-1.js",
+      "sha256": "922ee64912e2305d965d12a8a4b5acd6c960ca24eda24775c3dfeeca6c257afe"
+    },
+    {
+      "name": "code",
+      "library": "huge",
+      "file": "huge/code.js",
+      "sha256": "d7d628cbb46d6bfbe6041e6998573ee94f8770f1a70f9dedfc9a27e088261dd3"
+    },
+    {
+      "name": "server",
+      "library": "huge",
+      "file": "huge/server.js",
+      "sha256": "00d3536a116e2a881f98e145e985d2936dbc81fef1c059c29fe302ac26487fac"
+    },
+    {
+      "name": "arrow-up-right-0-1",
+      "library": "huge",
+      "file": "huge/arrow-up-right-0-1.js",
+      "sha256": "416a5932c3dd6092b13b9aefac265a03d51121d4c90afc00b84a68f455c8db25"
+    },
+    {
+      "name": "lucide:network",
+      "library": "lucide",
+      "file": "lucide/network.js",
+      "sha256": "a280419e9936080be201ae3e210f5f451dd8943ac62471db21d7fea03917e0db"
+    },
+    {
+      "name": "lucide:smartphone",
+      "library": "lucide",
+      "file": "lucide/smartphone.js",
+      "sha256": "f096144559a86654c818b3d27a9385d70829d262841a386f0d3e436fc02d5e2e"
+    },
+    {
+      "name": "lucide:external-link",
+      "library": "lucide",
+      "file": "lucide/external-link.js",
+      "sha256": "cfce7de5ec4e5a47a179ced81b9cf4bc09cbbc4f426c86535fc1c0ef383da1ee"
+    },
+    {
+      "name": "lucide:monitor",
+      "library": "lucide",
+      "file": "lucide/monitor.js",
+      "sha256": "dde2756b670881ad9eedefe8647d1bd41a59afbe3393879cfe64ca1d349c8e51"
+    }
+  ]
+}

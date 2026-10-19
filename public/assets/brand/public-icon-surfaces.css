@@ -1,0 +1,103 @@
+/* Public-page icon layout only. Account screens keep their existing presentation. */
+body[data-public-icons] .nav-link,
+body[data-public-icons] .cloud-icon-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+body[data-public-icons] .cloud-icon-label > .public-icon,
+body[data-public-icons] .nav-link > .public-icon {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+}
+
+body[data-public-icons] .cloud-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+body[data-public-icons] .cloud-title-row > .public-icon {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  margin-top: 7px;
+  color: var(--accent);
+}
+
+body[data-public-icons] .cloud-title-row > h1 { min-width: 0; }
+body[data-public-icons] .cloud-heading { display: flex; align-items: flex-start; gap: 10px; }
+body[data-public-icons] .cloud-heading > .public-icon {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  margin-top: .12em;
+  color: var(--accent);
+}
+
+body[data-public-icons] .section-title-row .cloud-heading > .public-icon {
+  flex-basis: 30px;
+  width: 30px;
+  height: 30px;
+  margin-top: .13em;
+}
+
+body[data-public-icons] .product-footer-group .cloud-heading { align-items: center; gap: 7px; }
+body[data-public-icons] .product-footer-group .cloud-heading > .public-icon {
+  flex-basis: 16px;
+  width: 16px;
+  height: 16px;
+  margin-top: 0;
+  color: var(--text-muted);
+}
+
+body[data-public-icons] .product-footer-links a.cloud-icon-label { gap: 7px; }
+body[data-public-icons] .product-footer-links a.cloud-icon-label > .public-icon { flex-basis: 15px; width: 15px; height: 15px; }
+body[data-public-icons] .product-footer-links a.cloud-icon-label > span { min-width: 0; }
+
+body[data-public-icons] .nav-toggle { flex-direction: row; }
+body[data-public-icons] .nav-toggle > .public-icon { width: 22px; height: 22px; }
+
+body[data-public-icons] :is(.command-input-wrap, .audit-input-wrap) > .public-icon {
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+
+body[data-public-icons] .quick-card > .cloud-card-icon {
+  display: block;
+  width: 28px;
+  height: 28px;
+  color: var(--accent);
+}
+
+body[data-public-icons] .quick-card > .quick-arrow.public-icon { width: 20px; height: 20px; }
+body[data-public-icons] .tool-card .cloud-heading { gap: 9px; }
+body[data-public-icons] .tool-card .cloud-heading > .public-icon { flex-basis: 22px; width: 22px; height: 22px; }
+body[data-public-icons] .category-button-top > strong { display: inline-flex; align-items: center; gap: 8px; }
+body[data-public-icons] .category-button-top .public-icon { flex: 0 0 18px; width: 18px; height: 18px; }
+body[data-public-icons] .cloud-bridge-cta { margin-top: 1rem; }
+
+body[data-public-icons] .faq-item summary { gap: 12px; }
+body[data-public-icons] .faq-question { display: inline-flex; align-items: flex-start; gap: 10px; }
+body[data-public-icons] .faq-question > .public-icon { flex: 0 0 20px; width: 20px; height: 20px; margin-top: .17em; color: var(--accent); }
+body[data-public-icons] .faq-question > span { min-width: 0; }
+
+@media (max-width: 1120px) and (min-width: 1061px) {
+  body[data-public-icons] .site-header .header-inner { gap: 12px; }
+  body[data-public-icons] .nav-link { padding-inline: 5px; gap: 5px; }
+  body[data-public-icons] .header-actions .btn { padding-inline: 11px; }
+}
+
+@media (max-width: 720px) {
+  body[data-public-icons] .cloud-title-row { gap: 12px; }
+  body[data-public-icons] .cloud-title-row > .public-icon { flex-basis: 30px; width: 30px; height: 30px; margin-top: 5px; }
+  body[data-public-icons] .section-title-row .cloud-heading > .public-icon { flex-basis: 25px; width: 25px; height: 25px; }
+  body[data-public-icons] .cloud-heading { gap: 9px; }
+}
+
+@media print {
+  body[data-public-icons] .public-icon { color: currentColor; }
+}
