@@ -47,22 +47,24 @@ function snapshot(now = NOW, patch = {}) {
 }
 
 function buttons(result) { return result.reply_markup.inline_keyboard.flat(); }
-function connections(result) { return buttons(result).filter((button) => button.url); }
+function connections(result) { return buttons(result).filter((button) => button.url?.startsWith("https://t.me/proxy?")); }
 function callbacks(result) { return buttons(result).map((button) => button.callback_data).filter(Boolean); }
 function json(data, status = 200) { return new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json" } }); }
 
-test("proxy lists are paginated at five, with measured latency and provenance", () => {
+test("proxy lists provide five numbered Connect buttons with compact branded copy and pagination", () => {
   const data = snapshot(NOW, { page: 2, proxies: Array.from({ length: 6 }, (_, i) => entry(i + 6)) });
   const result = renderProxySnapshot(data, "en", { now: NOW });
   assert.equal(connections(result).length, 5);
-  assert.match(result.text, /Active at the latest check: 12/);
+  assert.match(result.text, /Active: 12/);
   assert.match(result.text, /Page 2 of 3/);
-  assert.match(result.text, /6\. Community proxy 6/);
-  assert.doesNotMatch(result.text, /Community proxy 11/);
-  assert.match(result.text, /Observed: 118 ms · monitor: AMS/);
-  assert.match(result.text, /Source: Maintainer feed/);
-  assert.match(result.text, /not your phone/);
-  assert.ok(result.text.length < 3900);
+  assert.match(result.text, /Community proxies/);
+  assert.match(result.text, /Powered by SautiLink Corporation/);
+  assert.deepEqual(connections(result).map((button) => button.text), [6, 7, 8, 9, 10].map((number) => `🔗 Connect Proxy ${number}`));
+  assert.doesNotMatch(result.text, /Community proxy 6|example\.com|Maintainer feed|118 ms|AMS|Source:|Snapshot:|Classic MTProto/);
+  assert.ok(result.text.length < 200);
+  assert.deepEqual(buttons(result).find((button) => button.url === "https://t.me/drcharlesofficial"), {
+    text: "📣 Follow Updates", url: "https://t.me/drcharlesofficial",
+  });
   assert.ok(callbacks(result).includes("proxy:list:1"));
   assert.ok(callbacks(result).includes("proxy:list:3"));
   assert.ok(callbacks(result).includes("proxy:refresh:2"));
@@ -73,12 +75,11 @@ test("warming may show fresh Active entries without claiming the target has been
   const data = snapshot(NOW, { monitor_status: "warming", counts: { active: 1, unstable: 0, offline: 0, unverified: 2, stale: 0, total: 3 }, proxies: [entry()], total: 1, total_pages: 1 });
   const result = renderProxySnapshot(data, "en", { now: NOW });
   assert.equal(connections(result).length, 1);
-  assert.match(result.text, /Initial checks/);
-  assert.match(result.text, /latest check: 1/);
+  assert.match(result.text, /Active: 1/);
   assert.doesNotMatch(result.text, /20 Active/);
   const status = renderProxySnapshot(data, "en", { now: NOW, view: "status" });
-  assert.match(status.text, /Target: 20 Active proxies/);
-  assert.match(status.text, /not a guaranteed live count/);
+  assert.match(status.text, /Target: 20 Active/);
+  assert.match(status.text, /availability varies/);
   assert.equal(connections(status).length, 0);
 });
 
@@ -91,7 +92,8 @@ test("expired snapshots, failed rows and successes older than ten minutes cannot
   ]) {
     const result = renderProxySnapshot(snapshot(NOW, patch), "en", { now: NOW });
     assert.equal(connections(result).length, 0, JSON.stringify(patch));
-    assert.match(result.text, /Last recorded Active/);
+    assert.match(result.text, /Checks are (out of date|unavailable)/);
+    assert.doesNotMatch(result.text, /🟢 Active:/);
   }
   const rows = [
     { ...entry(1), status: "offline" },
@@ -122,13 +124,11 @@ test("Connect accepts only a canonical Telegram proxy URL matching the stored en
   assert.equal(safeProxyConnectUrl({ ...entry(), host: "proxy.example.com\nLogin: evil" }), null);
 });
 
-test("missing metrics stay unknown and external strings cannot create markup or extra lines", () => {
+test("external labels and source metadata never appear in the compact message", () => {
   const row = { ...entry(), latency_ms: null, availability_pct: null, label: "<b>Proxy</b>\nForged header\u202e", source: { name: "Feed\r\nAnother line", url: "javascript:alert(1)" } };
   const result = renderProxySnapshot(snapshot(NOW, { proxies: [row] }), "en", { now: NOW });
-  assert.match(result.text, /Latency not reported/);
-  assert.doesNotMatch(result.text, /Observed: 0 ms|100%|\nForged header|\nAnother line|\u202e|javascript:/);
+  assert.doesNotMatch(result.text, /Latency|Observed:|100%|Forged header|Another line|\u202e|javascript:|<b>|Feed/);
   assert.equal(result.parse_mode, undefined);
-  assert.match(result.text, /<b>Proxy<\/b> Forged header/); // literal plain text, not HTML
   assert.equal(connections(result).length, 1);
   assert.ok(connections(result).every((button) => new URL(button.url).origin === "https://t.me"));
 });
@@ -136,13 +136,12 @@ test("missing metrics stay unknown and external strings cannot create markup or 
 test("empty, unavailable and malformed snapshots never invent a working proxy", () => {
   const empty = snapshot(NOW, { proxies: [], counts: { active: 0, unstable: 0, offline: 0, unverified: 8, stale: 0, total: 8 }, total: 0, total_pages: 0, monitor_status: "warming" });
   const result = renderProxySnapshot(empty, "en", { now: NOW });
-  assert.match(result.text, /No recently verified Active proxies are ready yet/);
-  assert.match(result.text, /latest check: 0/);
+  assert.match(result.text, /Checking proxies/);
+  assert.match(result.text, /Active: 0/);
   assert.equal(connections(result).length, 0);
   const initial = renderProxySnapshot({ ...empty, generated_at: null, expires_at: null }, "en", { now: NOW });
-  assert.match(initial.text, /not completed its first snapshot/);
   assert.match(initial.text, /Initial checks/);
-  assert.doesNotMatch(initial.text, /results have expired/);
+  assert.doesNotMatch(initial.text, /out of date/);
   for (const invalid of [null, {}, { ...snapshot(), schema_version: 2 }, { ...snapshot(), counts: { active: -1 } }, { ...snapshot(), per_page: 500 }]) {
     const response = renderProxySnapshot(invalid, "sw", { now: NOW });
     assert.match(response.text, /haipatikani kwa sasa/);
@@ -174,7 +173,8 @@ test("list, pagination, refresh and status use one fixed snapshot GET each", asy
 test("help and invalid input never invoke the directory or a user-supplied URL", async () => {
   globalThis.fetch = async () => { throw new Error("No request expected"); };
   const help = await handleProxyCommand("help", BASE, "sw");
-  assert.match(help.text, /proxies tano kwa ukurasa/);
+  assert.match(help.text, /Bonyeza Unganisha Proxy/);
+  assert.match(help.text, /Powered by SautiLink Corporation/);
   for (const arg of ["https://internal.example", "-1", "0", "10000", "1&refresh=true"]) {
     const result = await handleProxyCommand(arg, BASE);
     assert.match(result.text, /Usage: \/proxy/);
@@ -220,4 +220,19 @@ test("proxy navigation is discoverable and all proxy copy exists in English and 
   assert.match(connections(result)[0].text, /Unganisha Proxy/);
   assert.ok(buttons(result).some((button) => button.text === "Inayofuata ➡️"));
   assert.doesNotMatch(result.text, /proxy\.(?:state|monitor|source)/);
+});
+
+test("help, status and failures keep the approved updates destination without promoting source brands", async () => {
+  const samples = [
+    await handleProxyCommand("help", BASE),
+    await handleProxyCommand("help", BASE, "sw"),
+    renderProxySnapshot(snapshot(), "en", { now: NOW, view: "status" }),
+    renderProxySnapshot(null, "en", { now: NOW }),
+  ];
+  for (const result of samples) {
+    assert.match(result.text, /Powered by SautiLink Corporation/);
+    assert.doesNotMatch(result.text, /Maintainer feed|github\.com|Source:|Chanzo:/);
+    assert.ok(buttons(result).some((button) => button.url === "https://t.me/drcharlesofficial"));
+    assert.ok(result.text.length < 800);
+  }
 });

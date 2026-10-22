@@ -29,6 +29,8 @@ This D1 database contains no Cloud Engine accounts, Telegram preferences or Pilo
 
 TCP reachability alone never creates an Active entry. This is a protocol liveness check, not Telegram's full authorization-key exchange, proof of the operator's identity, a bandwidth test, or a privacy certification. No messages, user sessions or files travel through these checks.
 
+Unencrypted response bodies may include 0–252 bytes of random word-aligned padding. The parser accepts that range without imposing encrypted-message AES block alignment, while retaining the nonce, constructor, frame, PQ and fingerprint checks. Inner body padding and the padded transport's separate 0–15 bytes remain bounded independently. Fixed diagnostic codes identify the failed guard without logging response bytes.
+
 ## Status and freshness
 
 | Status | Meaning | Connect |
@@ -41,22 +43,21 @@ TCP reachability alone never creates an Active entry. This is a protocol livenes
 
 A failed check removes Connect immediately. Protocol/runtime restrictions and DNS service failures are kept distinct from confirmed proxy failures. A later success restores Active and resets the consecutive-failure count.
 
-An Active result expires after **10 minutes**; the monitor snapshot expires after **3 minutes** without publication. The Worker recalculates expiry on every GET, even while its raw snapshot remains in its 15-second isolate cache. Public responses use `Cache-Control: no-store`. The web page also expires individual buttons locally; Telegram renders fresh results when a user opens or refreshes a page. Already-sent Telegram messages cannot expire their buttons autonomously, so the bot tells users to refresh before connecting.
+An Active result expires after **10 minutes**; the monitor snapshot expires after **3 minutes** without publication. The Worker recalculates expiry on every GET, even while its raw snapshot remains in its 15-second isolate cache. Public responses use `Cache-Control: no-store`. The web page also expires individual buttons locally; Telegram renders fresh results when a user opens or refreshes a page. Already-sent Telegram messages cannot expire their buttons autonomously; Refresh loads current connection choices.
 
 The latency value is the monitor's measured protocol-check latency. The success percentage is the fraction of observed checks that passed; it is not a time-based uptime SLA.
 
 ## Discovery, scheduling and resource bounds
 
-Only these fixed public feeds are used:
-
-- [shablin/mtproto-proxy](https://github.com/shablin/mtproto-proxy), `data/valid_proxy.txt` on `main`.
-- [ALIILAPRO/MTProtoProxy](https://github.com/ALIILAPRO/MTProtoProxy), `mtproto.txt` on `main`.
+Only the fixed community feeds configured in `src/proxy/config.js` are used. Their provenance remains available to monitor operations and is omitted from public product views.
 
 Each discovery tick reads at most 1 MiB per feed and considers at most 1,200 raw official Telegram proxy links. It validates a rotating window of **16 links per source**, yielding at most 32 new candidates per discovery. Canonical host, port and secret identify a configuration; a changed secret starts unverified. Source metadata distinguishes the raw feed count, scanned window and valid candidates. No upstream code is copied into the application.
 
-The catalog is capped at **240 configurations**, preserving recent working entries while replacing older failures with new candidates. Source windows advance every five minutes. Source errors retain the existing catalog and cannot label all existing proxies Offline.
+The catalog is capped at **240 configurations**. Fresh Active entries have first retention priority; configurations verified within the previous 24 hours have second priority so a transient failure does not immediately evict a useful fallback. Older failures are replaced by new candidates. Source windows advance every five minutes. Source errors retain the existing catalog and cannot label all existing proxies Offline.
 
 Cron runs every minute. Discovery and probes use separate ticks to avoid combining their CPU peaks. On probe ticks the default is **8 checks**, with at most **3 connections in flight** and a **6-second whole-probe deadline**. Work stops starting new checks after 55 seconds. Active entries are normally due again after four minutes, with room reserved for discovery/recovery; overdue entries queue fairly and still expire if not rechecked in time.
+
+Under the default budget, four slots are reserved for due Active entries and two for previously verified recovery candidates; the rest admit other candidates. Unused allocations are reused. A previously verified configuration with an inconclusive check is due again after two minutes, while confirmed failures retain their existing backoff. These priorities do not relax verification or increase the total probe budget.
 
 The lease lasts 90 seconds. Imports, pruning, observations and snapshot publication are fenced by both the lease token and its expiry. Older results cannot overwrite newer results. History is bounded to 12 observations per configuration. Initial filling takes several scheduled ticks, rather than blocking a visitor's request.
 
@@ -74,17 +75,18 @@ GET /api/proxies?status=active&page=1&per_page=20&sort=latency
 - `sort`: `latency` (default) or `reliability`.
 - `id`: optional exact configuration ID.
 
-The usual Cloud Engine success envelope contains `data.schema_version`, `generated_at`, `expires_at`, `monitor_status`, `counts`, `target_active`, pagination, `sources`, and `proxies`. Each row includes status, transport, last check/success, latency, observed success percentage, source attribution and short history. Only fresh Active rows have a `connect_url`. A raw `secret` field is not exposed; an Active Telegram connection URL necessarily contains the published proxy secret required by the Telegram client.
+The usual Cloud Engine success envelope contains `data.schema_version`, `generated_at`, `expires_at`, `monitor_status`, `counts`, `target_active`, pagination, `discovery`, and `proxies`. Each row includes status, transport, last check/success, latency, observed success percentage and short history. `discovery` provides aggregate feed availability and the latest successful fetch time; feed names, IDs and URLs remain in the monitor store. Only fresh Active rows have a `connect_url`. A raw `secret` field is not exposed; an Active Telegram connection URL necessarily contains the published proxy secret required by the Telegram client.
 
 Arbitrary host, URL and refresh/probe inputs are ignored. An absent binding reports an honest unavailable/empty directory. Worker failures return a sanitized 503. This endpoint does not initiate checks or modify settings.
 
 ## Telegram and web behavior
 
-- `/proxy` shows five current Active entries with numbered connection buttons.
+- `/proxy` shows up to five current Active entries as numbered **Connect Proxy** buttons, with a short community label, actual count and page number.
 - `/proxy <page>` and Previous/Next paginate the same saved catalog.
 - `/proxy status` shows counts, monitor state and freshness.
 - `/proxy help` explains connecting and choosing a replacement.
 - Refresh reads the latest results and uses the existing bot usage protection.
+- Bot and web views use **Powered by SautiLink Corporation** and link **Follow Updates** to `https://t.me/drcharlesofficial`. Public views do not advertise upstream feed brands or URLs.
 - English is the default; the existing Swahili preference is respected.
 - `/tools/proxy` provides status filters, latency/reliability sorting, pagination, last-check information and automatic refresh using the shared SautiLink visual system.
 
@@ -159,7 +161,7 @@ Worker logs contain bounded aggregate counts (`checked`, `active`, `candidates`,
 - **Unverified:** inspect aggregate protocol/restriction reasons; do not relabel them Active merely because a TCP port opens.
 - **Fewer than 20 Active:** let subsequent windows add candidates; inspect source freshness and the monitor network. Do not increase quotas or purchase infrastructure without review.
 
-The public `sources` observations expose fixed diagnostic codes without upstream response bodies or exception text:
+The stored `sources` observations retain fixed diagnostic codes for operations without upstream response bodies or exception text. Public responses expose aggregate `discovery` health only:
 
 | Source reason | Meaning |
 | --- | --- |
@@ -180,6 +182,8 @@ For rollback, revert the Pages feature/binding first, then disable the dedicated
 - [Telegram deep links](https://core.telegram.org/api/links#mtproxy-links)
 - [Official MTProxy implementation](https://github.com/TelegramMessenger/MTProxy)
 - [Official TDLib implementation](https://github.com/tdlib/td)
+- [Telegram Desktop unencrypted response parsing and padding](https://github.com/telegramdesktop/tdesktop/blob/52a47639d9aa38713098974dd2ce07e631cb3381/Telegram/SourceFiles/mtproto/connection_abstract.cpp)
+- [Telegram Desktop unencrypted message construction](https://github.com/telegramdesktop/tdesktop/blob/52a47639d9aa38713098974dd2ce07e631cb3381/Telegram/SourceFiles/mtproto/connection_abstract.h)
 - [Cloudflare outbound TCP sockets](https://developers.cloudflare.com/workers/runtime-apis/tcp-sockets/)
 - [Cloudflare Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/)
 - [Cloudflare Workers limits](https://developers.cloudflare.com/workers/platform/limits/)

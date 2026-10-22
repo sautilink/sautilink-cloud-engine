@@ -125,6 +125,8 @@ export function formatProxy(locale = "en") {
     t(locale, "proxy.body"),
     "",
     `🔒 ${t(locale, "proxy.warning")}`,
+    "",
+    t(locale, "proxy.powered_by"),
   ].join("\n");
 }
 

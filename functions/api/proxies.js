@@ -2,6 +2,7 @@
 import { success, error, corsPreflight, methodNotAllowed } from "../../src/utils/response.js";
 import { getRequestId, guardRequestSize } from "../../src/utils/request.js";
 import { emptySnapshot, listSnapshot } from "../../src/proxy/model.js";
+import { publicDirectoryView } from "../../src/proxy/presentation.js";
 
 export async function onRequest({ request, env = {} }) {
   const requestId = getRequestId(request);
@@ -25,7 +26,8 @@ export async function onRequest({ request, env = {} }) {
     const payload = await response.json();
     if (payload?.success !== true || payload.data?.schema_version !== 1 || !Array.isArray(payload.data.proxies)) throw new Error("invalid_snapshot");
     // Service response has already been paginated; do not paginate it twice.
-    const data = payload.data;
+    // Also remove provenance from an older checker during a rolling deploy.
+    const data = publicDirectoryView(payload.data);
     return success(data, 200, { ...options, cacheControl: "no-store" });
   } catch {
     return error("PROXY_DIRECTORY_UNAVAILABLE", "Proxy status is temporarily unavailable. Please try again shortly.", 503, options);

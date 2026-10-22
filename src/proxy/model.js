@@ -1,7 +1,9 @@
-import { ACTIVE_INTERVAL_MS, MAX_HISTORY, PUBLIC_STATUSES, SNAPSHOT_TTL_MS, SOURCES, TARGET_ACTIVE, VERIFICATION_TTL_MS, boundedInteger } from "./config.js";
+import { ACTIVE_INTERVAL_MS, MAX_HISTORY, PUBLIC_STATUSES, RECOVERY_INTERVAL_MS, RECOVERY_RETENTION_MS, SNAPSHOT_TTL_MS, SOURCES, TARGET_ACTIVE, VERIFICATION_TTL_MS, boundedInteger } from "./config.js";
+import { publicDirectoryView } from "./presentation.js";
 
 const iso = value => Number.isFinite(Number(value)) && Number(value) > 0 ? new Date(Number(value)).toISOString() : null;
 const timestamp = value => typeof value === "string" ? Date.parse(value) : NaN;
+const recentlyVerified = (row, now) => Number.isFinite(row.success_at) && row.success_at > now - RECOVERY_RETENTION_MS && row.success_at <= now + 5_000;
 
 export function observeCandidate(candidate, observation, now = Date.now()) {
   // A socket alone can never promote a candidate into the public Active pool.
@@ -13,7 +15,9 @@ export function observeCandidate(candidate, observation, now = Date.now()) {
   try { history = JSON.parse(candidate.history || "[]"); } catch { /* Start fresh if an old record is damaged. */ }
   if (!Array.isArray(history)) history = [];
   const latency = verified && Number.isFinite(observation.latency_ms) && observation.latency_ms >= 0 ? Math.round(observation.latency_ms) : null;
-  const nextDelay = verified ? ACTIVE_INTERVAL_MS : failed ? (failures < 3 ? 60_000 : Math.min(3_600_000, 300_000 * 2 ** Math.min(failures - 3, 4))) : 900_000;
+  const nextDelay = verified ? ACTIVE_INTERVAL_MS
+    : failed ? (failures < 3 ? 60_000 : Math.min(3_600_000, 300_000 * 2 ** Math.min(failures - 3, 4)))
+    : recentlyVerified(candidate, now) ? RECOVERY_INTERVAL_MS : 900_000;
   return {
     ...candidate,
     checked_at: now,
@@ -33,12 +37,17 @@ export function selectDueCandidates(candidates, now, limit) {
   const due = candidates.filter(row => row.next_check_at <= now);
   const sort = (a, b) => a.next_check_at - b.next_check_at || a.created_at - b.created_at || a.id.localeCompare(b.id);
   const active = due.filter(row => row.status === "active").sort(sort);
-  const other = due.filter(row => row.status !== "active").sort(sort);
+  const recovery = due.filter(row => row.status !== "active" && recentlyVerified(row, now)).sort(sort);
+  const other = due.filter(row => row.status !== "active" && !recentlyVerified(row, now)).sort(sort);
   const activeQuota = Math.ceil(limit / 2);
   const selected = active.splice(0, activeQuota);
+  // A temporary check failure must not send a working fallback behind the whole
+  // unverified catalog. Reserve a bounded quarter for recovery, while retaining
+  // discovery slots and keeping the existing total probe/connection budget.
+  selected.push(...recovery.splice(0, Math.min(Math.ceil(limit / 4), limit - selected.length)));
   selected.push(...other.splice(0, limit - selected.length));
-  // Fill unused slots without starving discovery when established entries are due.
-  for (const row of [...other, ...active]) {
+  // Fill unused allocations in due order; no known capacity is left idle.
+  for (const row of [...active, ...recovery, ...other].sort(sort)) {
     if (selected.length >= limit) break;
     selected.push(row);
   }
@@ -116,7 +125,7 @@ export function listSnapshot(snapshot, parameters = new URLSearchParams(), now =
   const perPage = boundedInteger(parameters.get("per_page"), 20, 1, 100);
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const page = Math.min(boundedInteger(parameters.get("page"), 1, 1, 10000), totalPages);
-  return {
+  return publicDirectoryView({
     ...data,
     monitor_status: stopped ? data.monitor_status : expired && data.generated_at ? "stale" : data.monitor_status,
     counts,
@@ -127,5 +136,5 @@ export function listSnapshot(snapshot, parameters = new URLSearchParams(), now =
     total: filtered.length,
     total_pages: totalPages,
     proxies: filtered.slice((page - 1) * perPage, page * perPage),
-  };
+  });
 }

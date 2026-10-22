@@ -9,6 +9,8 @@ export const POOL_SIZE = 240;
 export const SNAPSHOT_TTL_MS = 180_000;
 export const VERIFICATION_TTL_MS = 600_000;
 export const ACTIVE_INTERVAL_MS = 240_000;
+export const RECOVERY_INTERVAL_MS = 120_000;
+export const RECOVERY_RETENTION_MS = 86_400_000;
 // Discovery advances a small raw-link window every five minutes. Parsing and
 // normalizing whole public feeds in one scheduled run can exhaust CPU budgets.
 export const SOURCE_INTERVAL_MS = 300_000;

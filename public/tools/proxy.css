@@ -72,6 +72,7 @@ body[data-proxy-page] .proxy-icon-button {
 .proxy-lead { max-width: 490px; margin: 0 0 20px; color: var(--text-muted); font-size: 19px; line-height: 1.6; }
 .proxy-inline-link { display: inline-flex; align-items: center; gap: 7px; color: var(--accent-hover); font-size: 14px; font-weight: 550; min-height: 44px; }
 .proxy-inline-link > .public-icon { width: 18px; height: 18px; }
+.proxy-hero-actions { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; }
 .proxy-monitor { min-width: 0; padding: 28px; border: 1px solid var(--border-subtle); border-radius: 26px; background: var(--surface); box-shadow: var(--shadow); scroll-margin-top: 90px; }
 .proxy-monitor-heading { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
 .proxy-monitor-heading .proxy-kicker { font-size: 10px; letter-spacing: .04em; }
@@ -137,7 +138,6 @@ body[data-proxy-page] .proxy-refresh { margin-top: 20px; width: 100%; gap: 8px; 
 .proxy-details dl { margin: 8px 0 0; display: grid; gap: 10px; }
 .proxy-details dt { font-size: 10px; color: var(--text-muted); }
 .proxy-details dd { margin: 2px 0 0; font-size: 11px; overflow-wrap: anywhere; }
-.proxy-details dd a { color: var(--accent-hover); text-decoration: underline; }
 body[data-proxy-page] .proxy-connect { flex: 0 0 auto; font-size: 12px; min-height: 44px; padding: 10px 17px; gap: 7px; border-radius: 12px; }
 .proxy-connect .public-icon { width: 16px; height: 16px; }
 .proxy-connect:disabled { background: var(--bg-elevated) !important; border-color: var(--border-subtle); color: var(--text-muted) !important; opacity: 1; cursor: not-allowed; }

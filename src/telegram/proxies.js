@@ -60,55 +60,33 @@ export function renderProxySnapshot(data, locale = "en", options = {}) {
   const snapshot = normalizeSnapshot(data, now);
   if (!snapshot) return failure(locale, view, requestedPage);
   const lines = [t(locale, "proxy.title"), "", t(locale, "proxy.community")];
-  const monitorKey = `proxy.monitor.${snapshot.monitor}`;
-  lines.push(t(locale, monitorKey));
-  if (snapshot.generated) lines.push(t(locale, "proxy.snapshot_time", { time: timestampLabel(snapshot.generated) }));
 
   if (view === "status") {
+    lines.push(t(locale, `proxy.monitor.${snapshot.monitor}`));
+    if (snapshot.generated) lines.push(t(locale, "proxy.snapshot_time", { time: timestampLabel(snapshot.generated) }));
     lines.push("", t(locale, !snapshot.generated && snapshot.monitor === "warming" ? "proxy.no_snapshot" : snapshot.fresh ? "proxy.counts" : "proxy.old_counts"));
     for (const status of STATUSES) lines.push(`${statusLabel(locale, status)}: ${snapshot.counts[status]}`);
     lines.push(t(locale, "proxy.total", { count: snapshot.counts.total }));
     if (snapshot.target != null) lines.push("", t(locale, "proxy.target", { count: snapshot.target }));
-    if (snapshot.interval != null) lines.push(t(locale, "proxy.interval", { seconds: snapshot.interval }));
-    lines.push("", t(locale, "proxy.status_note"), t(locale, "proxy.refresh_note"));
+    lines.push("", t(locale, "proxy.powered_by"));
     return { text: lines.join("\n"), reply_markup: navigation(locale, { view }) };
   }
 
-  lines.push("", t(locale, !snapshot.generated && snapshot.monitor === "warming" ? "proxy.no_snapshot" : snapshot.fresh ? "proxy.active_count" : "proxy.old_active_count", { count: snapshot.counts.active }));
   const buttons = [];
-  const rows = snapshot.proxies.slice(0, PROXY_PAGE_SIZE);
-  if (rows.length) {
-    lines.push(t(locale, "proxy.page", { page: snapshot.page, pages: Math.max(1, snapshot.totalPages) }));
-    for (const [index, row] of rows.entries()) {
-      const number = (snapshot.page - 1) * PROXY_PAGE_SIZE + index + 1;
-      const observed = rowFresh(row, now);
-      const status = row?.status === "active" && (!snapshot.fresh || !observed)
-        ? "stale" : STATUSES.includes(row?.status) ? row.status : "unverified";
-      const connection = snapshot.fresh && observed ? safeProxyConnectUrl(row) : null;
-      const label = cleanText(row?.label, 42) || t(locale, "proxy.item", { number });
-      const host = safeHost(row?.host);
-      const port = boundedInteger(row?.port, 1, 65535);
-      const displayHost = host?.includes(":") && !host.startsWith("[") ? `[${host}]` : host;
-      const endpoint = host && port ? `${displayHost}:${port}` : t(locale, "proxy.unknown_endpoint");
-      const transport = ["classic", "padded", "fake_tls"].includes(row?.transport)
-        ? t(locale, `proxy.transport.${row.transport}`) : "MTProto";
-      const latency = finiteNumber(row?.latency_ms, 0, 120_000);
-      const checked = parseTimestamp(row?.last_checked_at);
-      const location = cleanText(row?.check_location, 42) || t(locale, "proxy.unknown");
-      const source = cleanText(row?.source?.name, 50) || t(locale, "proxy.unknown");
-      lines.push("", `${number}. ${label}`, `${endpoint} · ${transport}`, statusLabel(locale, status));
-      lines.push(t(locale, latency == null ? "proxy.latency_unknown" : "proxy.latency", {
-        ms: latency == null ? "" : Math.round(latency), location,
-      }));
-      lines.push(t(locale, "proxy.checked", { time: checked ? timestampLabel(checked) : t(locale, "proxy.unknown") }));
-      lines.push(t(locale, "proxy.source", { source }));
-      if (connection) buttons.push([{ text: t(locale, "proxy.connect", { number }), url: connection }]);
-      else lines.push(t(locale, "proxy.connect_unavailable"));
-    }
-  } else {
-    lines.push("", t(locale, snapshot.monitor === "warming" ? "proxy.empty_warming" : "proxy.empty"));
+  for (const [index, row] of snapshot.proxies.slice(0, PROXY_PAGE_SIZE).entries()) {
+    const connection = snapshot.fresh && rowFresh(row, now) ? safeProxyConnectUrl(row) : null;
+    if (!connection) continue;
+    const number = (snapshot.page - 1) * PROXY_PAGE_SIZE + index + 1;
+    buttons.push([{ text: t(locale, "proxy.connect", { number }), url: connection }]);
   }
-  lines.push("", t(locale, "proxy.network_note"), t(locale, "proxy.refresh_note"));
+  if (snapshot.fresh) {
+    lines.push(t(locale, "proxy.active_count", { count: snapshot.counts.active }));
+    if (buttons.length) lines.push(t(locale, "proxy.page", { page: snapshot.page, pages: Math.max(1, snapshot.totalPages) }));
+    else lines.push("", t(locale, snapshot.monitor === "warming" ? "proxy.empty_warming" : "proxy.empty"));
+  } else {
+    lines.push("", t(locale, `proxy.monitor.${snapshot.monitor}`));
+  }
+  lines.push("", t(locale, "proxy.powered_by"));
   return {
     text: lines.join("\n"),
     reply_markup: navigation(locale, { view, page: snapshot.page, totalPages: snapshot.totalPages, buttons }),
@@ -136,7 +114,6 @@ function normalizeSnapshot(data, now) {
   return {
     counts, page, totalPages, generated, fresh, monitor, proxies: data.proxies,
     target: boundedInteger(data.target_active, 1, 10_000),
-    interval: boundedInteger(data.refresh_interval_seconds, 1, 86_400),
   };
 }
 
@@ -181,12 +158,6 @@ function safeHost(value) {
   return value;
 }
 
-function cleanText(value, limit) {
-  return typeof value === "string"
-    ? value.replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2060-\u206f]/g, " ").replace(/\s+/g, " ").trim().slice(0, limit)
-    : "";
-}
-
 function parseTimestamp(value) {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T/.test(value)) return null;
   const parsed = Date.parse(value);
@@ -195,13 +166,12 @@ function parseTimestamp(value) {
 
 function timestampLabel(value) { return new Date(value).toISOString().replace("T", " ").slice(0, 19) + " UTC"; }
 function boundedInteger(value, min, max) { return Number.isInteger(value) && value >= min && value <= max ? value : null; }
-function finiteNumber(value, min, max) { return typeof value === "number" && Number.isFinite(value) && value >= min && value <= max ? value : null; }
 function statusLabel(locale, status) { return t(locale, `proxy.state.${status}`); }
 
 function failure(locale, view, page, code) {
   const key = code === "ENGINE_TIMEOUT" ? "proxy.timeout" : code === "RATE_LIMITED" ? "proxy.rate" : "proxy.unavailable";
   return {
-    text: [t(locale, "proxy.title"), "", t(locale, key), "", t(locale, "proxy.refresh_note")].join("\n"),
+    text: [t(locale, "proxy.title"), "", t(locale, key), "", t(locale, "proxy.powered_by")].join("\n"),
     reply_markup: navigation(locale, { view, page }),
   };
 }
@@ -222,6 +192,7 @@ function navigation(locale, { view = "list", page = 1, totalPages = 0, buttons =
   if (view !== "status") info.push({ text: t(locale, "proxy.status_button"), callback_data: "proxy:status" });
   if (view !== "help") info.push({ text: t(locale, "proxy.help_button"), callback_data: "proxy:help" });
   if (info.length) rows.push(info);
+  rows.push([{ text: t(locale, "proxy.updates"), url: "https://t.me/drcharlesofficial" }]);
   rows.push([{ text: t(locale, "menu.back"), callback_data: "menu:main" }]);
   return { inline_keyboard: rows };
 }
