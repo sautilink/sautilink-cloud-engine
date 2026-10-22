@@ -4,7 +4,6 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const typographyPath = "public/assets/brand/typography-manrope.css";
-const brandingPath = "docs/BRANDING.md";
 const interDir = "public/assets/fonts/inter";
 
 function read(path) {
@@ -74,11 +73,4 @@ test("typography stylesheet has no runtime external font-provider dependency", (
   const css = read(typographyPath);
   assert.doesNotMatch(css, /https?:\/\//i);
   assert.doesNotMatch(css, /Manrope|Lora|Zalando Sans SemiExpanded/);
-});
-
-test("branding policy carries Inter from web into future native apps", () => {
-  const branding = read(brandingPath);
-  assert.match(branding, /Inter is the official SautiLink Cloud Engine product font/i);
-  assert.match(branding, /iOS and Android app builds should bundle the same Inter variable family/i);
-  assert.match(branding, /Platform system fonts are fallbacks, not the Cloud Engine brand font/i);
 });

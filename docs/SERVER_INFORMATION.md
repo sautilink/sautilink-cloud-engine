@@ -1,33 +1,14 @@
-# Server Information
+# Server information
 
-`/tools/server` is an observational infrastructure view over the existing SSRF-protected `/api/headers` probe.
+Open [Server Information](https://cloudengine.sautilink.com/tools/server) and
+enter a public website URL.
 
-## Product scope
+The tool shows available response information such as status, protocol,
+redirects, response time, content type, security headers and cache-related
+signals.
 
-The page may present only response information Cloud Engine directly observes from the inspected public URL, including:
+Headers may suggest an intermediary, but they do not establish ownership or
+prove which company operates a website. Missing headers do not prove that an
+intermediary is absent.
 
-- HTTP protocol, status, and response time
-- final URL and redirect count/chain
-- `Server`, `Content-Type`, and `Cache-Control` values when exposed
-- cookie metadata count
-- browser-facing security response signals such as HSTS and CSP
-- response headers that may indicate caching, proxying, or an edge delivery layer
-
-## Edge / proxy signals
-
-Edge-related headers are hints, not attribution proof. Examples include `Via`, `Server-Timing`, `CF-Ray`, `CF-Cache-Status`, `X-Cache`, `X-Served-By`, `X-Amz-Cf-*`, `X-Vercel-*`, `X-Nf-*`, Akamai-prefixed headers, and Fly request identifiers.
-
-The UI must not turn one observed header into a definitive hosting, ownership, CDN, WAF, or infrastructure-provider claim. A missing edge header also does not prove that no intermediary exists.
-
-## Safety and privacy
-
-- The tool reuses `/api/headers`; it does not introduce a second outbound-fetch implementation.
-- Existing URL validation, DNS public-address gating, redirect revalidation, request timeout, and SSRF controls remain authoritative.
-- The browser page stores no inspected target, result, or history in local/session/durable storage.
-- No database migration is required.
-- No external infrastructure-attribution provider is contacted by this feature.
-- Telegram behavior is unchanged.
-
-## Related tools
-
-Use the dedicated HTTP Headers Analyzer for the full header/security score, HTTP Status Checker for redirect/status diagnostics, IP Lookup for DNS-derived address context, and SSL/HTTPS Analyzer for HTTPS posture.
+Use the [API guide](API.md) for supported integrations.

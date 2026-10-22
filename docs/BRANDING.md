@@ -1,81 +1,13 @@
-# SautiLink Cloud Engine Branding Policy
+# SautiLink brand permissions
 
-## Product identity
+SautiLink Cloud Engine is a service of SautiLink Corporation.
 
-- Product: **SautiLink Cloud Engine**
-- Parent organization: **SautiLink Corporation**
-- Corporate site: `sautilink.com`
-- Product site: `cloudengine.sautilink.com`
+The SautiLink names, logos and original brand artwork identify official
+services. Do not use them to imply affiliation, sponsorship or approval
+without permission, except as allowed by applicable law.
 
-SautiLink Cloud Engine must present itself publicly as a SautiLink Corporation product.
+For partnership, brand-use or licensing enquiries, contact
+[SautiLink Corporation](https://sautilink.com/contact).
 
-## Public-surface rule
-
-User-facing Telegram messages, menus, settings, status screens, help/about content, error copy, and other public product surfaces must not expose third-party infrastructure or implementation-provider names.
-
-Public output should use SautiLink-owned wording such as:
-
-- SautiLink Cloud Engine
-- SautiLink Corporation
-- SautiLink-managed service
-- SautiLink global protection
-
-Do not expose internal environment-variable names, database/deployment providers, source-control providers, infrastructure topology, or internal architecture decisions in normal user-facing output.
-
-## Technical vocabulary
-
-Open technical standards and analyzer concepts are part of the product and may remain visible where useful, including DNS, HTTP, HTTPS, SSL/TLS, HSTS, MX, SPF, DMARC, DKIM, robots.txt, sitemap.xml, SEO, and security headers. These describe what Cloud Engine analyzes rather than how SautiLink deploys the product.
-
-## Architecture enquiries
-
-Normal product UX should not explain the implementation architecture. Integration or architecture enquiries should be directed to **SautiLink Corporation** through `sautilink.com` or the company's official contact channels.
-
-## Open-source boundary
-
-This policy protects normal product UX from unnecessary infrastructure disclosure. It does not claim that implementation details are undiscoverable when source code or maintainer documentation is intentionally published as open source. Public source visibility and public product UX are separate concerns.
-
-## Corporate color system
-
-SautiLink Corporation web products use the same core brand palette:
-
-- **Primary Blue:** `#2563EB` — main brand/action/accent color.
-- **Light Blue:** `#60A5FA` — secondary accent, hover/highlight, and softer brand emphasis.
-- **White:** `#FFFFFF` — primary brand neutral for light surfaces, reversed text, and logo-friendly contrast.
-
-Neutral dark/light colors may still be used for backgrounds, borders, text hierarchy, code blocks, and accessibility. Product accents and deliberate brand emphasis should resolve to the SautiLink blue family rather than legacy red accents.
-
-Implementation tokens:
-
-- `--brand-primary` → `#2563EB`
-- `--brand-primary-hover` → `#1D4ED8`
-- `--brand-light` → `#60A5FA`
-- `--brand-white` → `#FFFFFF`
-
-Cloud Engine maps its existing `--accent`, `--accent-hover`, and `--accent-soft` tokens onto this corporate palette so feature styles remain compatible while the public visual identity stays consistent.
-
-## Cloud Engine typography
-
-**Inter is the official SautiLink Cloud Engine product font** across web surfaces, matching the SautiLink corporate website.
-
-- **Inter**
-  - Used for normal page content, headings, navigation, buttons, forms, cards, reports, settings, brand names, product labels, footer branding, and copyright/signature surfaces.
-  - The official variable weight range is `100–900`, with normal and italic variable files.
-  - The web build self-hosts the same WOFF2 assets used by `sautilink.com`.
-  - Future iOS and Android app builds should bundle the same Inter variable family as the primary product font. Platform system fonts are fallbacks, not the Cloud Engine brand font.
-  - Brand distinction should come from weight, scale, spacing, color, layout, and the SautiLink Cloud Engine identity rather than a secondary typeface.
-
-Implementation tokens:
-
-- `--font-primary` → Inter
-- `--font` → `--font-primary` for compatibility with the existing shared stylesheet
-- `[data-brand-font]` remains supported for semantic brand markup but resolves to Inter like the rest of the product UI.
-
-The web font lives under `public/assets/fonts/inter/` and the shared mapping lives in `public/assets/brand/typography.css`. Pages must self-host the font rather than depending on a runtime request to an external font stylesheet/provider. Form controls explicitly inherit Inter so mobile browsers do not silently fall back to a different UI family. The legacy `typography-manrope.css` filename remains in page wiring for compatibility, but its active family is Inter.
-
-Technical values where character alignment materially improves readability—such as code-like output, raw DNS records, hashes, or similar diagnostics—may use a monospace rendering. That is a functional technical treatment, not a secondary Cloud Engine brand font.
-
-Inter is distributed under the SIL Open Font License 1.1. The original license file must remain alongside the vendored web font assets.
-
-## Regression protection
-
-Automated branding tests should fail if normal user-facing start, about, settings, or admin output reintroduces known infrastructure-vendor branding. Web typography tests should also fail if the self-hosted Inter assets, license file, `100–900` variable mapping, corporate color tokens, app typography contract, or page wiring are removed. They should reject Manrope, Lora, Zalando Sans SemiExpanded, and external font-provider dependencies from the Cloud Engine product UI.
+See the repository [LICENSE](../LICENSE). Third-party assets retain their own
+licenses and required notices.

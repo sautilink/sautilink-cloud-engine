@@ -1,30 +1,44 @@
-# API Reference
+# Cloud Engine public API
 
-| Method | Path |
-|--------|------|
-| GET | `/api/health` |
-| GET | `/api/dns?domain=` |
-| GET | `/api/http-status?url=` |
-| GET | `/api/email?domain=&selector=` |
-| GET | `/api/email-check?domain=&check=mx|spf|dmarc|dkim&selector=` |
-| GET | `/api/ip?query=` |
-| GET | `/api/rdns?ip=` |
-| GET | `/api/headers?url=` |
-| GET | `/api/robots?url=` |
-| GET | `/api/sitemap?url=` |
-| GET | `/api/website?url=` |
-| GET | `/api/mobile?url=` |
-| GET | `/api/ssl?url=` |
-| GET | `/api/audit?url=` |
-| GET | `/api/proxies?status=active&page=1&per_page=20&sort=latency` |
-| POST | `/api/telegram/webhook` |
+Base URL: `https://cloudengine.sautilink.com`
 
-`/api/email-check` is the focused single-check orchestration endpoint for the standalone MX, SPF, DMARC, and DKIM web tools. The `check` value is strictly allowlisted. `selector` is used only for DKIM. The route reuses the existing analyzer modules and performs only the DNS work needed for the selected check; it does not create report history or a second scoring model.
+Use the supported public endpoints below. Values in query strings must be
+URL-encoded. Inspect the HTTP status and returned JSON before using a result.
 
-`/api/ip` accepts a public domain or public IPv4/IPv6 address. Domains are resolved through the shared DNS engine using A/AAAA only. Direct public IP input may include reverse-DNS context. Private, reserved, documentation, loopback, multicast, and other blocked address ranges are rejected when used as IP targets.
+| Method | Path | Input |
+| --- | --- | --- |
+| GET | `/api/health` | Service readiness |
+| GET | `/api/dns?domain=` | Public domain |
+| GET | `/api/http-status?url=` | Public website URL |
+| GET | `/api/email?domain=&selector=` | Domain; optional DKIM selector |
+| GET | `/api/email-check?domain=&check=&selector=` | Check: `mx`, `spf`, `dmarc` or `dkim` |
+| GET | `/api/ip?query=` | Public domain or public IPv4/IPv6 address |
+| GET | `/api/rdns?ip=` | Public IPv4/IPv6 address |
+| GET | `/api/headers?url=` | Public website URL |
+| GET | `/api/robots?url=` | Public website URL |
+| GET | `/api/sitemap?url=` | Public website URL |
+| GET | `/api/website?url=` | Public website URL |
+| GET | `/api/mobile?url=` | Public website URL |
+| GET | `/api/ssl?url=` | Public HTTPS URL |
+| GET | `/api/audit?url=` | Public website URL |
+| GET | `/api/proxies?status=active&page=1&per_page=20&sort=latency` | [Proxy directory options](PROXY_DIRECTORY.md) |
 
-`/api/rdns` accepts a public IPv4/IPv6 address and performs an explicit PTR lookup. PTR support is available in the shared DNS engine only when requested; PTR was not added to the normal `/api/dns` default record set.
+Example:
 
-Telegram is a thin client; tool semantics are unchanged. See `docs/TELEGRAM.md`.
+```sh
+curl 'https://cloudengine.sautilink.com/api/dns?domain=example.com'
+```
 
-`/api/proxies` reads the background-verified MTProto directory. It never starts a probe. Active connection links expire when either the check or the monitor snapshot becomes stale. See `docs/PROXY_DIRECTORY.md` for statuses, pagination, architecture and deployment order.
+## Integration guidance
+
+- Send only public targets that you are permitted to inspect.
+- Do not place access tokens, passwords, private links or personal data in targets.
+- Handle validation failures, unavailable targets and rate limits in your interface.
+- Use reasonable request intervals; avoid retry loops.
+- Report findings as observations, not guarantees of security or availability.
+- Account, administrative and bot-delivery interfaces are not public integration APIs.
+
+Use of the API is subject to the
+[service terms](https://cloudengine.sautilink.com/terms).
+For a supported integration arrangement, contact
+[SautiLink Corporation](https://sautilink.com/contact).
