@@ -8,7 +8,7 @@ import { onRequest } from "../functions/api/proxies.js";
 import { resolveProxyHost } from "../src/proxy/dns.js";
 import { runMonitor } from "../src/proxy/monitor.js";
 import { collectSources, parseFeed, readLimitedText } from "../src/proxy/sources.js";
-import { SOURCES, DISCOVERY_WINDOW_SIZE, SOURCE_INTERVAL_MS } from "../src/proxy/config.js";
+import { SOURCES, DISCOVERY_WINDOW_SIZE, SOURCE_INTERVAL_MS, MAX_FEED_BYTES } from "../src/proxy/config.js";
 
 const NOW = Date.parse("2026-10-22T10:00:00Z");
 const candidate = (id = "a".repeat(32), overrides = {}) => ({ id, host: "proxy.example.org", port: 443, secret: "1234567890abcdef1234567890abcdef", transport: "classic", source_id: "shablin", source_seen_at: NOW, created_at: NOW, checked_at: null, success_at: null, status: "unverified", failures: 0, checks: 0, successes: 0, latency_ms: null, reason_code: null, check_location: null, history: "[]", next_check_at: 0, ...overrides });
@@ -228,6 +228,53 @@ test("bounded source rotation admits later entries and an unavailable source doe
   assert.notEqual(first.candidates[0].id, second.candidates[0].id);
   const previous = new Set(first.candidates.map(row => row.id));
   assert.ok(second.candidates.some(row => !previous.has(row.id)));
+});
+
+test("source diagnostics retain HTTP status without exposing response bodies", async () => {
+  const privateDetail = "https://untrusted.invalid/private?token=feed-error-secret";
+  for (const status of [403, 404, 429, 503]) {
+    const result = await collectSources({ sources: [SOURCES[0]], now: NOW, fetchFn: async () => new Response(privateDetail, { status }) });
+    assert.equal(result.candidates.length, 0);
+    assert.equal(result.observations[0].reason_code, "SOURCE_HTTP_ERROR");
+    assert.equal(result.observations[0].http_status, status);
+    assert.equal(JSON.stringify(result).includes(privateDetail), false);
+  }
+});
+
+test("source diagnostics distinguish an empty feed and the feed-size limit", async () => {
+  const empty = await collectSources({ sources: [SOURCES[0]], now: NOW, fetchFn: async () => new Response("No proxy links") });
+  assert.equal(empty.observations[0].reason_code, "SOURCE_EMPTY");
+  assert.equal(empty.observations[0].http_status, 200);
+  const oversized = await collectSources({ sources: [SOURCES[0]], now: NOW, fetchFn: async () => new Response("body", { headers: { "content-length": String(MAX_FEED_BYTES + 1) } }) });
+  assert.equal(oversized.observations[0].reason_code, "SOURCE_TOO_LARGE");
+  assert.equal(oversized.observations[0].http_status, 200);
+});
+
+test("source diagnostics distinguish fetch and body-read failures without exposing error details", async () => {
+  const privateDetail = "https://untrusted.invalid/private?token=feed-error-secret";
+  const failedFetch = await collectSources({ sources: [SOURCES[0]], now: NOW, fetchFn: async () => { throw new Error(privateDetail); } });
+  assert.equal(failedFetch.observations[0].reason_code, "SOURCE_FETCH_ERROR");
+  assert.equal(Object.hasOwn(failedFetch.observations[0], "http_status"), false);
+  assert.equal(JSON.stringify(failedFetch).includes(privateDetail), false);
+  const failedRead = await collectSources({ sources: [SOURCES[0]], now: NOW, fetchFn: async () => new Response(new ReadableStream({ start(controller) { controller.error(new Error(privateDetail)); } })) });
+  assert.equal(failedRead.observations[0].reason_code, "SOURCE_READ_ERROR");
+  assert.equal(failedRead.observations[0].http_status, 200);
+  assert.equal(JSON.stringify(failedRead).includes(privateDetail), false);
+});
+
+test("source timeout diagnostics recognize an aborted signal even when fetch throws another error type", async (context) => {
+  context.mock.timers.enable({ apis: ["setTimeout"] });
+  const pending = collectSources({
+    sources: [SOURCES[0]], now: NOW,
+    fetchFn: async (_url, { signal }) => new Promise((_resolve, reject) => {
+      signal.addEventListener("abort", () => reject(new TypeError("private upstream detail")), { once: true });
+    }),
+  });
+  context.mock.timers.tick(5000);
+  const result = await pending;
+  assert.equal(result.observations[0].reason_code, "SOURCE_TIMEOUT");
+  assert.equal(Object.hasOwn(result.observations[0], "http_status"), false);
+  assert.equal(JSON.stringify(result).includes("private upstream detail"), false);
 });
 
 test("scheduled runs build a verified pool with bounded concurrency and retain candidates during a source outage", async () => {

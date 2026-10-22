@@ -2,13 +2,20 @@ import { createHash } from "node:crypto";
 import { normalizeProxy } from "./protocol/normalize.js";
 import { SOURCES, SOURCE_INTERVAL_MS, MAX_FEED_BYTES, MAX_FEED_LINKS, DISCOVERY_WINDOW_SIZE } from "./config.js";
 
+class SourceError extends Error {
+  constructor(code) {
+    super(code);
+    this.code = code;
+  }
+}
+
 export async function candidateId(proxy) {
   const canonical = `${proxy.host}\n${proxy.port}\n${proxy.secret}`;
   return createHash("sha256").update(canonical).digest("hex").slice(0, 32);
 }
 
 export async function readLimitedText(response, limit = MAX_FEED_BYTES) {
-  if (Number(response.headers.get("content-length")) > limit) throw new Error("SOURCE_TOO_LARGE");
+  if (Number(response.headers.get("content-length")) > limit) throw new SourceError("SOURCE_TOO_LARGE");
   if (!response.body) return "";
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -19,7 +26,7 @@ export async function readLimitedText(response, limit = MAX_FEED_BYTES) {
       const part = await reader.read();
       if (part.done) break;
       bytes += part.value.byteLength;
-      if (bytes > limit) throw new Error("SOURCE_TOO_LARGE");
+      if (bytes > limit) throw new SourceError("SOURCE_TOO_LARGE");
       text += decoder.decode(part.value, { stream: true });
     }
     return text + decoder.decode();
@@ -65,20 +72,31 @@ export async function collectSources({ fetchFn = fetch, now = Date.now(), source
   for (const source of sources) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
+    let phase = "fetch";
+    let httpStatus = null;
     try {
       const response = await fetchFn(source.feed, {
         headers: { Accept: "text/plain", "User-Agent": "SautiLink-Cloud-Engine-Proxy-Monitor/1.0" },
         redirect: "error", signal: controller.signal,
       });
-      if (!response.ok) throw new Error("SOURCE_UNAVAILABLE");
-      const links = feedLinks(await readLimitedText(response));
-      if (!links.length) throw new Error("SOURCE_EMPTY");
+      if (Number.isInteger(response.status) && response.status >= 100 && response.status <= 599) httpStatus = response.status;
+      if (!response.ok) throw new SourceError("SOURCE_HTTP_ERROR");
+      phase = "read";
+      const text = await readLimitedText(response);
+      phase = "parse";
+      const links = feedLinks(text);
+      if (!links.length) throw new SourceError("SOURCE_EMPTY");
       const offset = (Math.floor(now / SOURCE_INTERVAL_MS) * DISCOVERY_WINDOW_SIZE) % links.length;
       const candidates = parseWindow(links, normalizeProxy, offset);
       pools.push({ source, candidates });
       observations.push({ id: source.id, name: source.name, url: source.url, status: "ok", last_fetched_at: new Date(now).toISOString(), candidate_count: candidates.length, feed_link_count: links.length, scanned_count: Math.min(links.length, DISCOVERY_WINDOW_SIZE) });
     } catch (error) {
-      observations.push({ id: source.id, name: source.name, url: source.url, status: "unavailable", last_attempt_at: new Date(now).toISOString(), reason_code: error?.name === "AbortError" ? "SOURCE_TIMEOUT" : "SOURCE_UNAVAILABLE" });
+      // Publish only codes owned by this module, never upstream error text or bodies.
+      const reasonCode = controller.signal.aborted || error?.name === "AbortError" ? "SOURCE_TIMEOUT"
+        : error instanceof SourceError ? error.code
+        : phase === "fetch" ? "SOURCE_FETCH_ERROR"
+        : phase === "read" ? "SOURCE_READ_ERROR" : "SOURCE_UNAVAILABLE";
+      observations.push({ id: source.id, name: source.name, url: source.url, status: "unavailable", last_attempt_at: new Date(now).toISOString(), reason_code: reasonCode, ...(httpStatus === null ? {} : { http_status: httpStatus }) });
     } finally { clearTimeout(timer); }
   }
   const candidates = [];
