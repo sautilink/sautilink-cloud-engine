@@ -27,10 +27,11 @@ test("VPN preview and proxy guidance are bilingual and make no invented availabi
   assert.match(vpnEn, /Coming soon/i);
   assert.match(vpnEn, /SSH, Trojan, WebSocket/i);
   assert.match(vpnSw, /Inakuja hivi karibuni/i);
-  assert.match(proxyEn, /Connect to Proxy/i);
+  assert.match(proxyEn, /Connect Proxy/i);
   assert.match(proxyEn, /community-operated MTProto/i);
-  assert.match(proxyEn, /actual count can be lower/i);
-  assert.match(proxySw, /idadi halisi inaweza kuwa chini/i);
+  assert.match(proxyEn, /availability can change/i);
+  assert.match(proxySw, /upatikanaji unaweza kubadilika/i);
+  assert.match(proxyEn, /Powered by SautiLink Corporation/);
   assert.match(proxyEn, /\/proxy status/);
 });
 
@@ -61,7 +62,7 @@ test("command handlers return the service copy and contact keyboard", async () =
   const contact = await handleCommand({ ...context, command: "contact" }, config);
 
   assert.match(vpn.text, /Coming soon/i);
-  assert.match(proxy.text, /Connect to Proxy/i);
+  assert.match(proxy.text, /Connect Proxy/i);
   assert.equal(contact.reply_markup.inline_keyboard[0][0].url, "https://t.me/drcharlestz");
 });
 

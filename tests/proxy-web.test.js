@@ -99,7 +99,7 @@ test("the real public snapshot and protocol normalizer produce compatible classi
   assert.equal(expired.proxies.every(proxy => connectUrl(proxy, expired, now + 180_000) === null), true);
 });
 
-test("untrusted labels, sources and monitoring locations remain text, with honest timing and source attribution", () => {
+test("untrusted labels and monitoring locations remain text, while upstream branding is omitted", () => {
   const data = normalizeSnapshot(fixture({}, {
     id: 'x" onclick="alert(1)', label: '<img src=x onerror="alert(1)">', check_location: '<script>alert(1)</script>',
     source: { name: '<b>My source</b>', url: 'javascript:alert(1)' },
@@ -108,7 +108,8 @@ test("untrusted labels, sources and monitoring locations remain text, with hones
   assert.doesNotMatch(html, /<img|<script|<b>|href="javascript:|data-proxy-id="x" onclick/);
   assert.match(html, /&lt;img/);
   assert.match(html, /&lt;script&gt;/);
-  assert.match(html, /&lt;b&gt;My source/);
+  assert.equal(data.proxies[0].source, undefined);
+  assert.doesNotMatch(html, /My source|<dt>Source<\/dt>/);
   assert.match(html, /Community provider/);
   assert.match(html, /30s ago/);
   assert.match(html, /rel="noopener noreferrer"/);
@@ -117,6 +118,16 @@ test("untrusted labels, sources and monitoring locations remain text, with hones
   assert.match(renderProxyCard(neutral.proxies[0], neutral, "en", now), /Checked from monitoring service/);
   assert.equal(relativeTime(null, "en", now), "Not checked");
   assert.equal(relativeTime(iso(now - 120_000), "sw", now), "dakika 2 zilizopita");
+});
+
+test("proxy cards never promote an upstream source even when a legacy snapshot includes one", () => {
+  const payload = fixture({}, { source: { name: "Example upstream brand", url: "https://upstream.example/proxies" } });
+  const data = normalizeSnapshot(payload);
+  for (const lang of ["en", "sw"]) {
+    const html = renderProxyCard(payload.data.proxies[0], data, lang, now);
+    assert.doesNotMatch(html, /Example upstream brand|upstream\.example|<dt>Source<\/dt>|<dt>Chanzo<\/dt>/);
+    assert.match(html, /https:\/\/t\.me\/proxy\?/);
+  }
 });
 
 test("a late response cannot replace a newer status view; every request is a snapshot-only GET", async () => {
@@ -215,6 +226,12 @@ test("the bilingual directory is discoverable, keeps shared branding, and has co
   assert.match(html, /public-icons\/adapter\.js/);
   assert.match(html, /id="proxy-theme"[^>]*aria-pressed="false"/);
   assert.match(html, /https:\/\/www\.sautilink\.com/);
+  assert.match(html, /href="https:\/\/www\.sautilink\.com"[^>]*data-i18n="corporation">Powered by SautiLink Corporation/);
+  assert.match(html, /href="https:\/\/t\.me\/drcharlesofficial"[^>]*class="proxy-inline-link proxy-updates"/);
+  assert.equal(COPY.en.corporation, "Powered by SautiLink Corporation");
+  assert.equal(COPY.sw.corporation, "Powered by SautiLink Corporation");
+  assert.equal(COPY.en.updates, "Follow updates");
+  assert.equal(COPY.sw.updates, "Fuata updates");
   assert.doesNotMatch(html, /<script[^>]*>\s*[^<\s]/);
   for (const path of ["public/app.js", "src/config/tools.js"]) assert.match(read(path), /id: "telegram-proxy"[^\n]+route: "\/tools\/proxy"[^\n]+status: "available"/);
   for (const path of ["public/index.html", "public/sitemap.xml", "public/llms.txt"]) assert.match(read(path), /\/tools\/proxy/);

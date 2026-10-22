@@ -8,7 +8,7 @@ import { onRequest } from "../functions/api/proxies.js";
 import { resolveProxyHost } from "../src/proxy/dns.js";
 import { runMonitor } from "../src/proxy/monitor.js";
 import { collectSources, parseFeed, readLimitedText } from "../src/proxy/sources.js";
-import { SOURCES, DISCOVERY_WINDOW_SIZE, SOURCE_INTERVAL_MS, MAX_FEED_BYTES } from "../src/proxy/config.js";
+import { SOURCES, DISCOVERY_WINDOW_SIZE, SOURCE_INTERVAL_MS, MAX_FEED_BYTES, MAX_CHECKS_PER_RUN, POOL_SIZE, RECOVERY_INTERVAL_MS, RECOVERY_RETENTION_MS, VERIFICATION_TTL_MS } from "../src/proxy/config.js";
 
 const NOW = Date.parse("2026-10-22T10:00:00Z");
 const candidate = (id = "a".repeat(32), overrides = {}) => ({ id, host: "proxy.example.org", port: 443, secret: "1234567890abcdef1234567890abcdef", transport: "classic", source_id: "shablin", source_seen_at: NOW, created_at: NOW, checked_at: null, success_at: null, status: "unverified", failures: 0, checks: 0, successes: 0, latency_ms: null, reason_code: null, check_location: null, history: "[]", next_check_at: 0, ...overrides });
@@ -108,6 +108,54 @@ test("due selection reserves room for new candidates without leaving available s
   assert.equal(selectDueCandidates(rows.slice(20), NOW, 12).length, 10);
 });
 
+test("previously verified fallbacks recover promptly without consuming discovery's whole budget", () => {
+  const active = Array.from({ length: 20 }, (_, index) => candidate(`a${String(index).padStart(31, "0")}`, { status: "active", success_at: NOW - 60_000 }));
+  const recovery = Array.from({ length: 20 }, (_, index) => candidate(`b${String(index).padStart(31, "0")}`, { success_at: NOW - 60_000 }));
+  const unseen = Array.from({ length: 20 }, (_, index) => candidate(`c${String(index).padStart(31, "0")}`));
+  const selected = selectDueCandidates([...active, ...recovery, ...unseen], NOW, MAX_CHECKS_PER_RUN);
+  assert.equal(selected.length, 8);
+  assert.equal(selected.filter(row => row.status === "active").length, 4);
+  assert.equal(selected.filter(row => row.status !== "active" && row.success_at).length, 2);
+  assert.equal(selected.filter(row => !row.success_at).length, 2);
+  assert.equal(new Set(selected.map(row => row.id)).size, selected.length);
+  const failedCheck = { status: "unverified", reason_code: "dns_timeout" };
+  const recovering = observeCandidate(recovery[0], failedCheck, NOW);
+  assert.equal(recovering.next_check_at, NOW + RECOVERY_INTERVAL_MS);
+  assert.equal(recovering.status, "unverified");
+  assert.equal(createSnapshot([recovering], [], NOW).proxies[0].connect_url, null);
+  const longExpired = observeCandidate({ ...recovery[0], success_at: NOW - RECOVERY_RETENTION_MS - 1 }, failedCheck, NOW);
+  assert.equal(longExpired.next_check_at, NOW + 900_000);
+});
+
+test("default probe budget keeps twenty working fallbacks fresh while checking recovery and new candidates", () => {
+  const stableIds = new Set(Array.from({ length: 20 }, (_, index) => `a${String(index).padStart(31, "0")}`));
+  const rows = [
+    ...[...stableIds].map(id => observeCandidate(candidate(id), passed, NOW)),
+    ...Array.from({ length: 20 }, (_, index) => candidate(`b${String(index).padStart(31, "0")}`, { success_at: NOW - 60_000 })),
+    ...Array.from({ length: 200 }, (_, index) => candidate(`c${String(index).padStart(31, "0")}`)),
+  ];
+  const checked = { stable: 0, recovery: 0, discovery: 0 };
+  for (let minute = 1; minute <= 60; minute++) {
+    const now = NOW + minute * 60_000;
+    // Real scheduler reserves each fifth tick for source discovery.
+    if (minute % 5 !== 0) {
+      const selected = selectDueCandidates(rows, now, MAX_CHECKS_PER_RUN);
+      assert.ok(selected.length <= 8);
+      for (const row of selected) {
+        const stable = stableIds.has(row.id);
+        checked[stable ? "stable" : row.success_at ? "recovery" : "discovery"]++;
+        const observation = stable ? passed : { status: "unverified", reason_code: "dns_timeout" };
+        Object.assign(row, observeCandidate(row, observation, now));
+      }
+    }
+    for (const row of rows.filter(row => stableIds.has(row.id))) {
+      assert.ok(now - row.success_at < VERIFICATION_TTL_MS, `working fallback expired at minute ${minute}`);
+    }
+    assert.equal(createSnapshot(rows, [], now).proxies.filter(row => row.status === "active").length, 20);
+  }
+  assert.ok(checked.stable > 20 && checked.recovery > 0 && checked.discovery > 0);
+});
+
 test("pagination preserves counts and handles invalid parameters without exposing secrets", () => {
   const rows = Array.from({ length: 23 }, (_, index) => observeCandidate(candidate(String(index).padStart(32, "0")), { ...passed, latency_ms: 20 + index }, NOW));
   const snapshot = createSnapshot(rows, [], NOW);
@@ -153,6 +201,29 @@ test("SQLite import preserves health for unchanged keys, and a new secret starts
     assert.equal(changed.success_at, null);
     await store.saveObservations([observeCandidate(row, { status: "offline" }, NOW)], "lease", NOW + 4);
     assert.equal((await store.list()).find(item => item.id === row.id).status, "active");
+  } finally { db.close(); }
+});
+
+test("bounded pool retains recently working fallbacks after a transient failure, but not forever", async () => {
+  const db = sqliteD1(); const store = new ProxyStore(db);
+  try {
+    await store.acquire(NOW, "lease");
+    const original = candidate();
+    await store.importCandidates([original], [], NOW, [], "lease");
+    const healthy = observeCandidate((await store.list())[0], passed, NOW + 1);
+    const recovering = observeCandidate(healthy, { status: "unverified", reason_code: "dns_timeout" }, NOW + 2);
+    await store.saveObservations([recovering], "lease", NOW + 2);
+    const fresh = Array.from({ length: POOL_SIZE }, (_, index) => candidate(String(index).padStart(32, "0"), { source_seen_at: NOW + 3 }));
+    await store.importCandidates(fresh, [], NOW + 3, [], "lease");
+    const retained = await store.list();
+    assert.equal(retained.length, POOL_SIZE);
+    assert.equal(retained.find(row => row.id === original.id)?.status, "unverified");
+    const later = NOW + RECOVERY_RETENTION_MS + 10;
+    await store.acquire(later, "next-lease");
+    await store.importCandidates(fresh.map(row => ({ ...row, source_seen_at: later })), [], later, [], "next-lease");
+    const expired = await store.list();
+    assert.equal(expired.length, POOL_SIZE);
+    assert.equal(expired.some(row => row.id === original.id), false);
   } finally { db.close(); }
 });
 
@@ -347,7 +418,7 @@ test("scheduled runs build a verified pool with bounded concurrency and retain c
     await runMonitor(store, { now: () => clock, collect, probe });
     const afterOutage = listSnapshot(await store.snapshot(), new URLSearchParams("status=all"), clock);
     assert.equal(afterOutage.counts.total, 24);
-    assert.equal(afterOutage.sources[0].status, "unavailable");
+    assert.equal((await store.snapshot()).sources[0].status, "unavailable");
     assert.equal(afterOutage.counts.active, 8);
     assert.equal(afterOutage.counts.stale, 16);
     assert.equal((await store.list()).some(row => row.status === "offline"), false);

@@ -41,7 +41,7 @@ export class ByteReader {
         const { done, value } = await this.reader.read();
         this.checkDeadline();
         if (done) fail("connection_closed", "offline");
-        if (!(value instanceof Uint8Array)) fail("invalid_response");
+        if (!(value instanceof Uint8Array)) fail("invalid_socket_chunk");
         this.bytes += value.byteLength;
         if (this.bytes > this.maxBytes) fail("response_too_large");
         this.pending = Buffer.from(value.buffer, value.byteOffset, value.byteLength);
@@ -101,34 +101,37 @@ export async function readMtprotoResponse(source, session, nonce) {
   if (length < 4 || length > 4096) fail("invalid_frame");
   const frame = session.incoming.update(await source.readExactly(length));
   if (frame.length <= 19 && frame.readInt32LE(0) < 0) fail("transport_rejected", "offline");
-  if (frame.length < 20 || !frame.subarray(0, 8).equals(Buffer.alloc(8))) fail("invalid_response");
+  if (frame.length < 20 || !frame.subarray(0, 8).equals(Buffer.alloc(8))) fail("invalid_auth_envelope");
   const messageId = frame.readBigUInt64LE(8);
-  if (messageId === 0n || (messageId & 1n) !== 1n) fail("invalid_response");
+  if (messageId === 0n || (messageId & 1n) !== 1n) fail("invalid_server_message_id");
   const bodyLength = frame.readUInt32LE(16);
   if (bodyLength < 56 || bodyLength > 1024 || bodyLength % 4 !== 0 || bodyLength + 20 > frame.length) {
-    fail("invalid_response");
+    fail("invalid_body_length");
   }
   const outerPadding = frame.length - 20 - bodyLength;
-  if (outerPadding > (session.padded ? 15 : 0)) fail("invalid_response");
+  if (outerPadding > (session.padded ? 15 : 0)) fail("invalid_transport_padding");
   const body = frame.subarray(20, 20 + bodyLength);
   if (body.readUInt32LE(0) !== 0x05162463) fail("unexpected_response");
   if (!equal(body.subarray(4, 20), nonce)) fail("nonce_mismatch");
   // resPQ: constructor, nonce, server_nonce, TL bytes(pq), Vector<long>.
   const pqLength = body[36];
-  if (pqLength < 1 || pqLength > 8 || 37 + pqLength > body.length) fail("invalid_response");
+  if (pqLength < 1 || pqLength > 8 || 37 + pqLength > body.length) fail("invalid_pq_length");
   const pq = body.subarray(37, 37 + pqLength);
   if (pq[0] === 0 || (pq.length === 8 && pq[0] > 127) || (pq[pq.length - 1] & 1) === 0
-    || (pq.length === 1 && pq[0] < 15)) fail("invalid_response");
+    || (pq.length === 1 && pq[0] < 15)) fail("invalid_pq_value");
   const vectorOffset = 36 + Math.ceil((1 + pqLength) / 4) * 4;
-  if (vectorOffset + 8 > body.length || body.readUInt32LE(vectorOffset) !== 0x1cb5c415) fail("invalid_response");
+  if (vectorOffset + 8 > body.length || body.readUInt32LE(vectorOffset) !== 0x1cb5c415) fail("invalid_fingerprint_vector");
   const count = body.readUInt32LE(vectorOffset + 4);
   const used = vectorOffset + 8 + count * 8;
-  if (count < 1 || count > 16 || used > body.length) fail("invalid_response");
+  if (count < 1 || count > 16 || used > body.length) fail("invalid_fingerprint_count");
   for (let i = 0; i < count; i++) {
-    if (body.readBigUInt64LE(vectorOffset + 8 + i * 8) === 0n) fail("invalid_response");
+    if (body.readBigUInt64LE(vectorOffset + 8 + i * 8) === 0n) fail("invalid_fingerprint_value");
   }
-  // NoCryptoStorer may include bounded random padding in its declared body.
+  // Official clients include random padding in the declared unencrypted body.
+  // Telegram Desktop permits 0..63 words; unlike encrypted payloads, this body
+  // is not required to align to an AES block. Keep the bounded trailing padding
+  // separate from the transport's own 0..15-byte padding.
   const innerPadding = body.length - used;
-  if (innerPadding > 255 || (innerPadding && body.length % 16 !== 0)) fail("invalid_response");
+  if (innerPadding > 255) fail("invalid_body_padding");
   return true;
 }
