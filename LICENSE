@@ -1,0 +1,89 @@
+SAUTILINK PROPRIETARY SOFTWARE LICENSE
+Version 1.0 — 22 October 2026
+
+Copyright (c) 2026 SautiLink Corporation. All rights reserved.
+
+1. Scope and ownership
+
+This notice applies to the original software, documentation, artwork and other
+copyrightable material in this project owned by SautiLink Corporation
+("SautiLink Materials"). SautiLink Corporation retains all rights in those
+materials. Public access to a repository does not make the SautiLink Materials
+open-source software or grant a general right to reuse them.
+
+Third-party material, material covered by a separate written agreement, and
+rights previously granted under another applicable license are addressed below.
+
+2. Permission required
+
+Except for the limited permissions expressly stated in this notice, permission
+under applicable law, or a separate written authorization from SautiLink
+Corporation, you may not reproduce, copy, modify, adapt, translate, distribute,
+publish, sublicense, sell, commercially exploit, or create derivative works
+from the SautiLink Materials or a substantial protected portion of them.
+
+This restriction includes repackaging or rebranding the implementation,
+operating a copied version as a hosted service, incorporating protected source
+or assets into another product, and distributing a copy under a different
+name. Removing copyright, ownership or attribution notices does not create
+permission.
+
+Written permission must identify the authorized material and use. Access to
+the service, a repository, a public page or an integration credential is not
+such permission.
+
+3. Use of the hosted service and integrations
+
+You may use official SautiLink services through their published interfaces,
+subject to the service terms and the permissions granted to your account.
+You may read public user and integration documentation and copy short,
+expressly published integration examples solely as needed to connect your
+own application to the documented service, subject to those terms.
+
+This limited integration permission does not license the service's source
+implementation, private interfaces, original artwork, branding or deployment
+as your own service. It does not authorize access beyond your account's
+permissions.
+
+4. Third-party and existing rights
+
+Dependencies, fonts, icons, runtimes and other third-party components remain
+subject to their respective licenses and notices. Their copyright notices,
+attribution and license texts must be preserved as required. This notice
+does not replace, narrow or claim ownership of those third-party rights.
+
+A license validly granted for an earlier version remains governed by its own
+terms. This notice does not retroactively revoke it. A separately licensed
+file or component remains governed by its applicable license to the extent
+of that grant.
+
+Nothing here restricts rights that cannot lawfully be restricted, applicable
+copyright exceptions, or rights granted by the terms of the platform hosting
+the repository, including GitHub's applicable viewing and forking rights.
+Those rights do not themselves grant broader reuse rights. This notice does
+not claim exclusive ownership of ideas, facts, standards or independently
+created work.
+
+5. Names and branding
+
+No trademark or brand license is granted. SautiLink names, logos and original
+brand artwork may not be used to imply affiliation, endorsement or official
+status without permission, except as permitted by applicable law.
+
+6. Enforcement and permission requests
+
+SautiLink Corporation reserves the right to seek remedies available under
+applicable law for infringement or other unlawful use, including appropriate
+removal requests, injunctive relief and damages where legally available.
+This notice does not establish automatic penalties or guarantee a remedy.
+
+For written permission or licensing enquiries, use the official contact page:
+https://sautilink.com/contact
+
+7. Disclaimer
+
+To the extent permitted by applicable law, repository materials are provided
+"AS IS", without warranties of merchantability, fitness for a particular
+purpose or non-infringement. No liability is accepted beyond what applicable
+law or a separate written agreement requires. The terms governing an official
+hosted service remain separate from this repository notice.

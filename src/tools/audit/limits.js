@@ -2,8 +2,8 @@
  * Unified audit orchestration limits.
  *
  * Designed to bound fan-out across existing analyzers (each may do
- * DoH + HTTP). Approximate worst-case network activity is documented
- * in docs/ARCHITECTURE.md — do not raise these without revisiting that budget.
+ * DoH + HTTP). Reassess worst-case network activity and the overall
+ * wall-clock budget before increasing concurrency or timeout limits.
  */
 
 /** Wall-clock budget for the entire audit. */
