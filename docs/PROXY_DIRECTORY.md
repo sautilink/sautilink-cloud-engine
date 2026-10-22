@@ -102,7 +102,7 @@ Use Node **24 or later**, the committed lockfile, and an authenticated Cloudflar
    npx wrangler d1 create sautilink-cloud-engine-proxies --config wrangler.proxy.jsonc --binding PROXY_DB --update-config
    ```
 
-   If it already exists, use its verified ID in `wrangler.proxy.jsonc`; do not replace an existing database. The checked-in initial config intentionally has no invented database ID. Commit the resulting non-secret resource binding after provisioning.
+   If it already exists, use its verified ID in `wrangler.proxy.jsonc`; do not replace an existing database. This account's provisioned database ID is already committed. A deployment to a different account must use that account's own verified resource ID.
 
 4. Apply only this feature's migrations with `npm run proxy:migrate`.
 5. Deploy the dedicated Worker with `npm run proxy:deploy`. Inspect the returned Worker URL's `/health` and `/v1/proxies?status=all`. Give Cron several ticks to discover and check candidates. Check logs/CPU for real protocol successes and any platform restrictions.
@@ -110,6 +110,27 @@ Use Node **24 or later**, the committed lockfile, and an authenticated Cloudflar
 7. Verify the public `/api/proxies` and `/tools/proxy` response, EN/SW, theme, mobile layout and pagination. Verify `/proxy`, `/proxy status` and Refresh in the actual Telegram bot. The existing `/proxy` command now serves the directory and is included in in-bot menus/help; no replacement bot or token is needed.
 
 No production readiness claim should be based on fixture counts. Record the real deployed Active count and observation time. A count below 20 remains visible as such; diagnose/replenish the pool without inventing entries.
+
+### Dashboard deployment with Workers Builds
+
+When provisioning through the dashboard, create the dedicated D1 database and execute `migrations/proxy/0001_proxy_directory.sql` in its Console. Verify that `proxy_candidates`, `proxy_monitor`, and `proxy_snapshots` exist before deploying the checker. Record the database's real ID in `wrangler.proxy.jsonc`.
+
+Connect the `sautilink-cloud-engine-proxies` Worker to `sautilink/sautilink-cloud-engine` with these settings:
+
+| Setting | Value |
+| --- | --- |
+| Production branch during initial provisioning | `feat/active-mtproto-proxies` |
+| Build command | Empty |
+| Deploy command | `npm run proxy:deploy` |
+| Root directory | `/` |
+
+The initial production branch must contain the checker files and the `proxy:deploy` package script. If a build reports `Missing script: "proxy:deploy"`, check its recorded branch and commit. Change the Worker's production branch under **Settings > Build > Branch control**, save it, then push a new commit to that branch to start a build from the intended source. Do not assume retrying an older build changes its source branch or commit.
+
+The deploy script explicitly selects `wrangler.proxy.jsonc`, whose Worker name is `sautilink-cloud-engine-proxies`. The root `wrangler.jsonc` configures the existing `sautilink-cloud-engine` Pages project. Keep each name in its corresponding configuration; a dashboard suggestion based on the default file is not a reason to rename the Pages project.
+
+Workers Builds uses its configured Cloudflare API token to deploy. If the dashboard reports **Configured API token unavailable**, inspect the actual build result: the warning alone does not establish whether the token was revoked or belongs to another account member. If deployment fails to authenticate, use the Builds API token control to select a valid deployment token or create one through **Create new token**, then save the settings. This is separate from the Telegram bot token. Keep credentials out of repository files, logs, and chat.
+
+After the checker is deployed and the feature is merged, change its production branch to `main`. Continue with the real `/health`, `/v1/proxies`, Cron and Pages checks in the deployment order above.
 
 ## Verification commands
 
@@ -150,3 +171,5 @@ For rollback, revert the Pages feature/binding first, then disable the dedicated
 - [Cloudflare Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/)
 - [Cloudflare Workers limits](https://developers.cloudflare.com/workers/platform/limits/)
 - [Cloudflare Pages bindings](https://developers.cloudflare.com/pages/functions/bindings/#service-bindings)
+- [Cloudflare Workers Builds configuration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/)
+- [Cloudflare Workers production branches](https://developers.cloudflare.com/workers/ci-cd/builds/build-branches/)
