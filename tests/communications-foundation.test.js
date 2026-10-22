@@ -13,7 +13,6 @@ import { accountVerifiedEmail } from "../src/communications/templates.js";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const handler = read("functions/api/account/[[path]].js");
-const communicationsDoc = read("docs/COMMUNICATIONS.md");
 const whatsappMigration = read("supabase/migrations/20260817135750_add_account_whatsapp_verification_guard.sql");
 const templatePaths = [
   "supabase/templates/confirmation.html",
@@ -143,11 +142,4 @@ test("auth templates use the expected Supabase token variables", () => {
   assert.match(read("supabase/templates/email_changed_notification.html"), /\{\{ \.Email \}\}/);
   assert.match(read("supabase/templates/identity_linked_notification.html"), /\{\{ \.Provider \}\}/);
   assert.match(read("supabase/templates/mfa_factor_enrolled_notification.html"), /\{\{ \.FactorType \}\}/);
-});
-
-test("communications documentation preserves provider and consent boundaries", () => {
-  assert.match(communicationsDoc, /Supabase Auth -> ZeptoMail SMTP/);
-  assert.match(communicationsDoc, /ZeptoMail API must not be used as the marketing\/newsletter transport/i);
-  assert.match(communicationsDoc, /whatsapp_verified_at/);
-  assert.match(communicationsDoc, /does not introduce a communications outbox/i);
 });

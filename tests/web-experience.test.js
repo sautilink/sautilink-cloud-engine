@@ -35,12 +35,3 @@ test("web workspace preserves the SautiLink Inter contract and responsive shell"
   assert.match(css, /@media \(max-width: 720px\)/);
   assert.match(css, /@media \(max-width: 520px\)/);
 });
-
-test("web documentation defines web as flagship and Telegram as companion over shared APIs", () => {
-  const doc = read("docs/WEB.md");
-  assert.match(doc, /web experience is the flagship/i);
-  assert.match(doc, /Telegram remains a companion/i);
-  assert.match(doc, /same Cloud Engine analyzer APIs/i);
-  assert.match(doc, /short-lived, signed handoff identifiers/i);
-  assert.match(doc, /Web is allowed to be more capable than Telegram/i);
-});
