@@ -30,7 +30,7 @@ const tlsRecord = (data) => {
 function fixture({
   variant = "classic", fragment = 0, badTlsHmac = false,
   tlsOnly = false, rawReply, modifyFrame, modifyBody,
-  responseInnerPadding = 0, responseOuterPadding,
+  responseInnerPadding = 0, responseEnvelopePadding = 0, responseOuterPadding,
 } = {}) {
   const writes = [], errors = [], destinations = [];
   let controller, cancelled = false, closeCount = 0, abortCount = 0, requestCount = 0;
@@ -127,7 +127,7 @@ function fixture({
     assert.equal(body.length, 64 + responseInnerPadding);
     modifyBody?.(body);
     const outerPadding = responseOuterPadding ?? (variant === "classic" ? 0 : 7);
-    let frame = Buffer.alloc(20 + body.length + outerPadding);
+    let frame = Buffer.alloc(20 + body.length + responseEnvelopePadding + outerPadding);
     frame.writeBigUInt64LE((BigInt(Math.floor(NOW / 1000)) << 32n) | 1n, 8);
     frame.writeUInt32LE(body.length, 16);
     body.copy(frame, 20);
@@ -261,6 +261,33 @@ test("official unencrypted response padding may have any word length, not only A
       assert.equal(result.status, "active", `${variant} with ${responseInnerPadding} bytes of body padding`);
       assert.equal(result.check_level, "mtproto");
     }
+  }
+});
+
+test("unencrypted response padding outside the declared body is distinct from transport padding", async () => {
+  // Official iOS writes the real body length before appending random padding
+  // words. Desktop's receiver also permits trailing bytes outside that length.
+  for (const variant of ["classic", "padded", "fake_tls"]) {
+    for (let responseEnvelopePadding = 0; responseEnvelopePadding <= 252; responseEnvelopePadding += 4) {
+      const f = fixture({ variant, responseEnvelopePadding });
+      const result = await probeProxy(proxy(variant), { connect: f.connect, now: () => NOW });
+      assert.deepEqual(f.errors, []);
+      assert.equal(result.status, "active", `${variant} with ${responseEnvelopePadding} bytes after the declared body`);
+      assert.equal(result.check_level, "mtproto");
+    }
+    const boundary = fixture({ variant, responseInnerPadding: 16, responseEnvelopePadding: 236, responseOuterPadding: variant === "classic" ? 0 : 15 });
+    const valid = await probeProxy(proxy(variant), { connect: boundary.connect, now: () => NOW });
+    assert.deepEqual(boundary.errors, []);
+    assert.equal(valid.status, "active");
+    const oversized = fixture({ variant, responseInnerPadding: 128, responseEnvelopePadding: 128, responseOuterPadding: variant === "classic" ? 0 : 15 });
+    const denied = await probeProxy(proxy(variant), { connect: oversized.connect, now: () => NOW });
+    assert.deepEqual(oversized.errors, []);
+    assert.equal(denied.status, "unverified");
+    assert.equal(denied.reason_code, "invalid_response_padding");
+    const mismatch = fixture({ variant, responseEnvelopePadding: 236, modifyBody(body) { body[4] ^= 1; } });
+    const wrongNonce = await probeProxy(proxy(variant), { connect: mismatch.connect, now: () => NOW });
+    assert.equal(wrongNonce.status, "unverified");
+    assert.equal(wrongNonce.reason_code, "nonce_mismatch");
   }
 });
 

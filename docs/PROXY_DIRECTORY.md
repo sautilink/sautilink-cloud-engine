@@ -29,7 +29,7 @@ This D1 database contains no Cloud Engine accounts, Telegram preferences or Pilo
 
 TCP reachability alone never creates an Active entry. This is a protocol liveness check, not Telegram's full authorization-key exchange, proof of the operator's identity, a bandwidth test, or a privacy certification. No messages, user sessions or files travel through these checks.
 
-Unencrypted response bodies may include 0–252 bytes of random word-aligned padding. The parser accepts that range without imposing encrypted-message AES block alignment, while retaining the nonce, constructor, frame, PQ and fingerprint checks. Inner body padding and the padded transport's separate 0–15 bytes remain bounded independently. Fixed diagnostic codes identify the failed guard without logging response bytes.
+Unencrypted responses may place random padding inside the declared body (Telegram Desktop) or after it (Telegram iOS). The parser accepts a combined 0–252-byte message-padding budget, plus up to 15 additional bytes for padded transport, without imposing encrypted-message AES block alignment. Declared body padding itself remains capped at 252 bytes and classic frames remain word-aligned. Nonce, constructor, frame, PQ and fingerprint checks remain enforced. Fixed diagnostic codes identify the failed guard without logging response bytes.
 
 ## Status and freshness
 
@@ -184,6 +184,7 @@ For rollback, revert the Pages feature/binding first, then disable the dedicated
 - [Official TDLib implementation](https://github.com/tdlib/td)
 - [Telegram Desktop unencrypted response parsing and padding](https://github.com/telegramdesktop/tdesktop/blob/52a47639d9aa38713098974dd2ce07e631cb3381/Telegram/SourceFiles/mtproto/connection_abstract.cpp)
 - [Telegram Desktop unencrypted message construction](https://github.com/telegramdesktop/tdesktop/blob/52a47639d9aa38713098974dd2ce07e631cb3381/Telegram/SourceFiles/mtproto/connection_abstract.h)
+- [Telegram iOS unencrypted message construction and reception](https://github.com/TelegramMessenger/Telegram-iOS/blob/master/submodules/MtProtoKit/Sources/MTProto.m)
 - [Cloudflare outbound TCP sockets](https://developers.cloudflare.com/workers/runtime-apis/tcp-sockets/)
 - [Cloudflare Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/)
 - [Cloudflare Workers limits](https://developers.cloudflare.com/workers/platform/limits/)
