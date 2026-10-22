@@ -109,7 +109,10 @@ export async function readMtprotoResponse(source, session, nonce) {
     fail("invalid_body_length");
   }
   const outerPadding = frame.length - 20 - bodyLength;
-  if (outerPadding > (session.padded ? 15 : 0)) fail("invalid_transport_padding");
+  // Unencrypted MTProto messages can carry random bytes beyond their declared
+  // body length (Telegram iOS), independently of padded transport framing.
+  // Classic intermediate frames still have to contain whole words.
+  if (!session.padded && outerPadding % 4 !== 0) fail("invalid_transport_padding");
   const body = frame.subarray(20, 20 + bodyLength);
   if (body.readUInt32LE(0) !== 0x05162463) fail("unexpected_response");
   if (!equal(body.subarray(4, 20), nonce)) fail("nonce_mismatch");
@@ -127,11 +130,12 @@ export async function readMtprotoResponse(source, session, nonce) {
   for (let i = 0; i < count; i++) {
     if (body.readBigUInt64LE(vectorOffset + 8 + i * 8) === 0n) fail("invalid_fingerprint_value");
   }
-  // Official clients include random padding in the declared unencrypted body.
-  // Telegram Desktop permits 0..63 words; unlike encrypted payloads, this body
-  // is not required to align to an AES block. Keep the bounded trailing padding
-  // separate from the transport's own 0..15-byte padding.
+  // Desktop includes 0..63 padding words in the declared body; iOS appends
+  // extra words outside it. Bound their combined allowance so accepting both
+  // layouts cannot double the padding budget. Padded transports may add their
+  // own final 0..15 bytes. None of this changes the nonce-bound resPQ parsing.
   const innerPadding = body.length - used;
-  if (innerPadding > 255) fail("invalid_body_padding");
+  if (innerPadding > 252) fail("invalid_body_padding");
+  if (innerPadding + outerPadding > 252 + (session.padded ? 15 : 0)) fail("invalid_response_padding");
   return true;
 }
