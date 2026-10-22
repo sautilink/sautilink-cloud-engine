@@ -250,6 +250,20 @@ test("accepted NoCrypto body padding and external padded framing remain distinct
   assert.equal(result.status, "active");
 });
 
+test("official unencrypted response padding may have any word length, not only AES block lengths", async () => {
+  // Telegram Desktop extendedNotSecurePadding() uses 0..63 words. A valid
+  // nonce-bound resPQ must remain valid at every permitted padding length.
+  for (const variant of ["classic", "padded", "fake_tls"]) {
+    for (let responseInnerPadding = 0; responseInnerPadding <= 252; responseInnerPadding += 4) {
+      const f = fixture({ variant, responseInnerPadding });
+      const result = await probeProxy(proxy(variant), { connect: f.connect, now: () => NOW });
+      assert.deepEqual(f.errors, []);
+      assert.equal(result.status, "active", `${variant} with ${responseInnerPadding} bytes of body padding`);
+      assert.equal(result.check_level, "mtproto");
+    }
+  }
+});
+
 test("Fake TLS invalid HMAC is rejected before an MTProto request is written", async () => {
   const f = fixture({ variant: "fake_tls", badTlsHmac: true });
   const result = await probeProxy(proxy("fake_tls"), { connect: f.connect, now: () => NOW });
@@ -276,18 +290,18 @@ test("HTTP, malformed MTProto, oversized frames and invalid TL structures are no
     { rawReply: () => Buffer.from("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"), reason: "invalid_frame" },
     { rawReply: ({ encode }) => encode.update(u32(0x7fffffff)), reason: "invalid_frame" },
     { rawReply: ({ encode }) => encode.update(Buffer.concat([u32(4), Buffer.from("6cfeffff", "hex")])), reason: "transport_rejected" },
-    { modifyFrame(frame) { frame[0] = 1; }, reason: "invalid_response" },
-    { modifyFrame(frame) { frame[8] &= 0xfe; }, reason: "invalid_response" },
-    { modifyFrame(frame) { frame.writeUInt32LE(1000, 16); }, reason: "invalid_response" },
+    { modifyFrame(frame) { frame[0] = 1; }, reason: "invalid_auth_envelope" },
+    { modifyFrame(frame) { frame[8] &= 0xfe; }, reason: "invalid_server_message_id" },
+    { modifyFrame(frame) { frame.writeUInt32LE(1000, 16); }, reason: "invalid_body_length" },
     { modifyBody(body) { body[0] = 0; }, reason: "unexpected_response" },
-    { modifyBody(body) { body[36] = 254; }, reason: "invalid_response" },
-    { modifyBody(body) { body[44] = 2; }, reason: "invalid_response" },
-    { modifyBody(body) { body.writeUInt32LE(0, 48); }, reason: "invalid_response" },
-    { modifyBody(body) { body.writeUInt32LE(0, 52); }, reason: "invalid_response" },
-    { modifyBody(body) { body.writeUInt32LE(17, 52); }, reason: "invalid_response" },
-    { modifyBody(body) { body.fill(0, 56, 64); }, reason: "invalid_response" },
-    { responseOuterPadding: 1, reason: "invalid_response" },
-    { responseInnerPadding: 256, reason: "invalid_response" },
+    { modifyBody(body) { body[36] = 254; }, reason: "invalid_pq_length" },
+    { modifyBody(body) { body[44] = 2; }, reason: "invalid_pq_value" },
+    { modifyBody(body) { body.writeUInt32LE(0, 48); }, reason: "invalid_fingerprint_vector" },
+    { modifyBody(body) { body.writeUInt32LE(0, 52); }, reason: "invalid_fingerprint_count" },
+    { modifyBody(body) { body.writeUInt32LE(17, 52); }, reason: "invalid_fingerprint_count" },
+    { modifyBody(body) { body.fill(0, 56, 64); }, reason: "invalid_fingerprint_value" },
+    { responseOuterPadding: 1, reason: "invalid_transport_padding" },
+    { responseInnerPadding: 256, reason: "invalid_body_padding" },
   ];
   for (const entry of cases) {
     const f = fixture(entry);

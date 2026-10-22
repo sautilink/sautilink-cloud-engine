@@ -70,7 +70,9 @@ test("proxy callback acknowledges promptly and edits a plain-text snapshot witho
   assert.equal(edit.body.message_id, 99);
   assert.equal(edit.body.parse_mode, undefined);
   assert.equal(edit.body.disable_web_page_preview, true);
-  assert.equal(edit.body.reply_markup.inline_keyboard.flat().filter((button) => button.url).length, 1);
+  const buttons = edit.body.reply_markup.inline_keyboard.flat();
+  assert.equal(buttons.filter((button) => button.url?.startsWith("https://t.me/proxy?")).length, 1);
+  assert.ok(buttons.some((button) => button.url === "https://t.me/drcharlesofficial"));
   assert.equal(calls.filter(({ url }) => /sendMessage$/.test(url.pathname)).length, 0);
   assert.equal(calls.length, 3);
 });
@@ -116,6 +118,6 @@ test("/proxy help and help callbacks remain available without backend traffic", 
   await processUpdate(callback("proxy:help", { from: { id: 55, language_code: "sw" } }), config);
   assert.equal(calls.filter(({ url }) => url.pathname === "/api/proxies").length, 0);
   const send = calls.find(({ url }) => /sendMessage$/.test(url.pathname));
-  assert.match(send.body.text, /proxies tano kwa ukurasa/);
+  assert.match(send.body.text, /Bonyeza Unganisha Proxy/);
   assert.ok(send.body.reply_markup.inline_keyboard.flat().some((button) => button.callback_data === "proxy:list:1"));
 });

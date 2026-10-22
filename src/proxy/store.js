@@ -1,4 +1,4 @@
-import { POOL_SIZE } from "./config.js";
+import { POOL_SIZE, RECOVERY_RETENTION_MS, VERIFICATION_TTL_MS } from "./config.js";
 
 export class ProxyStore {
   constructor(database) { this.db = database; }
@@ -26,12 +26,14 @@ export class ProxyStore {
         WHERE EXISTS(SELECT 1 FROM proxy_monitor WHERE id = 1 AND lease_token = ? AND lease_until > ?)
         ON CONFLICT(id) DO UPDATE SET source_seen_at = MAX(proxy_candidates.source_seen_at, excluded.source_seen_at)`)
         .bind(now, JSON.stringify(candidates.slice(0, POOL_SIZE)), token, now).run();
-      // Bound catalog size, preserving recently working endpoints before old failures.
+      // Retain recently working fallbacks through a transient failure instead
+      // of evicting them as soon as the next source window adds new candidates.
       await this.db.prepare(`DELETE FROM proxy_candidates WHERE EXISTS(SELECT 1 FROM proxy_monitor WHERE id = 1 AND lease_token = ? AND lease_until > ?)
         AND id NOT IN (
-        SELECT id FROM proxy_candidates ORDER BY CASE WHEN status = 'active' AND success_at > ? THEN 0 ELSE 1 END,
+        SELECT id FROM proxy_candidates ORDER BY CASE WHEN status = 'active' AND success_at > ? THEN 0
+        WHEN success_at > ? THEN 1 ELSE 2 END,
         source_seen_at DESC, created_at DESC, id LIMIT ?)`)
-        .bind(token, now, now - 600_000, POOL_SIZE).run();
+        .bind(token, now, now - VERIFICATION_TTL_MS, now - RECOVERY_RETENTION_MS, POOL_SIZE).run();
     }
     return observations.map(source => {
       const { reason_code, http_status, ...previous } = previousSources.find(old => old.id === source.id) || {};
