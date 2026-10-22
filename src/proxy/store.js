@@ -33,7 +33,10 @@ export class ProxyStore {
         source_seen_at DESC, created_at DESC, id LIMIT ?)`)
         .bind(token, now, now - 600_000, POOL_SIZE).run();
     }
-    return observations.map(source => ({ ...previousSources.find(old => old.id === source.id), ...source }));
+    return observations.map(source => {
+      const { reason_code, http_status, ...previous } = previousSources.find(old => old.id === source.id) || {};
+      return { ...previous, ...source };
+    });
   }
 
   async list() {

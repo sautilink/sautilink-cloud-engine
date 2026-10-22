@@ -20,8 +20,11 @@ export async function resolveProxyHost(host, { fetchFn = fetch, signal } = {}) {
       const url = new URL("https://cloudflare-dns.com/dns-query");
       url.searchParams.set("name", host);
       url.searchParams.set("type", String(type));
-      const response = await fetchFn(url, { headers: { Accept: "application/dns-json" }, signal: signal ? AbortSignal.any([signal, controller.signal]) : controller.signal, redirect: "error" });
-      if (!response.ok) throw failure("DNS_UNAVAILABLE");
+      const response = await fetchFn(url, { headers: { Accept: "application/dns-json" }, signal: signal ? AbortSignal.any([signal, controller.signal]) : controller.signal, redirect: "manual" });
+      if (!response.ok) {
+        if (response.body) await response.body.cancel().catch(() => {});
+        throw failure("DNS_UNAVAILABLE");
+      }
       const data = JSON.parse(await readLimitedText(response, 65_536));
       if (data.Status === 3) return [];
       if (data.Status !== 0) throw failure("DNS_UNAVAILABLE");

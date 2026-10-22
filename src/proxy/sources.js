@@ -77,10 +77,14 @@ export async function collectSources({ fetchFn = fetch, now = Date.now(), source
     try {
       const response = await fetchFn(source.feed, {
         headers: { Accept: "text/plain", "User-Agent": "SautiLink-Cloud-Engine-Proxy-Monitor/1.0" },
-        redirect: "error", signal: controller.signal,
+        // Workers supports manual redirects; reject non-2xx without following them.
+        redirect: "manual", signal: controller.signal,
       });
       if (Number.isInteger(response.status) && response.status >= 100 && response.status <= 599) httpStatus = response.status;
-      if (!response.ok) throw new SourceError("SOURCE_HTTP_ERROR");
+      if (!response.ok) {
+        if (response.body) await response.body.cancel().catch(() => {});
+        throw new SourceError("SOURCE_HTTP_ERROR");
+      }
       phase = "read";
       const text = await readLimitedText(response);
       phase = "parse";

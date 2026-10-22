@@ -140,7 +140,7 @@ npm run proxy:check
 npm run proxy:runtime-check
 ```
 
-The runtime check compiles the actual Worker and Pages entry points and exercises their service binding against real local D1. It checks migrations, exact storage queries, pagination and expiry while the raw snapshot remains cached. All data is synthetic, and outbound fetches are disabled.
+The runtime check compiles the actual Worker and Pages entry points and exercises their service binding against real local D1. It checks scheduled source discovery through the runtime's native fetch, rejected redirects, migrations, exact storage queries, pagination and expiry while the raw snapshot remains cached. All data is synthetic; external network requests are replaced with fixed local fixtures or rejected.
 
 An optional, explicitly networked diagnostic uses the same fixed feeds, DNS resolver and protocol checker:
 
@@ -158,6 +158,19 @@ Worker logs contain bounded aggregate counts (`checked`, `active`, `candidates`,
 - **Stale:** inspect Cron delivery, D1 errors and CPU/subrequest limits. Stale entries already lose Connect.
 - **Unverified:** inspect aggregate protocol/restriction reasons; do not relabel them Active merely because a TCP port opens.
 - **Fewer than 20 Active:** let subsequent windows add candidates; inspect source freshness and the monitor network. Do not increase quotas or purchase infrastructure without review.
+
+The public `sources` observations expose fixed diagnostic codes without upstream response bodies or exception text:
+
+| Source reason | Meaning |
+| --- | --- |
+| `SOURCE_HTTP_ERROR` | The source returned a non-2xx response; `http_status` records its numeric status |
+| `SOURCE_FETCH_ERROR` | The runtime failed before returning an HTTP response |
+| `SOURCE_READ_ERROR` | The response body could not be read |
+| `SOURCE_TIMEOUT` | The source deadline expired |
+| `SOURCE_EMPTY` | No recognized Telegram proxy links were present |
+| `SOURCE_TOO_LARGE` | The bounded feed-size limit was exceeded |
+
+Feed and DNS requests use `redirect: "manual"` and reject non-2xx responses. They never follow a source or resolver redirect. The pinned local Workers runtime rejects `redirect: "error"` before outbound I/O; Node-only fetch mocks do not detect that incompatibility. The scheduled runtime fixture protects this path. New source observations remove previous error/status details while preserving the last successful fetch time.
 
 For rollback, revert the Pages feature/binding first, then disable the dedicated Cron/Worker if needed. Keep the isolated D1 database for diagnosis; do not delete it as part of a normal rollback. Existing Cloud Engine account, bot preference and Pilot stores are unaffected.
 

@@ -11,6 +11,7 @@ import { Miniflare, convertV4MiniflareOptions } from "miniflare";
 import { MockAgent, getGlobalDispatcher, setGlobalDispatcher } from "undici";
 import { ProxyStore } from "../src/proxy/store.js";
 import { createSnapshot, observeCandidate } from "../src/proxy/model.js";
+import { SOURCES } from "../src/proxy/config.js";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const temporary = await mkdtemp(join(tmpdir(), "sautilink-proxy-runtime-"));
@@ -33,6 +34,18 @@ try {
   build(["pages", "functions", "build", "functions", "--outdir", join(temporary, "pages"), "--project-directory", root]);
   setGlobalDispatcher(network);
   const noExternalFetch = async () => { throw new Error("External requests are disabled in the runtime fixture"); };
+  let feedStatus = 200;
+  const sourceRequests = [];
+  const fixtureFeeds = new Map(SOURCES.map((source, sourceIndex) => [source.feed, Array.from({ length: 2 }, (_, index) =>
+    `https://t.me/proxy?server=source${sourceIndex}-proxy${index}.example.org&port=443&secret=1234567890abcdef1234567890abcdef`
+  ).join("\n")]));
+  const fixtureSourceFetch = async request => {
+    sourceRequests.push({ url: request.url, method: request.method,
+      accept: request.headers.get("accept"), userAgent: request.headers.get("user-agent"), aborted: request.signal.aborted });
+    assert.ok(fixtureFeeds.has(request.url), `Unexpected fixture request: ${request.url}`);
+    if (feedStatus !== 200) return new Response(null, { status: feedStatus, headers: { Location: "https://redirect-target.invalid/not-permitted" } });
+    return new Response(fixtureFeeds.get(request.url), { headers: { "Content-Type": "text/plain" } });
+  };
   runtime = new Miniflare(convertV4MiniflareOptions({
     workers: [
       {
@@ -43,7 +56,7 @@ try {
       {
         name: "directory", modules: true, rootPath: temporary, modulesRoot: temporary, scriptPath: join(temporary, "directory/proxy.js"),
         compatibilityDate: "2026-10-21", compatibilityFlags: ["nodejs_compat"],
-        d1Databases: { PROXY_DB: "local-proxy-fixture" }, outboundService: noExternalFetch,
+        d1Databases: { PROXY_DB: "local-proxy-fixture" }, outboundService: fixtureSourceFetch,
       },
     ],
   }));
@@ -83,6 +96,43 @@ try {
   assert.equal(expired.data.counts.stale, 1);
   assert.equal(expired.data.proxies.find(row => row.id === candidates[0].id).connect_url, null);
   console.log("PASS: production Worker + Pages bundles, service binding, actual local D1 migration/import/write, pagination, no-store, and freshness during cached reads.");
+
+  // Exercise the actual scheduled handler and native Workerd fetch, not a Node
+  // fetchFn mock. Unsupported Request options must fail this integration check.
+  const directory = await runtime.getWorker("directory");
+  for (const status of [200, 302, 307]) {
+    feedStatus = status;
+    sourceRequests.length = 0;
+    await db.batch([
+      db.prepare("DELETE FROM proxy_candidates"),
+      db.prepare("DELETE FROM proxy_snapshots"),
+      db.prepare("UPDATE proxy_monitor SET lease_token = NULL, lease_until = 0, source_refresh_at = 0, last_run_at = NULL, last_error_code = NULL, sources = '[]' WHERE id = 1"),
+    ]);
+    const scheduled = await directory.scheduled({ cron: "* * * * *", scheduledTime: new Date() });
+    assert.equal(scheduled.outcome, "ok");
+    const snapshot = await store.snapshot();
+    assert.ok(snapshot, "Scheduled discovery must publish to the actual local D1 database");
+    assert.equal(sourceRequests.length, SOURCES.length, "Only the fixed feeds may be requested; redirects must not be followed");
+    assert.deepEqual(sourceRequests.map(request => request.url), SOURCES.map(source => source.feed));
+    // Miniflare serializes a new Request for this callback. Verify redirect
+    // behavior through the 302/307 responses rather than that Request's mode.
+    assert.ok(sourceRequests.every(request => request.method === "GET" && !request.aborted));
+    assert.ok(sourceRequests.every(request => request.accept === "text/plain" && request.userAgent === "SautiLink-Cloud-Engine-Proxy-Monitor/1.0"));
+    assert.equal(snapshot.sources.length, SOURCES.length);
+    const directoryView = await (await runtime.dispatchFetch("https://fixture.invalid/api/proxies?status=all&per_page=100")).json();
+    assert.equal(directoryView.data.counts.active, 0, "Discovery must not fabricate protocol verification");
+    if (status === 200) {
+      assert.ok(snapshot.sources.every(source => source.status === "ok" && source.candidate_count === 2));
+      assert.equal((await store.list()).length, 4);
+      assert.equal(directoryView.data.counts.unverified, 4);
+      assert.ok(directoryView.data.proxies.every(row => row.connect_url === null));
+    } else {
+      assert.ok(snapshot.sources.every(source => source.status === "unavailable" && source.reason_code === "SOURCE_HTTP_ERROR" && source.http_status === status));
+      assert.equal((await store.list()).length, 0);
+      assert.equal(directoryView.data.counts.total, 0);
+    }
+  }
+  console.log("PASS: production scheduled discovery reaches fixture feeds through native Workerd fetch, persists candidates in local D1, and rejects 302/307 without following redirects.");
   console.log("Fixture endpoints only; no public proxy or Telegram account was contacted.");
 } finally {
   await runtime?.dispose();

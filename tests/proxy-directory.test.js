@@ -190,6 +190,20 @@ test("DNS returns pinned public addresses and rejects mixed private answers", as
   assert.equal(contacted, false);
 });
 
+test("DNS rejects redirects without following their destinations", async () => {
+  for (const status of [301, 302, 307, 308]) {
+    let calls = 0; let cancelled = false;
+    await assert.rejects(resolveProxyHost("proxy.example.org", { fetchFn: async (url, options) => {
+      calls++;
+      assert.equal(url.origin, "https://cloudflare-dns.com");
+      assert.equal(options.redirect, "manual");
+      return new Response(new ReadableStream({ cancel() { cancelled = true; } }), { status, headers: { Location: "http://127.0.0.1/private" } });
+    } }), { code: "DNS_UNAVAILABLE" });
+    assert.equal(calls, 1);
+    assert.equal(cancelled, true);
+  }
+});
+
 export { sqliteD1, candidate, NOW };
 
 test("an expired lease cannot import, prune or update results before another worker starts", async () => {
@@ -232,13 +246,36 @@ test("bounded source rotation admits later entries and an unavailable source doe
 
 test("source diagnostics retain HTTP status without exposing response bodies", async () => {
   const privateDetail = "https://untrusted.invalid/private?token=feed-error-secret";
-  for (const status of [403, 404, 429, 503]) {
-    const result = await collectSources({ sources: [SOURCES[0]], now: NOW, fetchFn: async () => new Response(privateDetail, { status }) });
+  for (const status of [301, 302, 307, 308, 403, 404, 429, 503]) {
+    let calls = 0; let cancelled = false;
+    const result = await collectSources({ sources: [SOURCES[0]], now: NOW, fetchFn: async (url, options) => {
+      calls++;
+      assert.equal(url, SOURCES[0].feed);
+      assert.equal(options.redirect, "manual");
+      return new Response(new ReadableStream({
+        start(controller) { controller.enqueue(new TextEncoder().encode(privateDetail)); },
+        cancel() { cancelled = true; },
+      }), { status, headers: { Location: "http://127.0.0.1/private" } });
+    } });
     assert.equal(result.candidates.length, 0);
     assert.equal(result.observations[0].reason_code, "SOURCE_HTTP_ERROR");
     assert.equal(result.observations[0].http_status, status);
     assert.equal(JSON.stringify(result).includes(privateDetail), false);
+    assert.equal(calls, 1);
+    assert.equal(cancelled, true);
   }
+});
+
+test("new source observations replace stale errors while preserving the last successful fetch", async () => {
+  const store = new ProxyStore(null);
+  const previous = [{ id: "shablin", status: "unavailable", last_fetched_at: new Date(NOW - 1000).toISOString(), reason_code: "SOURCE_HTTP_ERROR", http_status: 503 }];
+  const recovered = await store.importCandidates([], [{ id: "shablin", status: "ok", last_fetched_at: new Date(NOW).toISOString() }], NOW, previous, "fixture");
+  assert.equal(Object.hasOwn(recovered[0], "reason_code"), false);
+  assert.equal(Object.hasOwn(recovered[0], "http_status"), false);
+  const failedFetch = await store.importCandidates([], [{ id: "shablin", status: "unavailable", reason_code: "SOURCE_FETCH_ERROR" }], NOW, previous, "fixture");
+  assert.equal(failedFetch[0].reason_code, "SOURCE_FETCH_ERROR");
+  assert.equal(Object.hasOwn(failedFetch[0], "http_status"), false);
+  assert.equal(failedFetch[0].last_fetched_at, previous[0].last_fetched_at);
 });
 
 test("source diagnostics distinguish an empty feed and the feed-size limit", async () => {
