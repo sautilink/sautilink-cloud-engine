@@ -36,7 +36,7 @@ test("every Cloud Engine page uses the verified self-hosted SautiLink logo in it
     .filter((path) => path.endsWith(".html"))
     .map((path) => ({ path, html: read(`public/${path}`) }))
     .filter(({ html }) => html.includes('data-product-design="ios"'));
-  assert.equal(pages.length, 29);
+  assert.equal(pages.length, 30);
   for (const { path, html } of pages) {
     assert.match(html, /<header class="site-header[^>]*>[\s\S]*?<img class="brand-mark" src="\/assets\/brand\/sautilink-logo\.png"/, path);
     assert.match(html, /<footer class="site-footer[^>]*>[\s\S]*?<img class="product-footer-logo" src="\/assets\/brand\/sautilink-logo\.png"/, path);

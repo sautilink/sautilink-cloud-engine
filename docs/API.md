@@ -16,6 +16,7 @@
 | GET | `/api/mobile?url=` |
 | GET | `/api/ssl?url=` |
 | GET | `/api/audit?url=` |
+| GET | `/api/proxies?status=active&page=1&per_page=20&sort=latency` |
 | POST | `/api/telegram/webhook` |
 
 `/api/email-check` is the focused single-check orchestration endpoint for the standalone MX, SPF, DMARC, and DKIM web tools. The `check` value is strictly allowlisted. `selector` is used only for DKIM. The route reuses the existing analyzer modules and performs only the DNS work needed for the selected check; it does not create report history or a second scoring model.
@@ -25,3 +26,5 @@
 `/api/rdns` accepts a public IPv4/IPv6 address and performs an explicit PTR lookup. PTR support is available in the shared DNS engine only when requested; PTR was not added to the normal `/api/dns` default record set.
 
 Telegram is a thin client; tool semantics are unchanged. See `docs/TELEGRAM.md`.
+
+`/api/proxies` reads the background-verified MTProto directory. It never starts a probe. Active connection links expire when either the check or the monitor snapshot becomes stale. See `docs/PROXY_DIRECTORY.md` for statuses, pagination, architecture and deployment order.

@@ -11,3 +11,7 @@ npm install && npm run dev
 ```
 
 Telegram: `docs/TELEGRAM.md`
+
+Telegram proxy directory: `docs/PROXY_DIRECTORY.md` (dedicated Worker/D1 must be provisioned before deploying its Pages service binding).
+
+Development and tests require Node.js 24 or later. Use `npm ci` for the committed dependency versions.

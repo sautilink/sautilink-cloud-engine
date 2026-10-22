@@ -2,6 +2,12 @@
 
 Thin client over Cloud Engine APIs. Cloud Engine remains the source of truth for analyzers and SSRF protection.
 
+## Telegram proxy directory
+
+`/proxy` shows five recently verified Active MTProto configurations per page. Previous, Next and Refresh read `/api/proxies`; bot requests never run proxy checks. `/proxy status` reports the monitor and actual counts, while `/proxy help` explains connecting and selecting a replacement. The existing EN/SW preference and usage protection apply.
+
+This feature targets 20 Active entries but displays the true count when fewer are available. The scheduled Worker, isolated D1 migration, freshness guarantees and deployment order are documented in `docs/PROXY_DIRECTORY.md`.
+
 ## Guided diagnostics (Phase 7K)
 
 1. **Check a Website** → send `example.com`

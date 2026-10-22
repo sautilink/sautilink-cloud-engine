@@ -8,6 +8,7 @@ export function mainMenuKeyboard(locale = "en") {
         { text: t(locale, "menu.website_tools"), callback_data: "menu:website" },
         { text: t(locale, "menu.infrastructure"), callback_data: "menu:infrastructure" },
       ],
+      [{ text: t(locale, "menu.proxy"), callback_data: "proxy:list:1" }],
       [
         { text: t(locale, "menu.about"), callback_data: "menu:about" },
         { text: t(locale, "menu.status"), callback_data: "menu:status" },
@@ -122,6 +123,7 @@ export function toolsHomeKeyboard(locale = "en") {
         { text: t(locale, "menu.website_tools"), callback_data: "menu:website" },
         { text: t(locale, "menu.infrastructure"), callback_data: "menu:infrastructure" },
       ],
+      [{ text: t(locale, "menu.proxy"), callback_data: "proxy:list:1" }],
       [
         { text: t(locale, "menu.settings"), callback_data: "menu:settings" },
         { text: t(locale, "menu.back"), callback_data: "menu:main" },
@@ -176,6 +178,7 @@ export function infrastructureMenuKeyboard(locale = "en") {
         { text: t(locale, "menu.email"), callback_data: "tool:email" },
       ],
       [{ text: "📡 HTTP Status", callback_data: "tool:http" }],
+      [{ text: t(locale, "menu.proxy"), callback_data: "proxy:list:1" }],
       [{ text: t(locale, "menu.back"), callback_data: "menu:main" }],
     ],
   };

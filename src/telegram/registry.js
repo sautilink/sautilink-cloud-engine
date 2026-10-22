@@ -18,7 +18,7 @@ export const COMMANDS = [
   { name: "headers", descriptionKey: "help.headers", usage: "/headers example.com", category: "website", requiresArgument: true, argumentType: "url", cost: "expensive" },
   { name: "ssl", descriptionKey: "help.ssl", usage: "/ssl example.com", category: "website", requiresArgument: true, argumentType: "url", cost: "expensive" },
   { name: "vpn", descriptionKey: "help.vpn", usage: "/vpn", category: "infrastructure", requiresArgument: false, cost: "cheap" },
-  { name: "proxy", descriptionKey: "help.proxy", usage: "/proxy", category: "infrastructure", requiresArgument: false, cost: "cheap" },
+  { name: "proxy", descriptionKey: "help.proxy", usage: "/proxy [status|help]", category: "infrastructure", requiresArgument: false, cost: "cheap" },
   { name: "dns", descriptionKey: "help.dns", usage: "/dns example.com", category: "infrastructure", requiresArgument: true, argumentType: "domain", cost: "expensive" },
   { name: "email", descriptionKey: "help.email", usage: "/email example.com", category: "infrastructure", requiresArgument: true, argumentType: "domain", cost: "expensive" },
   { name: "http", descriptionKey: "help.http", usage: "/http example.com", category: "infrastructure", requiresArgument: true, argumentType: "url", cost: "expensive" },
