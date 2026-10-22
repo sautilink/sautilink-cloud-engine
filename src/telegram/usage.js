@@ -36,6 +36,7 @@ export function commandCost(commandOrAction) {
   if (s.startsWith("result:")) return s === "result:another" || s === "result:back" ? "cheap" : "expensive";
   if (s.startsWith("menu:") || s === "nav:back" || s === "status:refresh" || s.startsWith("lang:")) return "cheap";
   if (s.startsWith("tool:")) return "cheap";
+  if (s.startsWith("proxy:")) return "cheap";
   const meta = getCommandMeta(s);
   if (!meta) return null;
   return meta.cost === "expensive" ? "expensive" : "cheap";

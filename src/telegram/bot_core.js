@@ -72,6 +72,7 @@ import {
 import { handleResultAction } from "./result_actions.js";
 import { resolveLocale, setLocaleOverride, t } from "./i18n/index.js";
 import { getPresentationPreferences } from "./personalisation.js";
+import { handleProxyCallback } from "./proxies.js";
 
 export async function processUpdate(update, config) {
   const started = Date.now();
@@ -301,11 +302,27 @@ async function processCallback(cq, config, meta) {
   const messageId = msg && msg.message_id;
   if (chatId == null) return { handled: true, reason: "no_chat" };
   const adminUser = auth.role === "admin" || isAdmin(cq.from && cq.from.id, env);
-  if (action.startsWith("menu:") || action === "nav:back") clearPending(chatId);
+  if (action.startsWith("menu:") || action.startsWith("proxy:") || action === "nav:back") clearPending(chatId);
   const usage = checkUsage({ chatId, userId: cq.from && cq.from.id, commandOrAction: action, isAdminUser: adminUser, env });
   if (!usage.allowed) {
     await sendMessage(config.token, chatId, formatUsageLimitMessage(locale));
     return logCb(meta, action, chatId, "limited", locale);
+  }
+
+  if (action.startsWith("proxy:")) {
+    const cool = checkCooldown(chatId, "proxy", { isAdminUser: adminUser });
+    if (cool.blocked) {
+      await sendMessage(config.token, chatId, t(locale, "error.rate"));
+      return logCb(meta, action, chatId, "cooldown", locale);
+    }
+    const result = await handleProxyCallback(action, config.cloudEngineBaseUrl, locale);
+    if (!result) return { handled: true, reason: "unknown_callback" };
+    // Refresh can legitimately return the identical stored snapshot. Avoid an
+    // unnecessary edit (and Telegram's "message is not modified" fallback send).
+    if (msg.text !== result.text || JSON.stringify(msg.reply_markup) !== JSON.stringify(result.reply_markup)) {
+      await safeEditOrSend(config.token, chatId, messageId, result.text, result.reply_markup);
+    }
+    return logCb(meta, action, chatId, "ok", locale);
   }
 
   if (action === "lang:en" || action === "lang:sw") {

@@ -6,9 +6,10 @@ import { parseLocaleChoice, setLocaleOverride, t } from "./i18n/index.js";
 import { localizeValidationMessage } from "./i18n/validation.js";
 import { preferenceStorageConfigured } from "./preferences.js";
 import { getPresentationPreferences } from "./personalisation.js";
+import { handleProxyCommand } from "./proxies.js";
 import { setAwaitTarget } from "./guided.js";
 import {
-  formatHelp, formatStart, formatAbout, formatVpn, formatProxy, formatContact, formatStatus, formatId, formatAdmin,
+  formatHelp, formatStart, formatAbout, formatVpn, formatContact, formatStatus, formatId, formatAdmin,
   formatAudit, formatDns, formatEmail, formatHeaders, formatSsl, formatWebsite,
   formatMobile, formatRobots, formatSitemap, formatHttp, formatEngineError, auditKeyboard,
 } from "./format.js";
@@ -58,7 +59,7 @@ export async function handleCommand(ctx, config) {
     case "help": return { text: formatHelp(locale), reply_markup: helpMenuKeyboard(locale) };
     case "about": return { text: formatAbout(locale) };
     case "vpn": return { text: formatVpn(locale) };
-    case "proxy": return { text: formatProxy(locale) };
+    case "proxy": return handleProxyCommand(arg, base, locale);
     case "contact": return { text: formatContact(locale), reply_markup: contactKeyboard(locale) };
     case "id": return { text: formatId(chat, from, locale) };
     case "settings": return {

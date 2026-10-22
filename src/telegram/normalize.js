@@ -55,6 +55,7 @@ export function recoverAuditTargetFromMessage(text) {
 export const ALLOWED_CALLBACKS = new Set([
   "menu:main", "menu:tools", "menu:website", "menu:infrastructure", "menu:about", "menu:help", "menu:status", "menu:lang", "menu:settings",
   "nav:back", "status:refresh", "lang:en", "lang:sw",
+  "proxy:status", "proxy:help",
   "pref:detail:compact", "pref:detail:detailed", "pref:dev:off", "pref:dev:on",
   "pref:view:main", "pref:view:quick", "pref:view:tools",
   "tool:audit", "tool:website", "tool:mobile", "tool:headers", "tool:ssl", "tool:robots", "tool:sitemap", "tool:dns", "tool:email", "tool:http",
@@ -71,6 +72,6 @@ export function parseCallbackAction(data) {
   if (typeof data !== "string") return null;
   const s = data.trim();
   if (!s || s.length > 64) return null;
-  if (!ALLOWED_CALLBACKS.has(s)) return null;
+  if (!ALLOWED_CALLBACKS.has(s) && !/^proxy:(?:list|refresh):[1-9]\d{0,3}$/.test(s)) return null;
   return s;
 }

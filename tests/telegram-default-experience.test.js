@@ -66,6 +66,7 @@ test("tools hub uses fixed callback values only", () => {
     "tool:audit",
     "menu:website",
     "menu:infrastructure",
+    "proxy:list:1",
     "menu:settings",
     "menu:main",
   ]);

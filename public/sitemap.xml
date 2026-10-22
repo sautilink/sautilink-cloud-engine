@@ -25,4 +25,5 @@
   <url><loc>https://cloudengine.sautilink.com/tools/dmarc</loc><priority>0.75</priority></url>
   <url><loc>https://cloudengine.sautilink.com/tools/dkim</loc><priority>0.75</priority></url>
   <url><loc>https://cloudengine.sautilink.com/tools/nameserver</loc><priority>0.75</priority></url>
+  <url><loc>https://cloudengine.sautilink.com/tools/proxy</loc><priority>0.85</priority></url>
 </urlset>

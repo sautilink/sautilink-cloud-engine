@@ -10,6 +10,9 @@ Email Security: https://cloudengine.sautilink.com/tools/email
 Website Analysis: https://cloudengine.sautilink.com/tools/website
 SSL Analysis: https://cloudengine.sautilink.com/tools/ssl
 HTTP Status: https://cloudengine.sautilink.com/tools/http-status
+Telegram MTProto Proxy Directory: https://cloudengine.sautilink.com/tools/proxy
+
+The proxy directory displays monitoring observations, freshness, and connection links. Availability varies by network and time; the active target is not an uptime guarantee.
 
 SautiLink Corporation: https://sautilink.com/
 Privacy Policy: https://cloudengine.sautilink.com/privacy

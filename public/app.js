@@ -62,6 +62,7 @@ const TOOL_CATEGORIES = [
       { id: "rdns", name: "Reverse DNS", description: "PTR lookups for public IPv4/IPv6 addresses.", route: "/tools/rdns", status: "available" },
       { id: "http-headers", name: "HTTP Headers", description: "Fetch and analyze response headers.", route: "/tools/headers", status: "available" },
       { id: "server-info", name: "Server Information", description: "Inspect observable server, delivery, caching, and edge/proxy response signals.", route: "/tools/server", status: "available" },
+      { id: "telegram-proxy", name: "Telegram MTProto Proxies", description: "Browse monitored Telegram proxies with recent checks, status, and connection links.", route: "/tools/proxy", status: "available" },
     ],
   },
 ];

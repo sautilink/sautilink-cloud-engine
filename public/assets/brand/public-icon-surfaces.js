@@ -10,7 +10,7 @@
     sitemap: "lucide:network", mobile: "lucide:smartphone", cache: "refresh-0-1", dns: "lucide:router",
     email: "mail-0-1", mx: "mail-0-1", spf: "shield-check", dkim: "lock-keyhole", dmarc: "shield-check",
     nameserver: "server", ssl: "lock-keyhole", headers: "shield-check", cors: "security-block",
-    ip: "globe-0-2", rdns: "lucide:network", server: "server",
+    ip: "globe-0-2", rdns: "lucide:network", server: "server", proxy: "wifi-0-1",
   };
 
   function icon(name, className = "") {

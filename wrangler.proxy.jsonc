@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sautilink-cloud-engine-proxies",
+  "main": "workers/proxy.js",
+  "compatibility_date": "2026-10-21",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "keep_vars": true,
+  "d1_databases": [{
+    "binding": "PROXY_DB",
+    "database_name": "sautilink-cloud-engine-proxies",
+    "database_id": "e97b2498-7742-4201-919b-dd2fd0f718b5",
+    "migrations_dir": "migrations/proxy"
+  }],
+  "triggers": { "crons": ["* * * * *"] },
+  "vars": { "PROXY_MAX_CHECKS_PER_RUN": "8" },
+  "observability": { "enabled": true }
+}

@@ -18,7 +18,7 @@ test("vpn, proxy, and contact are public cheap commands", () => {
   }
 });
 
-test("service previews are bilingual and do not claim a live service", () => {
+test("VPN preview and proxy guidance are bilingual and make no invented availability claims", () => {
   const vpnEn = formatVpn("en");
   const vpnSw = formatVpn("sw");
   const proxyEn = formatProxy("en");
@@ -28,8 +28,10 @@ test("service previews are bilingual and do not claim a live service", () => {
   assert.match(vpnEn, /SSH, Trojan, WebSocket/i);
   assert.match(vpnSw, /Inakuja hivi karibuni/i);
   assert.match(proxyEn, /Connect to Proxy/i);
-  assert.match(proxyEn, /No active SautiLink proxy/i);
-  assert.match(proxySw, /hakuna active SautiLink proxy/i);
+  assert.match(proxyEn, /community-operated MTProto/i);
+  assert.match(proxyEn, /actual count can be lower/i);
+  assert.match(proxySw, /idadi halisi inaweza kuwa chini/i);
+  assert.match(proxyEn, /\/proxy status/);
 });
 
 test("contact provides the exact approved support destinations", () => {
@@ -55,11 +57,11 @@ test("command handlers return the service copy and contact keyboard", async () =
   const config = { cloudEngineBaseUrl: "https://cloudengine.sautilink.com", env: {} };
 
   const vpn = await handleCommand({ ...context, command: "vpn" }, config);
-  const proxy = await handleCommand({ ...context, command: "proxy" }, config);
+  const proxy = await handleCommand({ ...context, command: "proxy", arg: "help" }, config);
   const contact = await handleCommand({ ...context, command: "contact" }, config);
 
   assert.match(vpn.text, /Coming soon/i);
-  assert.match(proxy.text, /Coming soon/i);
+  assert.match(proxy.text, /Connect to Proxy/i);
   assert.equal(contact.reply_markup.inline_keyboard[0][0].url, "https://t.me/drcharlestz");
 });
 
